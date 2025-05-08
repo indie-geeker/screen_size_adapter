@@ -1,4 +1,4 @@
-part of 'screen_size_adapter.dart';
+part of '../screen_size_adapter.dart';
 
 class ScreenSizeWidget extends StatefulWidget {
   final Widget child;
@@ -11,7 +11,7 @@ class ScreenSizeWidget extends StatefulWidget {
 class ScreenSizeWidgetState extends State<ScreenSizeWidget> {
   @override
   Widget build(BuildContext context) {
-    final mediaQueryData = MediaQuery.of(context).design();
+    final mediaQueryData = MediaQuery.of(context).copyWithScale();
     return MediaQuery(
       data: mediaQueryData,
       child: DesignSizeInheritedWidget(

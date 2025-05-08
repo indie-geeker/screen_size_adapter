@@ -1,12 +1,12 @@
-part of 'screen_size_adapter.dart';
-class DesignSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
+part of '../screen_size_adapter.dart';
+class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   final Size designSize;
 
-  DesignSizeWidgetsFlutterBinding(this.designSize);
+  ScreenSizeWidgetsFlutterBinding(this.designSize);
 
   static WidgetsBinding ensureInitialized(Size size) {
     ScreenSizeHelper.instance.setDesignSize(size);
-    DesignSizeWidgetsFlutterBinding(size);
+    ScreenSizeWidgetsFlutterBinding(size);
     return WidgetsBinding.instance;
   }
 
@@ -17,7 +17,7 @@ class DesignSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     final BoxConstraints physicalConstraints =
     BoxConstraints.fromViewConstraints(view.physicalConstraints);
     final double devicePixelRatio =
-        ScreenSizeHelper.instance.data.devicePixelRatio;
+        ScreenSizeHelper.instance.newMediaQueryData.devicePixelRatio;
     return ViewConfiguration(
       physicalConstraints: physicalConstraints,
       logicalConstraints: physicalConstraints / devicePixelRatio,
@@ -65,7 +65,7 @@ class DesignSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
 
   double? _devicePixelRatioForView(int viewId) {
     if (viewId == 0) {
-      return ScreenSizeHelper.instance.data.devicePixelRatio;
+      return ScreenSizeHelper.instance.newMediaQueryData.devicePixelRatio;
     }
     return platformDispatcher.view(id: viewId)?.devicePixelRatio;
   }
