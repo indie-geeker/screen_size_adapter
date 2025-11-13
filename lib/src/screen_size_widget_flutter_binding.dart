@@ -1,21 +1,39 @@
 part of '../screen_size_adapter.dart';
+
+/// 自定义 WidgetsFlutterBinding，用于屏幕适配
+///
+/// 拦截 Flutter 的渲染管道，注入缩放后的 MediaQuery 和处理指针事件。
 class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   final Size designSize;
 
-  ScreenSizeWidgetsFlutterBinding(this.designSize);
+  ScreenSizeWidgetsFlutterBinding._(this.designSize) {
+    ScreenSizeHelper.initialize(designSize);
+  }
 
+  ///  初始化屏幕适配器
+  ///
+  /// 必须在 [runApp] 之前调用。
+  ///
+  /// [size] 设计稿尺寸，建议使用标准尺寸如 Size(360, 640)
+  ///
+  /// 使用示例：
+  /// ```dart
+  /// void main() {
+  ///   ScreenSizeWidgetsFlutterBinding.ensureInitialized(Size(360, 640));
+  ///   runApp(MyApp());
+  /// }
+  /// ```
   static WidgetsBinding ensureInitialized(Size size) {
-    ScreenSizeHelper.instance.setDesignSize(size);
-    ScreenSizeWidgetsFlutterBinding(size);
-    return WidgetsBinding.instance;
+    return ScreenSizeWidgetsFlutterBinding._(size);
   }
 
   @override
   ViewConfiguration createViewConfigurationFor(RenderView renderView) {
     var view = renderView.flutterView;
     ScreenSizeHelper.instance.setup();
+
     final BoxConstraints physicalConstraints =
-    BoxConstraints.fromViewConstraints(view.physicalConstraints);
+        BoxConstraints.fromViewConstraints(view.physicalConstraints);
     final double devicePixelRatio =
         ScreenSizeHelper.instance.newMediaQueryData.devicePixelRatio;
     return ViewConfiguration(

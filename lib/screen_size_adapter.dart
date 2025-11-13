@@ -1,6 +1,4 @@
 
-library screen_size_adapter;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
