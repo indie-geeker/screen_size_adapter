@@ -21,7 +21,7 @@
 
 ```yaml
 dependencies:
-  screen_size_adapter: ^0.0.1
+  screen_size_adapter: ^0.1.0
 ```
 
 然后运行：
@@ -42,7 +42,12 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
   // 初始化适配器，传入设计稿尺寸（宽度 x 高度）
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 640));
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+    const Size(360, 640),
+    config: const ScreenSizeAdapterConfig(
+      textScaleMode: ScreenSizeTextScaleMode.legacyScale,
+    ),
+  );
   runApp(const MyApp());
 }
 ```
@@ -114,6 +119,16 @@ bool isLandscape = ScreenSizeHelper.instance.isLandscape;
 
 // 重置适配器（不常用）
 ScreenSizeHelper.instance.reset();
+```
+
+#### ScreenSizeAdapter（运行时控制）
+
+```dart
+// 在 widget 树中动态更新设计稿尺寸（会触发重布局）
+ScreenSizeAdapter.setDesignSize(context, const Size(375, 667));
+
+// 重置当前适配状态
+ScreenSizeAdapter.reset(context);
 ```
 
 ## 💡 完整示例
@@ -329,13 +344,19 @@ Container(
 
 ### 桌面平台支持
 
-在桌面平台上，库会自动检测并应用适当的缩放比例：
+默认行为：
+- 移动端：启用设计稿适配
+- 桌面端（Windows/macOS/Linux）：关闭全局缩放（保留原始窗口尺寸）
+
+如需开启桌面端缩放，可通过配置打开：
 
 ```dart
-// 自动检测桌面平台（Windows/macOS/Linux）
-if (ScreenSizeHelper.instance.isDesktop) {
-  // 桌面平台特殊处理
-}
+ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+  const Size(360, 640),
+  config: const ScreenSizeAdapterConfig(
+    enableDesktopScaling: true,
+  ),
+);
 ```
 
 ### 获取原始 MediaQuery 数据
@@ -354,11 +375,30 @@ MediaQueryData data = MediaQuery.of(context);
 ### 运行时更改设计稿尺寸
 
 ```dart
-// 不推荐在运行时更改，仅用于特殊场景
-ScreenSizeHelper.instance.setDesignSize(const Size(375, 667));
+// 推荐：通过 ScreenSizeAdapter 触发重布局
+ScreenSizeAdapter.setDesignSize(context, const Size(375, 667));
+```
+
+### 文字缩放策略
+
+```dart
+ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+  const Size(360, 640),
+  config: const ScreenSizeAdapterConfig(
+    // 桌面端默认不缩放，按需开启
+    // enableDesktopScaling: true,
+
+    // 兼容模式：sp = value * scale
+    textScaleMode: ScreenSizeTextScaleMode.legacyScale,
+    // 设计稿模式：sp = value
+    // textScaleMode: ScreenSizeTextScaleMode.design,
+  ),
+);
 ```
 
 ## 📚 工作原理
+
+默认情况下，缩放计算主要作用于移动端；桌面端默认 `scale = 1`（除非开启 `enableDesktopScaling`）。
 
 1. **初始化阶段**
    - 记录设计稿尺寸（如 360x640）
@@ -437,7 +477,10 @@ A: 因为需要在 Flutter 引擎初始化时注入自定义的 `WidgetsFlutterB
 
 **Q: 单位测试如何处理？**
 
-A: 在测试中调用 `ScreenSizeHelper.instance.setDesignSize()` 初始化适配器。注意：由于修改了底层绑定，可能需要特殊的测试配置。
+A: 在测试中调用 `ScreenSizeHelper.initializeForTest()`。例如：
+```dart
+ScreenSizeHelper.initializeForTest(const Size(360, 640));
+```
 
 **Q: `.dp` 和 `.vw` 有什么区别？**
 
@@ -445,7 +488,9 @@ A: `.dp` 是 `.vw` 的别名，推荐使用 `.dp` 因为更直观。两者完全
 
 **Q: 字体会不会太大或太小？**
 
-A: `.sp` 与 `.dp` 使用相同的缩放比例。如果需要不同的文字缩放策略，可以自行调整或使用固定尺寸。
+A: 可通过 `ScreenSizeAdapterConfig.textScaleMode` 选择策略：
+- `legacyScale`：保持旧行为（`sp = value * scale`）
+- `design`：保持设计稿字号（`sp = value`）
 
 **Q: 是否支持 iPad 等大屏设备？**
 

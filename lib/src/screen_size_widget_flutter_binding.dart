@@ -5,9 +5,10 @@ part of '../screen_size_adapter.dart';
 /// 拦截 Flutter 的渲染管道，注入缩放后的 MediaQuery 和处理指针事件。
 class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   final Size designSize;
+  final ScreenSizeAdapterConfig config;
 
-  ScreenSizeWidgetsFlutterBinding._(this.designSize) {
-    ScreenSizeHelper.initialize(designSize);
+  ScreenSizeWidgetsFlutterBinding._(this.designSize, this.config) {
+    ScreenSizeHelper.initialize(designSize, config: config);
   }
 
   ///  初始化屏幕适配器
@@ -23,8 +24,32 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   ///   runApp(MyApp());
   /// }
   /// ```
-  static WidgetsBinding ensureInitialized(Size size) {
-    return ScreenSizeWidgetsFlutterBinding._(size);
+  static WidgetsBinding ensureInitialized(
+    Size size, {
+    ScreenSizeAdapterConfig config = const ScreenSizeAdapterConfig(),
+  }) {
+    WidgetsBinding? existingBinding;
+    try {
+      existingBinding = WidgetsBinding.instance;
+    } on FlutterError {
+      existingBinding = null;
+    }
+
+    if (existingBinding == null) {
+      return ScreenSizeWidgetsFlutterBinding._(size, config);
+    }
+
+    if (existingBinding is ScreenSizeWidgetsFlutterBinding) {
+      ScreenSizeHelper.initialize(size, config: config);
+      existingBinding.handleMetricsChanged();
+      return existingBinding;
+    }
+
+    throw StateError(
+      'A ${existingBinding.runtimeType} is already initialized. '
+      'ScreenSizeWidgetsFlutterBinding.ensureInitialized must be called before '
+      'any other binding initialization.',
+    );
   }
 
   @override
@@ -67,17 +92,20 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   void _handlePointerDataPacket(PointerDataPacket packet) {
     try {
       _pendingPointerEvents.addAll(
-          PointerEventConverter.expand(packet.data, _devicePixelRatioForView));
+        PointerEventConverter.expand(packet.data, _devicePixelRatioForView),
+      );
       if (!locked) {
         _flushPointerEventQueue();
       }
     } catch (error, stack) {
-      FlutterError.reportError(FlutterErrorDetails(
-        exception: error,
-        stack: stack,
-        library: 'gestures library',
-        context: ErrorDescription('while handling a pointer data packet'),
-      ));
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'gestures library',
+          context: ErrorDescription('while handling a pointer data packet'),
+        ),
+      );
     }
   }
 

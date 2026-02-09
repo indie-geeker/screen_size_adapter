@@ -65,16 +65,29 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   SizedBox(height: 8.dp),
-                  _buildInfoRow('设计尺寸', '${helper.designSize.width.toStringAsFixed(1)} x ${helper.designSize.height.toStringAsFixed(1)}'),
-                  _buildInfoRow('实际物理尺寸', '${originSize.width.toStringAsFixed(1)} x ${originSize.height.toStringAsFixed(1)}'),
-                  _buildInfoRow('MediaQuery尺寸', '${screenSize.width.toStringAsFixed(1)} x ${screenSize.height.toStringAsFixed(1)}'),
-                  _buildInfoRow('缩放比例 (scale)', '${scale.toStringAsFixed(3)}'),
+                  _buildInfoRow(
+                    '设计尺寸',
+                    '${helper.designSize.width.toStringAsFixed(1)} x ${helper.designSize.height.toStringAsFixed(1)}',
+                  ),
+                  _buildInfoRow(
+                    '实际物理尺寸',
+                    '${originSize.width.toStringAsFixed(1)} x ${originSize.height.toStringAsFixed(1)}',
+                  ),
+                  _buildInfoRow(
+                    'MediaQuery尺寸',
+                    '${screenSize.width.toStringAsFixed(1)} x ${screenSize.height.toStringAsFixed(1)}',
+                  ),
+                  _buildInfoRow('缩放比例 (scale)', scale.toStringAsFixed(3)),
                   SizedBox(height: 8.dp),
                   Divider(color: Colors.white24),
                   SizedBox(height: 4.dp),
                   Text(
                     '✅ 适配验证:',
-                    style: TextStyle(color: Colors.yellow, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.yellow,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 4.dp),
                   _buildInfoRow(
@@ -83,21 +96,19 @@ class _MyHomePageState extends State<MyHomePage> {
                         ? '✅ 是 (${(originSize.width - screenSize.width).toStringAsFixed(1)}px差异)'
                         : '❌ 否 (无缩放)',
                   ),
-                  _buildInfoRow(
-                    'MediaQuery ≈ 设计宽度',
-                    () {
-                      // 横屏模式下检查 height，竖屏模式下检查 width
-                      final isLandscape = helper.isLandscape;
-                      final targetSize = isLandscape ? screenSize.height : screenSize.width;
-                      final diff = (targetSize - helper.designSize.width).abs();
+                  _buildInfoRow('MediaQuery ≈ 设计宽度', () {
+                    // 横屏模式下检查 height，竖屏模式下检查 width
+                    final isLandscape = helper.isLandscape;
+                    final targetSize =
+                        isLandscape ? screenSize.height : screenSize.width;
+                    final diff = (targetSize - helper.designSize.width).abs();
 
-                      if (diff < 0.1) {
-                        return '✅ 是 (适配生效)${isLandscape ? " [横屏]" : ""}';
-                      } else {
-                        return '❌ 否 (差${diff.toStringAsFixed(1)}px)';
-                      }
-                    }(),
-                  ),
+                    if (diff < 0.1) {
+                      return '✅ 是 (适配生效)${isLandscape ? " [横屏]" : ""}';
+                    } else {
+                      return '❌ 否 (差${diff.toStringAsFixed(1)}px)';
+                    }
+                  }()),
                   SizedBox(height: 8.dp),
                   Text(
                     '💡 重要提示：',
@@ -106,9 +117,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   Text(
                     helper.isLandscape
                         ? '横屏模式：MediaQuery.height ≈ 设计宽度\n'
-                          '适配基于高度，两个 180.dp 仍会充满屏幕宽度'
+                            '适配基于高度，两个 180.dp 仍会充满屏幕宽度'
                         : '竖屏模式：180.dp = 180 (数学必然)\n'
-                          '适配通过 MediaQuery 实现，而非 .dp 扩展',
+                            '适配通过 MediaQuery 实现，而非 .dp 扩展',
                     style: TextStyle(color: Colors.white70, fontSize: 11.sp),
                   ),
                 ],
@@ -148,7 +159,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     '❌ 错误验证方法：\n'
                     '• 对比 180.dp 和 180 的差异(竖屏下永远为0)\n'
                     '• 修改设计尺寸后期望界面不变',
-                    style: TextStyle(fontSize: 12.sp, color: Colors.black87, height: 1.5),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
                   ),
                 ],
               ),
@@ -162,7 +177,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Text(
                     '示例 1: 180.vw = 180 的证明',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
                   ),
                   SizedBox(height: 4.dp),
                   Text(
@@ -210,7 +228,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Text(
                     '示例 2: MediaQuery 的适配效果（真正的验证）',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
                   ),
                   SizedBox(height: 4.dp),
                   Text(
@@ -235,7 +256,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Text(
                     helper.isLandscape ? '屏幕尺寸对比 (横屏模式):' : '屏幕宽度对比 (竖屏模式):',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13.sp,
+                    ),
                   ),
                   SizedBox(height: 8.dp),
                   // 显示实际设备尺寸
@@ -264,7 +288,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           helper.isLandscape
                               ? 'MediaQuery 尺寸: ${screenSize.width.toStringAsFixed(1)} x ${screenSize.height.toStringAsFixed(1)} px (被缩放)'
                               : 'MediaQuery 宽度: ${screenSize.width.toStringAsFixed(1)} px (被缩放)',
-                          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -288,7 +315,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   Text(
                     () {
                       // 横屏检查 height，竖屏检查 width
-                      final targetSize = helper.isLandscape ? screenSize.height : screenSize.width;
+                      final targetSize =
+                          helper.isLandscape
+                              ? screenSize.height
+                              : screenSize.width;
                       final diff = (targetSize - helper.designSize.width).abs();
 
                       if (diff < 0.1) {
@@ -303,8 +333,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       fontSize: 12.sp,
                       fontWeight: FontWeight.bold,
                       color: () {
-                        final targetSize = helper.isLandscape ? screenSize.height : screenSize.width;
-                        final diff = (targetSize - helper.designSize.width).abs();
+                        final targetSize =
+                            helper.isLandscape
+                                ? screenSize.height
+                                : screenSize.width;
+                        final diff =
+                            (targetSize - helper.designSize.width).abs();
                         return diff < 0.1 ? Colors.green[800] : Colors.red[800];
                       }(),
                     ),
@@ -323,13 +357,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Text(
                     '示例 3: 充满屏幕验证（最佳方法）',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
                   ),
                   SizedBox(height: 4.dp),
                   Text(
                     helper.isLandscape
-                        ? '设计宽度=${helper.designSize.width.toInt()}，横屏下${(helper.designSize.width/2).toInt()}.dp ≠ ${(helper.designSize.width/2).toInt()}，但两个仍应充满屏幕'
-                        : '设计宽度=${helper.designSize.width.toInt()}，两个${(helper.designSize.width/2).toInt()}.dp矩形应该正好充满屏幕',
+                        ? '设计宽度=${helper.designSize.width.toInt()}，横屏下${(helper.designSize.width / 2).toInt()}.dp ≠ ${(helper.designSize.width / 2).toInt()}，但两个仍应充满屏幕'
+                        : '设计宽度=${helper.designSize.width.toInt()}，两个${(helper.designSize.width / 2).toInt()}.dp矩形应该正好充满屏幕',
                     style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
                   ),
                 ],
@@ -344,7 +381,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   alignment: Alignment.center,
                   child: Text(
                     '${(helper.designSize.width / 2).toInt()}.dp',
-                    style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Container(
@@ -354,7 +395,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   alignment: Alignment.center,
                   child: Text(
                     '${(helper.designSize.width / 2).toInt()}.dp',
-                    style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -365,12 +410,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 () {
                   // 计算两个矩形的实际总宽度
                   final totalWidth = (helper.designSize.width / 2).dp * 2;
-                  final isFullWidth = (totalWidth - screenSize.width).abs() < 0.1;
+                  final isFullWidth =
+                      (totalWidth - screenSize.width).abs() < 0.1;
 
                   if (isFullWidth) {
                     return '✅ 两个矩形正好充满屏幕 → 适配成功！';
                   } else {
-                    final diff = (totalWidth - screenSize.width).abs().toStringAsFixed(0);
+                    final diff = (totalWidth - screenSize.width)
+                        .abs()
+                        .toStringAsFixed(0);
                     return '❌ 两个矩形${totalWidth < screenSize.width ? "未充满" : "超出"}屏幕 (差${diff}px) → 检查配置';
                   }
                 }(),
@@ -446,8 +494,14 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('$label:', style: TextStyle(color: Colors.white70, fontSize: 12.sp)),
-          Text(value, style: TextStyle(color: Colors.greenAccent, fontSize: 12.sp)),
+          Text(
+            '$label:',
+            style: TextStyle(color: Colors.white70, fontSize: 12.sp),
+          ),
+          Text(
+            value,
+            style: TextStyle(color: Colors.greenAccent, fontSize: 12.sp),
+          ),
         ],
       ),
     );

@@ -11,7 +11,6 @@ part of '../screen_size_adapter.dart';
 /// )
 /// ```
 extension DimensionExt on num {
-
   /// 基础适配方法（推荐使用）
   ///
   /// 根据设计稿宽度等比例缩放，适用于大多数场景。
@@ -27,8 +26,13 @@ extension DimensionExt on num {
   /// 根据屏幕宽度与设计稿宽度的比例进行缩放。
   /// 计算公式：this * (实际屏幕宽度 / 设计稿宽度)
   double get vw {
-    final widthScale = ScreenSizeHelper.instance.originMediaQueryData.size.width / ScreenSizeHelper.instance.designSize.width;
-    return this * widthScale / ScreenSizeHelper.instance.scale;
+    final helper = ScreenSizeHelper.instance;
+    if (!helper.shouldApplyScale) {
+      return toDouble();
+    }
+    final widthScale =
+        helper.originMediaQueryData.size.width / helper.designSize.width;
+    return this * widthScale / helper.scale;
   }
 
   /// 高度方向适配
@@ -38,18 +42,24 @@ extension DimensionExt on num {
   ///
   /// 适用于需要按高度方向独立缩放的场景。
   double get vh {
-    final isLandscape = ScreenSizeHelper.instance.isLandscape;
-    
+    final helper = ScreenSizeHelper.instance;
+    if (!helper.shouldApplyScale) {
+      return toDouble();
+    }
+    final isLandscape = helper.isLandscape;
+
     double heightScale;
     if (isLandscape) {
       // 横屏模式下，使用屏幕高度与设计稿高度的比例
-      heightScale = ScreenSizeHelper.instance.originMediaQueryData.size.height / ScreenSizeHelper.instance.designSize.height;
+      heightScale =
+          helper.originMediaQueryData.size.height / helper.designSize.height;
     } else {
       // 竖屏模式下，保持与宽度相同的缩放比例
-      heightScale = ScreenSizeHelper.instance.originMediaQueryData.size.width / ScreenSizeHelper.instance.designSize.width;
+      heightScale =
+          helper.originMediaQueryData.size.width / helper.designSize.width;
     }
-    
-    return this * heightScale / ScreenSizeHelper.instance.scale;
+
+    return this * heightScale / helper.scale;
   }
 
   /// 字体大小适配
@@ -63,5 +73,11 @@ extension DimensionExt on num {
   ///   style: TextStyle(fontSize: 14.sp),
   /// )
   /// ```
-  double get sp => this * ScreenSizeHelper.instance.scale;
+  double get sp {
+    final helper = ScreenSizeHelper.instance;
+    return switch (helper.config.textScaleMode) {
+      ScreenSizeTextScaleMode.legacyScale => this * helper.scale,
+      ScreenSizeTextScaleMode.design => toDouble(),
+    };
+  }
 }

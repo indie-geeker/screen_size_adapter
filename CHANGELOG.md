@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-02-09
+
+### Added
+
+- Added `ScreenSizeAdapterConfig` and `ScreenSizeTextScaleMode` for `.sp` behavior control.
+- Added `ScreenSizeAdapter.setDesignSize(context, size)` and `ScreenSizeAdapter.reset(context)` for runtime relayout-safe updates.
+- Added `ScreenSizeHelper.initializeForTest(...)` for deterministic test setup.
+- Added package and example smoke tests for adapter behavior.
+- Added CI workflow to run static analysis and tests.
+
+### Changed
+
+- `ScreenSizeWidgetsFlutterBinding.ensureInitialized` now supports optional `config`.
+- `ScreenSizeWidgetsFlutterBinding.ensureInitialized` now provides clearer error when another binding is already initialized.
+- Replaced `dart:io Platform` detection with Flutter platform APIs for safer multi-platform behavior.
+- Updated Chinese and English README usage and FAQ sections to match real runtime/test APIs.
+- Mobile scaling remains enabled by default, while desktop scaling is disabled by default (`enableDesktopScaling = false`).
+
+### Fixed
+
+- Fixed desktop scale recalculation path so metrics changes no longer reuse stale scale.
+- Fixed test documentation mismatch that previously recommended an initialization path that throws at runtime.
+
 ## [0.0.1] - 2025-11-13
 
 ### Added
@@ -93,4 +116,5 @@ Container(
 
 ---
 
+[0.1.0]: https://github.com/yourusername/screen_size_adapter/releases/tag/v0.1.0
 [0.0.1]: https://github.com/yourusername/screen_size_adapter/releases/tag/v0.0.1

@@ -21,7 +21,7 @@ Add dependency in `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  screen_size_adapter: ^0.0.1
+  screen_size_adapter: ^0.1.0
 ```
 
 Then run:
@@ -42,7 +42,12 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
   // Initialize adapter with design dimensions (width x height)
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 640));
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+    const Size(360, 640),
+    config: const ScreenSizeAdapterConfig(
+      textScaleMode: ScreenSizeTextScaleMode.legacyScale,
+    ),
+  );
   runApp(const MyApp());
 }
 ```
@@ -114,6 +119,16 @@ bool isLandscape = ScreenSizeHelper.instance.isLandscape;
 
 // Reset adapter (rarely used)
 ScreenSizeHelper.instance.reset();
+```
+
+#### ScreenSizeAdapter (Runtime Control)
+
+```dart
+// Update design size in runtime and trigger relayout
+ScreenSizeAdapter.setDesignSize(context, const Size(375, 667));
+
+// Reset current adaptation state
+ScreenSizeAdapter.reset(context);
 ```
 
 ## 💡 Complete Example
@@ -329,13 +344,19 @@ Container(
 
 ### Desktop Platform Support
 
-The library automatically detects and applies appropriate scaling on desktop platforms:
+Default behavior:
+- Mobile: design-size scaling is enabled
+- Desktop (Windows/macOS/Linux): global scaling is disabled (uses original window metrics)
+
+If you want scaling on desktop, enable it in config:
 
 ```dart
-// Auto-detect desktop platform (Windows/macOS/Linux)
-if (ScreenSizeHelper.instance.isDesktop) {
-  // Special handling for desktop
-}
+ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+  const Size(360, 640),
+  config: const ScreenSizeAdapterConfig(
+    enableDesktopScaling: true,
+  ),
+);
 ```
 
 ### Getting Original MediaQuery Data
@@ -354,11 +375,30 @@ MediaQueryData data = MediaQuery.of(context);
 ### Runtime Design Size Changes
 
 ```dart
-// Not recommended at runtime, only for special cases
-ScreenSizeHelper.instance.setDesignSize(const Size(375, 667));
+// Recommended: use runtime controller to trigger relayout
+ScreenSizeAdapter.setDesignSize(context, const Size(375, 667));
+```
+
+### Text Scale Strategy
+
+```dart
+ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+  const Size(360, 640),
+  config: const ScreenSizeAdapterConfig(
+    // Desktop scaling is off by default; enable when needed.
+    // enableDesktopScaling: true,
+
+    // Compatibility mode: sp = value * scale
+    textScaleMode: ScreenSizeTextScaleMode.legacyScale,
+    // Design mode: sp = value
+    // textScaleMode: ScreenSizeTextScaleMode.design,
+  ),
+);
 ```
 
 ## 📚 How It Works
+
+By default, scaling is mainly applied on mobile; desktop keeps `scale = 1` unless `enableDesktopScaling` is enabled.
 
 1. **Initialization Phase**
    - Records design dimensions (e.g., 360x640)
@@ -437,7 +477,10 @@ A: Because we need to inject custom `WidgetsFlutterBinding` during Flutter engin
 
 **Q: How to handle unit tests?**
 
-A: Call `ScreenSizeHelper.instance.setDesignSize()` in tests to initialize the adapter. Note: Due to binding modifications, special test configuration may be needed.
+A: Call `ScreenSizeHelper.initializeForTest()` in tests. Example:
+```dart
+ScreenSizeHelper.initializeForTest(const Size(360, 640));
+```
 
 **Q: What's the difference between `.dp` and `.vw`?**
 
@@ -445,7 +488,9 @@ A: `.dp` is an alias of `.vw`. We recommend `.dp` as it's more intuitive. They a
 
 **Q: Will fonts be too large or small?**
 
-A: `.sp` uses the same scale as `.dp`. If you need different text scaling strategy, adjust manually or use fixed sizes.
+A: Configure `ScreenSizeAdapterConfig.textScaleMode`:
+- `legacyScale`: keeps old behavior (`sp = value * scale`)
+- `design`: keeps design font size (`sp = value`)
 
 **Q: Does it support iPad and large screens?**
 

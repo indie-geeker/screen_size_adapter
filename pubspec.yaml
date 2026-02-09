@@ -1,7 +1,6 @@
 name: screen_size_adapter
 description: "一个极低成本的Flutter屏幕适配方案"
-version: 0.0.1
-homepage:
+version: 0.1.0
 
 environment:
   sdk: ^3.7.2

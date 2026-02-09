@@ -1,12 +1,26 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
+  testWidgets('example can render widget with adapter extensions', (
+    WidgetTester tester,
+  ) async {
+    ScreenSizeHelper.initializeForTest(const Size(360, 640));
 
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Container(
+            width: 120.dp,
+            height: 60.dp,
+            alignment: Alignment.center,
+            child: Text('demo', style: TextStyle(fontSize: 14.sp)),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('demo'), findsOneWidget);
+  });
 }

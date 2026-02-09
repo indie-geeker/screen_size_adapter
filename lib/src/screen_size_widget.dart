@@ -9,6 +9,8 @@ class ScreenSizeWidget extends StatefulWidget {
 }
 
 class ScreenSizeWidgetState extends State<ScreenSizeWidget> {
+  int _version = 0;
+
   @override
   Widget build(BuildContext context) {
     final mediaQueryData = MediaQuery.of(context).copyWithScale();
@@ -16,33 +18,47 @@ class ScreenSizeWidgetState extends State<ScreenSizeWidget> {
       data: mediaQueryData,
       child: DesignSizeInheritedWidget(
         data: this,
-        child: widget.child,
+        version: _version,
+        child: KeyedSubtree(key: ValueKey<int>(_version), child: widget.child),
       ),
     );
   }
 
   void setDesignSize(Size size) {
+    if (ScreenSizeHelper.instance.designSize == size) {
+      return;
+    }
     ScreenSizeHelper.instance.setDesignSize(size);
     WidgetsBinding.instance.handleMetricsChanged();
-    setState(() {});
+    setState(() {
+      _version++;
+    });
   }
 
   void reset() {
     ScreenSizeHelper.instance.reset();
     WidgetsBinding.instance.handleMetricsChanged();
-    setState(() {});
+    setState(() {
+      _version++;
+    });
   }
 }
 
-
-
 class DesignSizeInheritedWidget extends InheritedWidget {
   final ScreenSizeWidgetState data;
+  final int version;
 
-  const DesignSizeInheritedWidget({super.key, required this.data, required super.child});
+  const DesignSizeInheritedWidget({
+    super.key,
+    required this.data,
+    required this.version,
+    required super.child,
+  });
 
   static ScreenSizeWidgetState? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<DesignSizeInheritedWidget>()?.data;
+    return context
+        .dependOnInheritedWidgetOfExactType<DesignSizeInheritedWidget>()
+        ?.data;
   }
 
   static ScreenSizeWidgetState of(BuildContext context) {
@@ -52,5 +68,6 @@ class DesignSizeInheritedWidget extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(DesignSizeInheritedWidget oldWidget) => data != oldWidget.data;
+  bool updateShouldNotify(DesignSizeInheritedWidget oldWidget) =>
+      version != oldWidget.version;
 }
