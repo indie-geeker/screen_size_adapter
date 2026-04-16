@@ -174,6 +174,37 @@ void main() {
       expect(14.sp, closeTo(14.0, 0.0001));
     });
 
+    test('r uses min-dimension scaling', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 780),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+
+      // scale = 390/360 = 1.0833
+      // widthScale = 390/360 = 1.0833
+      // heightScale = 780/640 = 1.21875
+      // minScale = 1.0833
+      // r = 100 * 1.0833 / 1.0833 = 100.0
+      expect(100.r, closeTo(100.0, 0.001));
+
+      // On a device where height ratio < width ratio:
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(720, 800),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+
+      // scale = 720/360 = 2.0
+      // widthScale = 720/360 = 2.0
+      // heightScale = 800/640 = 1.25
+      // minScale = 1.25
+      // r = 100 * 1.25 / 2.0 = 62.5
+      expect(100.r, closeTo(62.5, 0.001));
+    });
+
     test('desktop can opt into scaling with config', () {
       ScreenSizeHelper.initializeForTest(
         const Size(360, 640),

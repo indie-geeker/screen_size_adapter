@@ -76,4 +76,26 @@ extension DimensionExt on num {
         }(),
     };
   }
+
+  /// Min-dimension scaling for aspect-ratio-safe elements (circles, icons, avatars).
+  ///
+  /// Uses the smaller of width/height scale ratios to prevent distortion.
+  ///
+  /// Example:
+  /// ```dart
+  /// BorderRadius.circular(16.r)
+  /// ```
+  double get r {
+    final helper = ScreenSizeHelper.instance;
+    if (!helper.shouldApplyScale) {
+      return toDouble();
+    }
+
+    final widthScale =
+        helper.originMediaQueryData.size.width / helper.designSize.width;
+    final heightScale =
+        helper.originMediaQueryData.size.height / helper.designSize.height;
+    final minScale = math.min(widthScale, heightScale);
+    return this * minScale / helper.scale;
+  }
 }
