@@ -317,6 +317,32 @@ void main() {
     });
   });
 
+  group('Screen fraction extensions', () {
+    test('sw returns fraction of scaled screen width', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+      );
+
+      final scaledWidth = ScreenSizeHelper.instance.newMediaQueryData.size.width;
+      expect(0.5.sw, closeTo(scaledWidth * 0.5, 0.001));
+      expect(1.0.sw, closeTo(scaledWidth, 0.001));
+    });
+
+    test('sh returns fraction of scaled screen height', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+      );
+
+      final scaledHeight = ScreenSizeHelper.instance.newMediaQueryData.size.height;
+      expect(0.5.sh, closeTo(scaledHeight * 0.5, 0.001));
+      expect(1.0.sh, closeTo(scaledHeight, 0.001));
+    });
+  });
+
   testWidgets('ensureInitialized fails after test binding is created', (
     WidgetTester tester,
   ) async {

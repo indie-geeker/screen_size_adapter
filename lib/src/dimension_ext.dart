@@ -98,4 +98,26 @@ extension DimensionExt on num {
     final minScale = math.min(widthScale, heightScale);
     return this * minScale / helper.scale;
   }
+
+  /// Fraction of scaled screen width.
+  ///
+  /// Example:
+  /// ```dart
+  /// Container(width: 0.5.sw) // half the screen width
+  /// ```
+  double get sw {
+    final helper = ScreenSizeHelper.instance;
+    return this * helper.newMediaQueryData.size.width;
+  }
+
+  /// Fraction of scaled screen height.
+  ///
+  /// Example:
+  /// ```dart
+  /// Container(height: 0.3.sh) // 30% of screen height
+  /// ```
+  double get sh {
+    final helper = ScreenSizeHelper.instance;
+    return this * helper.newMediaQueryData.size.height;
+  }
 }
