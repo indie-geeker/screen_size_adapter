@@ -552,19 +552,19 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow(
-                    'maxScale 配置',
-                    '${helper.config.maxScale ?? "无限制"}',
+                  Text(
+                    'maxScale 配置: ${helper.config.maxScale ?? "无限制"}',
+                    style: TextStyle(fontSize: 12.sp, color: Colors.black87),
                   ),
-                  _buildInfoRow(
-                    '当前 scale',
-                    scale.toStringAsFixed(3),
+                  SizedBox(height: 4.dp),
+                  Text(
+                    '当前 scale: ${scale.toStringAsFixed(3)}',
+                    style: TextStyle(fontSize: 12.sp, color: Colors.black87),
                   ),
-                  _buildInfoRow(
-                    '是否被钳制',
-                    helper.config.maxScale != null && scale >= helper.config.maxScale!
-                        ? '是 (已达上限)'
-                        : '否',
+                  SizedBox(height: 4.dp),
+                  Text(
+                    '是否被钳制: ${helper.config.maxScale != null && scale >= helper.config.maxScale! ? "是 (已达上限)" : "否"}',
+                    style: TextStyle(fontSize: 12.sp, color: Colors.black87),
                   ),
                 ],
               ),

@@ -41,6 +41,9 @@ class ScreenSizeAdapterConfig {
     this.maxScale = 2.0,
   });
 
+  /// Creates a copy with the given fields replaced.
+  ///
+  /// To set [maxScale] to `null` (unlimited), use [copyWithMaxScale].
   ScreenSizeAdapterConfig copyWith({
     ScreenSizeTextScaleMode? textScaleMode,
     bool? enableDesktopScaling,
@@ -50,6 +53,15 @@ class ScreenSizeAdapterConfig {
       textScaleMode: textScaleMode ?? this.textScaleMode,
       enableDesktopScaling: enableDesktopScaling ?? this.enableDesktopScaling,
       maxScale: maxScale ?? this.maxScale,
+    );
+  }
+
+  /// Creates a copy with [maxScale] explicitly set (including `null` for unlimited).
+  ScreenSizeAdapterConfig copyWithMaxScale(double? maxScale) {
+    return ScreenSizeAdapterConfig(
+      textScaleMode: textScaleMode,
+      enableDesktopScaling: enableDesktopScaling,
+      maxScale: maxScale,
     );
   }
 }

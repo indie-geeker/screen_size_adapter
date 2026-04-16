@@ -353,16 +353,14 @@ void main() {
     });
 
     test('verticalSpace returns SizedBox with adapted height', () {
-      final widget = 16.verticalSpace;
-      expect(widget, isA<SizedBox>());
-      expect((widget as SizedBox).height, closeTo(16.dp, 0.001));
+      final SizedBox widget = 16.verticalSpace;
+      expect(widget.height, closeTo(16.dp, 0.001));
       expect(widget.width, isNull);
     });
 
     test('horizontalSpace returns SizedBox with adapted width', () {
-      final widget = 16.horizontalSpace;
-      expect(widget, isA<SizedBox>());
-      expect((widget as SizedBox).width, closeTo(16.dp, 0.001));
+      final SizedBox widget = 16.horizontalSpace;
+      expect(widget.width, closeTo(16.dp, 0.001));
       expect(widget.height, isNull);
     });
 
