@@ -1,10 +1,10 @@
 name: screen_size_adapter
 description: "一个极低成本的Flutter屏幕适配方案"
-version: 0.1.0
+version: 0.2.0
 
 environment:
   sdk: ^3.7.2
-  flutter: ">=1.17.0"
+  flutter: ">=3.16.0"
 
 dependencies:
   flutter:

@@ -457,11 +457,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
             SizedBox(height: 16.dp),
 
-            // 对比示例 4：字体大小
+            // 对比示例 5：字体大小
             Padding(
               padding: EdgeInsets.all(8.dp),
               child: Text(
-                '示例 4: 字体大小适配',
+                '示例 5: 字体大小适配',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
               ),
             ),
@@ -477,6 +477,95 @@ class _MyHomePageState extends State<MyHomePage> {
                   Text('18.sp 适配字体', style: TextStyle(fontSize: 18.sp)),
                   SizedBox(height: 8.dp),
                   Text('14 固定字体 (无适配)', style: TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 16.dp),
+
+            // 示例 6: 运行时切换设计尺寸
+            Padding(
+              padding: EdgeInsets.all(8.dp),
+              child: Text(
+                '示例 6: 运行时切换设计尺寸',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 8.dp),
+              padding: EdgeInsets.all(12.dp),
+              decoration: BoxDecoration(
+                color: Colors.teal[50],
+                border: Border.all(color: Colors.teal, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '当前设计尺寸: ${helper.designSize.width.toInt()} x ${helper.designSize.height.toInt()}',
+                    style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8.dp),
+                  Wrap(
+                    spacing: 8.dp,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => ScreenSizeAdapter.setDesignSize(
+                            context, const Size(360, 640)),
+                        child: Text('360x640', style: TextStyle(fontSize: 12.sp)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => ScreenSizeAdapter.setDesignSize(
+                            context, const Size(375, 667)),
+                        child: Text('375x667', style: TextStyle(fontSize: 12.sp)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => ScreenSizeAdapter.setDesignSize(
+                            context, const Size(390, 844)),
+                        child: Text('390x844', style: TextStyle(fontSize: 12.sp)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 16.dp),
+
+            // 示例 7: maxScale 信息
+            Padding(
+              padding: EdgeInsets.all(8.dp),
+              child: Text(
+                '示例 7: maxScale 信息',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 8.dp),
+              padding: EdgeInsets.all(12.dp),
+              decoration: BoxDecoration(
+                color: Colors.amber[50],
+                border: Border.all(color: Colors.amber, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(
+                    'maxScale 配置',
+                    '${helper.config.maxScale ?? "无限制"}',
+                  ),
+                  _buildInfoRow(
+                    '当前 scale',
+                    scale.toStringAsFixed(3),
+                  ),
+                  _buildInfoRow(
+                    '是否被钳制',
+                    helper.config.maxScale != null && scale >= helper.config.maxScale!
+                        ? '是 (已达上限)'
+                        : '否',
+                  ),
                 ],
               ),
             ),
