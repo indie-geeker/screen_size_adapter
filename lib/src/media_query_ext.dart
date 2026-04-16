@@ -5,9 +5,8 @@ extension MediaQueryDataExt on MediaQueryData {
     return copyWith(
       size: size / scale,
       devicePixelRatio: devicePixelRatio * scale,
-      viewInsets: viewInsets / scale,
-      viewPadding: viewPadding / scale,
-      padding: padding / scale,
+      // padding, viewPadding, viewInsets are intentionally NOT scaled.
+      // These represent physical device properties (notch, home indicator, keyboard).
     );
   }
 }

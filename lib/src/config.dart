@@ -11,6 +11,11 @@ enum ScreenSizeTextScaleMode {
   ///
   /// Formula: `sp = value`.
   design,
+
+  /// Respects system accessibility text scaling.
+  ///
+  /// Formula: `sp = textScaler.scale(value)`.
+  system,
 }
 
 /// Runtime configuration for [screen_size_adapter].
@@ -23,18 +28,40 @@ class ScreenSizeAdapterConfig {
   /// Defaults to `false`, meaning desktop uses original window metrics.
   final bool enableDesktopScaling;
 
+  /// Upper bound for the computed scale factor.
+  ///
+  /// When non-null, the scale is clamped so it never exceeds this value.
+  /// Set to `null` to allow unlimited scaling.
+  /// Defaults to `2.0`.
+  final double? maxScale;
+
   const ScreenSizeAdapterConfig({
-    this.textScaleMode = ScreenSizeTextScaleMode.legacyScale,
+    this.textScaleMode = ScreenSizeTextScaleMode.design,
     this.enableDesktopScaling = false,
+    this.maxScale = 2.0,
   });
 
+  /// Creates a copy with the given fields replaced.
+  ///
+  /// To set [maxScale] to `null` (unlimited), use [copyWithMaxScale].
   ScreenSizeAdapterConfig copyWith({
     ScreenSizeTextScaleMode? textScaleMode,
     bool? enableDesktopScaling,
+    double? maxScale,
   }) {
     return ScreenSizeAdapterConfig(
       textScaleMode: textScaleMode ?? this.textScaleMode,
       enableDesktopScaling: enableDesktopScaling ?? this.enableDesktopScaling,
+      maxScale: maxScale ?? this.maxScale,
+    );
+  }
+
+  /// Creates a copy with [maxScale] explicitly set (including `null` for unlimited).
+  ScreenSizeAdapterConfig copyWithMaxScale(double? maxScale) {
+    return ScreenSizeAdapterConfig(
+      textScaleMode: textScaleMode,
+      enableDesktopScaling: enableDesktopScaling,
+      maxScale: maxScale,
     );
   }
 }

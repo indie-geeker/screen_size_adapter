@@ -42,6 +42,19 @@ class ScreenSizeHelper {
         !_isDesktop;
   }
 
+  /// Returns the primary FlutterView, preferring the modern multi-view API.
+  /// Falls back to the deprecated implicitView for older Flutter versions.
+  FlutterView? get _primaryView {
+    try {
+      final views = WidgetsBinding.instance.platformDispatcher.views;
+      if (views.isNotEmpty) return views.first;
+    } catch (_) {
+      // Binding not yet initialized — fall through to legacy API.
+    }
+    // ignore: deprecated_member_use
+    return PlatformDispatcher.instance.implicitView;
+  }
+
   factory ScreenSizeHelper() => instance;
 
   /// 获取单例实例
@@ -104,6 +117,8 @@ class ScreenSizeHelper {
       _instance!.scale = 1.0;
     }
 
+    _instance!._clampScale();
+
     _instance!.newMediaQueryData =
         _instance!.originMediaQueryData.copyWithScale();
   }
@@ -145,7 +160,7 @@ class ScreenSizeHelper {
   ///
   /// 将设计稿尺寸重置为当前屏幕尺寸，缩放比例重置为 1.0
   void reset() {
-    final view = PlatformDispatcher.instance.implicitView;
+    final view = _primaryView;
     if (view == null) {
       originMediaQueryData = MediaQueryData(size: designSize);
       newMediaQueryData = originMediaQueryData;
@@ -163,7 +178,7 @@ class ScreenSizeHelper {
   }
 
   void setup() {
-    final view = PlatformDispatcher.instance.implicitView;
+    final view = _primaryView;
     if (view == null) {
       // View not ready yet, use default values.
       originMediaQueryData = MediaQueryData(size: designSize);
@@ -181,7 +196,7 @@ class ScreenSizeHelper {
     }
 
     final bool isLandscape =
-        view.physicalSize.width > view.physicalSize.height && !_isDesktop;
+        originMediaQueryData.size.width > originMediaQueryData.size.height && !_isDesktop;
 
     if (isLandscape) {
       // 横屏模式：使用屏幕高度与设计稿宽度的比例
@@ -196,7 +211,15 @@ class ScreenSizeHelper {
       scale = 1.0;
     }
 
+    _clampScale();
+
     newMediaQueryData = originMediaQueryData.copyWithScale();
+  }
+
+  void _clampScale() {
+    if (config.maxScale != null && scale > config.maxScale!) {
+      scale = config.maxScale!;
+    }
   }
 
   static ScreenSizeHelper _getInstance() {

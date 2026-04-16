@@ -35,30 +35,21 @@ extension DimensionExt on num {
     return this * widthScale / helper.scale;
   }
 
-  /// 高度方向适配
+  /// Height-direction adaptation.
   ///
-  /// 横屏模式下使用屏幕高度与设计稿高度的比例，
-  /// 竖屏模式下与 [vw] 使用相同的缩放比例。
+  /// Always uses the height axis independently:
+  /// `this * (screenHeight / designHeight) / scale`
   ///
-  /// 适用于需要按高度方向独立缩放的场景。
+  /// This means on devices with non-design aspect ratios, `.vh` and `.vw`
+  /// will return different values, correctly reflecting the device's shape.
   double get vh {
     final helper = ScreenSizeHelper.instance;
     if (!helper.shouldApplyScale) {
       return toDouble();
     }
-    final isLandscape = helper.isLandscape;
 
-    double heightScale;
-    if (isLandscape) {
-      // 横屏模式下，使用屏幕高度与设计稿高度的比例
-      heightScale =
-          helper.originMediaQueryData.size.height / helper.designSize.height;
-    } else {
-      // 竖屏模式下，保持与宽度相同的缩放比例
-      heightScale =
-          helper.originMediaQueryData.size.width / helper.designSize.width;
-    }
-
+    final heightScale =
+        helper.originMediaQueryData.size.height / helper.designSize.height;
     return this * heightScale / helper.scale;
   }
 
@@ -78,6 +69,55 @@ extension DimensionExt on num {
     return switch (helper.config.textScaleMode) {
       ScreenSizeTextScaleMode.legacyScale => this * helper.scale,
       ScreenSizeTextScaleMode.design => toDouble(),
+      ScreenSizeTextScaleMode.system => () {
+          final fontSize = toDouble();
+          if (fontSize == 0) return 0.0;
+          return helper.originMediaQueryData.textScaler.scale(fontSize);
+        }(),
     };
+  }
+
+  /// Min-dimension scaling for aspect-ratio-safe elements (circles, icons, avatars).
+  ///
+  /// Uses the smaller of width/height scale ratios to prevent distortion.
+  ///
+  /// Example:
+  /// ```dart
+  /// BorderRadius.circular(16.r)
+  /// ```
+  double get r {
+    final helper = ScreenSizeHelper.instance;
+    if (!helper.shouldApplyScale) {
+      return toDouble();
+    }
+
+    final widthScale =
+        helper.originMediaQueryData.size.width / helper.designSize.width;
+    final heightScale =
+        helper.originMediaQueryData.size.height / helper.designSize.height;
+    final minScale = math.min(widthScale, heightScale);
+    return this * minScale / helper.scale;
+  }
+
+  /// Fraction of scaled screen width.
+  ///
+  /// Example:
+  /// ```dart
+  /// Container(width: 0.5.sw) // half the screen width
+  /// ```
+  double get sw {
+    final helper = ScreenSizeHelper.instance;
+    return this * helper.newMediaQueryData.size.width;
+  }
+
+  /// Fraction of scaled screen height.
+  ///
+  /// Example:
+  /// ```dart
+  /// Container(height: 0.3.sh) // 30% of screen height
+  /// ```
+  double get sh {
+    final helper = ScreenSizeHelper.instance;
+    return this * helper.newMediaQueryData.size.height;
   }
 }

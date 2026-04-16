@@ -38,6 +38,21 @@ void main() {
       expect(100.vh, closeTo(56.25, 0.0001));
     });
 
+    test('vh uses independent height scaling in portrait', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(360, 780),
+        isDesktop: false,
+      );
+
+      // scale = 360/360 = 1.0
+      // vh = 100 * (780/640) / 1.0 = 121.875
+      expect(ScreenSizeHelper.instance.scale, closeTo(1.0, 0.0001));
+      expect(100.vh, closeTo(121.875, 0.001));
+      // vw should still be 100
+      expect(100.vw, closeTo(100.0, 0.0001));
+    });
+
     test('sp follows configured text scale mode', () {
       ScreenSizeHelper.initializeForTest(
         const Size(360, 640),
@@ -82,12 +97,124 @@ void main() {
       expect(14.sp, closeTo(14.0, 0.0001));
     });
 
+    test('scale is capped at maxScale on large screens', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(1024, 768),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: 2.0),
+      );
+
+      // Raw scale would be 1024/360 = 2.844, should be capped at 2.0
+      expect(ScreenSizeHelper.instance.scale, closeTo(2.0, 0.0001));
+    });
+
+    test('maxScale null allows unlimited scaling', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(1024, 768),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+
+      // 1024 > 768 and isDesktop=false → landscape, scale = 768/360
+      expect(ScreenSizeHelper.instance.scale, closeTo(768 / 360, 0.0001));
+    });
+
+    test('isLandscape getter agrees with setup landscape detection', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(844, 390),
+        isDesktop: false,
+      );
+
+      expect(ScreenSizeHelper.instance.isLandscape, isTrue);
+      // scale should use height (390) / designWidth (360)
+      expect(ScreenSizeHelper.instance.scale, closeTo(390 / 360, 0.0001));
+    });
+
+    test('isLandscape is false for desktop even in wide window', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(1200, 400),
+        isDesktop: true,
+        config: const ScreenSizeAdapterConfig(
+          enableDesktopScaling: true,
+          maxScale: null,
+        ),
+      );
+
+      expect(ScreenSizeHelper.instance.isLandscape, isFalse);
+      // Desktop should use width-based scale regardless of dimensions
+      expect(ScreenSizeHelper.instance.scale, closeTo(1200 / 360, 0.0001));
+    });
+
+    test('sp default mode is design (returns raw value)', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(720, 1280),
+        isDesktop: false,
+      );
+
+      // Default textScaleMode should now be 'design', so sp = value
+      expect(14.sp, closeTo(14.0, 0.0001));
+    });
+
+    test('sp system mode respects textScaler', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(
+          textScaleMode: ScreenSizeTextScaleMode.system,
+        ),
+      );
+
+      // Default textScaler is 1.0, so sp = value * 1.0
+      expect(14.sp, closeTo(14.0, 0.0001));
+    });
+
+    test('r uses min-dimension scaling', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 780),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+
+      // scale = 390/360 = 1.0833
+      // widthScale = 390/360 = 1.0833
+      // heightScale = 780/640 = 1.21875
+      // minScale = 1.0833
+      // r = 100 * 1.0833 / 1.0833 = 100.0
+      expect(100.r, closeTo(100.0, 0.001));
+
+      // On a device where height ratio < width ratio:
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(720, 800),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+
+      // scale = 720/360 = 2.0
+      // widthScale = 720/360 = 2.0
+      // heightScale = 800/640 = 1.25
+      // minScale = 1.25
+      // r = 100 * 1.25 / 2.0 = 62.5
+      expect(100.r, closeTo(62.5, 0.001));
+    });
+
     test('desktop can opt into scaling with config', () {
       ScreenSizeHelper.initializeForTest(
         const Size(360, 640),
         logicalSize: const Size(1200, 800),
         isDesktop: true,
-        config: const ScreenSizeAdapterConfig(enableDesktopScaling: true),
+        config: const ScreenSizeAdapterConfig(
+          enableDesktopScaling: true,
+          maxScale: null,
+          textScaleMode: ScreenSizeTextScaleMode.legacyScale,
+        ),
       );
 
       expect(ScreenSizeHelper.instance.isDesktop, isTrue);
@@ -160,6 +287,107 @@ void main() {
       );
 
       expect(find.text('true'), findsOneWidget);
+    });
+  });
+
+  group('Safe-area inset preservation', () {
+    test('copyWithScale does not scale padding, viewPadding, or viewInsets', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+      );
+
+      final original = MediaQueryData(
+        size: const Size(390, 844),
+        padding: const EdgeInsets.only(top: 47, bottom: 34),
+        viewPadding: const EdgeInsets.only(top: 47, bottom: 34),
+        viewInsets: const EdgeInsets.only(bottom: 336),
+      );
+
+      final scaled = original.copyWithScale();
+
+      // Insets should be preserved exactly
+      expect(scaled.padding, original.padding);
+      expect(scaled.viewPadding, original.viewPadding);
+      expect(scaled.viewInsets, original.viewInsets);
+
+      // Size should be scaled
+      expect(scaled.size.width, closeTo(390 / ScreenSizeHelper.instance.scale, 0.1));
+    });
+  });
+
+  group('Screen fraction extensions', () {
+    test('sw returns fraction of scaled screen width', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+      );
+
+      final scaledWidth = ScreenSizeHelper.instance.newMediaQueryData.size.width;
+      expect(0.5.sw, closeTo(scaledWidth * 0.5, 0.001));
+      expect(1.0.sw, closeTo(scaledWidth, 0.001));
+    });
+
+    test('sh returns fraction of scaled screen height', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+      );
+
+      final scaledHeight = ScreenSizeHelper.instance.newMediaQueryData.size.height;
+      expect(0.5.sh, closeTo(scaledHeight * 0.5, 0.001));
+      expect(1.0.sh, closeTo(scaledHeight, 0.001));
+    });
+  });
+
+  group('Convenience extensions', () {
+    setUp(() {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+      );
+    });
+
+    test('verticalSpace returns SizedBox with adapted height', () {
+      final SizedBox widget = 16.verticalSpace;
+      expect(widget.height, closeTo(16.dp, 0.001));
+      expect(widget.width, isNull);
+    });
+
+    test('horizontalSpace returns SizedBox with adapted width', () {
+      final SizedBox widget = 16.horizontalSpace;
+      expect(widget.width, closeTo(16.dp, 0.001));
+      expect(widget.height, isNull);
+    });
+
+    test('EdgeInsets.w scales all edges by dp', () {
+      final insets = const EdgeInsets.only(left: 8, top: 16, right: 8, bottom: 24).w;
+      expect(insets.left, closeTo(8.dp, 0.001));
+      expect(insets.top, closeTo(16.dp, 0.001));
+      expect(insets.right, closeTo(8.dp, 0.001));
+      expect(insets.bottom, closeTo(24.dp, 0.001));
+    });
+
+    test('EdgeInsets.r scales all edges by r', () {
+      final insets = const EdgeInsets.all(10).r;
+      expect(insets.left, closeTo(10.r, 0.001));
+      expect(insets.top, closeTo(10.r, 0.001));
+    });
+
+    test('BorderRadius.w scales all corners by dp', () {
+      final radius = BorderRadius.circular(16).w;
+      expect(radius.topLeft.x, closeTo(16.dp, 0.001));
+      expect(radius.bottomRight.x, closeTo(16.dp, 0.001));
+    });
+
+    test('BorderRadius.r scales all corners by r', () {
+      final radius = BorderRadius.circular(16).r;
+      expect(radius.topLeft.x, closeTo(16.r, 0.001));
+      expect(radius.bottomRight.x, closeTo(16.r, 0.001));
     });
   });
 
