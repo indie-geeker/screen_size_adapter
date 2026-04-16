@@ -82,12 +82,39 @@ void main() {
       expect(14.sp, closeTo(14.0, 0.0001));
     });
 
+    test('scale is capped at maxScale on large screens', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(1024, 768),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: 2.0),
+      );
+
+      // Raw scale would be 1024/360 = 2.844, should be capped at 2.0
+      expect(ScreenSizeHelper.instance.scale, closeTo(2.0, 0.0001));
+    });
+
+    test('maxScale null allows unlimited scaling', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(1024, 768),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+
+      // 1024 > 768 and isDesktop=false → landscape, scale = 768/360
+      expect(ScreenSizeHelper.instance.scale, closeTo(768 / 360, 0.0001));
+    });
+
     test('desktop can opt into scaling with config', () {
       ScreenSizeHelper.initializeForTest(
         const Size(360, 640),
         logicalSize: const Size(1200, 800),
         isDesktop: true,
-        config: const ScreenSizeAdapterConfig(enableDesktopScaling: true),
+        config: const ScreenSizeAdapterConfig(
+          enableDesktopScaling: true,
+          maxScale: null,
+        ),
       );
 
       expect(ScreenSizeHelper.instance.isDesktop, isTrue);

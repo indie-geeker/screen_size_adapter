@@ -104,6 +104,8 @@ class ScreenSizeHelper {
       _instance!.scale = 1.0;
     }
 
+    _instance!._clampScale();
+
     _instance!.newMediaQueryData =
         _instance!.originMediaQueryData.copyWithScale();
   }
@@ -196,7 +198,15 @@ class ScreenSizeHelper {
       scale = 1.0;
     }
 
+    _clampScale();
+
     newMediaQueryData = originMediaQueryData.copyWithScale();
+  }
+
+  void _clampScale() {
+    if (config.maxScale != null && scale > config.maxScale!) {
+      scale = config.maxScale!;
+    }
   }
 
   static ScreenSizeHelper _getInstance() {
