@@ -343,6 +343,56 @@ void main() {
     });
   });
 
+  group('Convenience extensions', () {
+    setUp(() {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+      );
+    });
+
+    test('verticalSpace returns SizedBox with adapted height', () {
+      final widget = 16.verticalSpace;
+      expect(widget, isA<SizedBox>());
+      expect((widget as SizedBox).height, closeTo(16.dp, 0.001));
+      expect(widget.width, isNull);
+    });
+
+    test('horizontalSpace returns SizedBox with adapted width', () {
+      final widget = 16.horizontalSpace;
+      expect(widget, isA<SizedBox>());
+      expect((widget as SizedBox).width, closeTo(16.dp, 0.001));
+      expect(widget.height, isNull);
+    });
+
+    test('EdgeInsets.w scales all edges by dp', () {
+      final insets = const EdgeInsets.only(left: 8, top: 16, right: 8, bottom: 24).w;
+      expect(insets.left, closeTo(8.dp, 0.001));
+      expect(insets.top, closeTo(16.dp, 0.001));
+      expect(insets.right, closeTo(8.dp, 0.001));
+      expect(insets.bottom, closeTo(24.dp, 0.001));
+    });
+
+    test('EdgeInsets.r scales all edges by r', () {
+      final insets = const EdgeInsets.all(10).r;
+      expect(insets.left, closeTo(10.r, 0.001));
+      expect(insets.top, closeTo(10.r, 0.001));
+    });
+
+    test('BorderRadius.w scales all corners by dp', () {
+      final radius = BorderRadius.circular(16).w;
+      expect(radius.topLeft.x, closeTo(16.dp, 0.001));
+      expect(radius.bottomRight.x, closeTo(16.dp, 0.001));
+    });
+
+    test('BorderRadius.r scales all corners by r', () {
+      final radius = BorderRadius.circular(16).r;
+      expect(radius.topLeft.x, closeTo(16.r, 0.001));
+      expect(radius.bottomRight.x, closeTo(16.r, 0.001));
+    });
+  });
+
   testWidgets('ensureInitialized fails after test binding is created', (
     WidgetTester tester,
   ) async {

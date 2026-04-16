@@ -15,3 +15,4 @@ part 'src/screen_size_widget_flutter_binding.dart';
 part 'src/media_query_ext.dart';
 part 'src/dimension_ext.dart';
 part 'src/screen_size_adapter_controller.dart';
+part 'src/convenience_ext.dart';
