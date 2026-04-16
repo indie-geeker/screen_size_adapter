@@ -35,30 +35,21 @@ extension DimensionExt on num {
     return this * widthScale / helper.scale;
   }
 
-  /// 高度方向适配
+  /// Height-direction adaptation.
   ///
-  /// 横屏模式下使用屏幕高度与设计稿高度的比例，
-  /// 竖屏模式下与 [vw] 使用相同的缩放比例。
+  /// Always uses the height axis independently:
+  /// `this * (screenHeight / designHeight) / scale`
   ///
-  /// 适用于需要按高度方向独立缩放的场景。
+  /// This means on devices with non-design aspect ratios, `.vh` and `.vw`
+  /// will return different values, correctly reflecting the device's shape.
   double get vh {
     final helper = ScreenSizeHelper.instance;
     if (!helper.shouldApplyScale) {
       return toDouble();
     }
-    final isLandscape = helper.isLandscape;
 
-    double heightScale;
-    if (isLandscape) {
-      // 横屏模式下，使用屏幕高度与设计稿高度的比例
-      heightScale =
-          helper.originMediaQueryData.size.height / helper.designSize.height;
-    } else {
-      // 竖屏模式下，保持与宽度相同的缩放比例
-      heightScale =
-          helper.originMediaQueryData.size.width / helper.designSize.width;
-    }
-
+    final heightScale =
+        helper.originMediaQueryData.size.height / helper.designSize.height;
     return this * heightScale / helper.scale;
   }
 

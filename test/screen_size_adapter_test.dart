@@ -38,6 +38,21 @@ void main() {
       expect(100.vh, closeTo(56.25, 0.0001));
     });
 
+    test('vh uses independent height scaling in portrait', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(360, 780),
+        isDesktop: false,
+      );
+
+      // scale = 360/360 = 1.0
+      // vh = 100 * (780/640) / 1.0 = 121.875
+      expect(ScreenSizeHelper.instance.scale, closeTo(1.0, 0.0001));
+      expect(100.vh, closeTo(121.875, 0.001));
+      // vw should still be 100
+      expect(100.vw, closeTo(100.0, 0.0001));
+    });
+
     test('sp follows configured text scale mode', () {
       ScreenSizeHelper.initializeForTest(
         const Size(360, 640),
