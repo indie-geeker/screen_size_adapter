@@ -134,6 +134,31 @@ void main() {
       expect(ScreenSizeHelper.instance.scale, closeTo(1200 / 360, 0.0001));
     });
 
+    test('sp default mode is design (returns raw value)', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(720, 1280),
+        isDesktop: false,
+      );
+
+      // Default textScaleMode should now be 'design', so sp = value
+      expect(14.sp, closeTo(14.0, 0.0001));
+    });
+
+    test('sp system mode respects textScaler', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(
+          textScaleMode: ScreenSizeTextScaleMode.system,
+        ),
+      );
+
+      // Default textScaler is 1.0, so sp = value * 1.0
+      expect(14.sp, closeTo(14.0, 0.0001));
+    });
+
     test('desktop can opt into scaling with config', () {
       ScreenSizeHelper.initializeForTest(
         const Size(360, 640),
@@ -142,6 +167,7 @@ void main() {
         config: const ScreenSizeAdapterConfig(
           enableDesktopScaling: true,
           maxScale: null,
+          textScaleMode: ScreenSizeTextScaleMode.legacyScale,
         ),
       );
 

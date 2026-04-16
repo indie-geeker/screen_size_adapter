@@ -78,6 +78,11 @@ extension DimensionExt on num {
     return switch (helper.config.textScaleMode) {
       ScreenSizeTextScaleMode.legacyScale => this * helper.scale,
       ScreenSizeTextScaleMode.design => toDouble(),
+      ScreenSizeTextScaleMode.system => () {
+          final fontSize = toDouble();
+          if (fontSize == 0) return 0.0;
+          return helper.originMediaQueryData.textScaler.scale(fontSize);
+        }(),
     };
   }
 }

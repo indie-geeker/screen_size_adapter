@@ -11,6 +11,11 @@ enum ScreenSizeTextScaleMode {
   ///
   /// Formula: `sp = value`.
   design,
+
+  /// Respects system accessibility text scaling.
+  ///
+  /// Formula: `sp = textScaler.scale(value)`.
+  system,
 }
 
 /// Runtime configuration for [screen_size_adapter].
@@ -31,7 +36,7 @@ class ScreenSizeAdapterConfig {
   final double? maxScale;
 
   const ScreenSizeAdapterConfig({
-    this.textScaleMode = ScreenSizeTextScaleMode.legacyScale,
+    this.textScaleMode = ScreenSizeTextScaleMode.design,
     this.enableDesktopScaling = false,
     this.maxScale = 2.0,
   });
