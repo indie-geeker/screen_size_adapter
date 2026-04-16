@@ -106,6 +106,34 @@ void main() {
       expect(ScreenSizeHelper.instance.scale, closeTo(768 / 360, 0.0001));
     });
 
+    test('isLandscape getter agrees with setup landscape detection', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(844, 390),
+        isDesktop: false,
+      );
+
+      expect(ScreenSizeHelper.instance.isLandscape, isTrue);
+      // scale should use height (390) / designWidth (360)
+      expect(ScreenSizeHelper.instance.scale, closeTo(390 / 360, 0.0001));
+    });
+
+    test('isLandscape is false for desktop even in wide window', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(1200, 400),
+        isDesktop: true,
+        config: const ScreenSizeAdapterConfig(
+          enableDesktopScaling: true,
+          maxScale: null,
+        ),
+      );
+
+      expect(ScreenSizeHelper.instance.isLandscape, isFalse);
+      // Desktop should use width-based scale regardless of dimensions
+      expect(ScreenSizeHelper.instance.scale, closeTo(1200 / 360, 0.0001));
+    });
+
     test('desktop can opt into scaling with config', () {
       ScreenSizeHelper.initializeForTest(
         const Size(360, 640),
@@ -187,6 +215,33 @@ void main() {
       );
 
       expect(find.text('true'), findsOneWidget);
+    });
+  });
+
+  group('Safe-area inset preservation', () {
+    test('copyWithScale does not scale padding, viewPadding, or viewInsets', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+      );
+
+      final original = MediaQueryData(
+        size: const Size(390, 844),
+        padding: const EdgeInsets.only(top: 47, bottom: 34),
+        viewPadding: const EdgeInsets.only(top: 47, bottom: 34),
+        viewInsets: const EdgeInsets.only(bottom: 336),
+      );
+
+      final scaled = original.copyWithScale();
+
+      // Insets should be preserved exactly
+      expect(scaled.padding, original.padding);
+      expect(scaled.viewPadding, original.viewPadding);
+      expect(scaled.viewInsets, original.viewInsets);
+
+      // Size should be scaled
+      expect(scaled.size.width, closeTo(390 / ScreenSizeHelper.instance.scale, 0.1));
     });
   });
 

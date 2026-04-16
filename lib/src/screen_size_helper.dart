@@ -183,7 +183,7 @@ class ScreenSizeHelper {
     }
 
     final bool isLandscape =
-        view.physicalSize.width > view.physicalSize.height && !_isDesktop;
+        originMediaQueryData.size.width > originMediaQueryData.size.height && !_isDesktop;
 
     if (isLandscape) {
       // 横屏模式：使用屏幕高度与设计稿宽度的比例
