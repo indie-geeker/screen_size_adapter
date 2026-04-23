@@ -398,6 +398,57 @@ void main() {
       expect(ScreenSizeHelper.instance.designSize, const Size(375, 667));
     });
 
+    testWidgets('setDesignSize preserves subtree State', (
+      WidgetTester tester,
+    ) async {
+      ScreenSizeHelper.initializeForTest(const Size(360, 640));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ScreenSizeWidget(
+              child: Builder(
+                builder: (BuildContext context) {
+                  return Column(
+                    children: [
+                      const _Counter(),
+                      TextButton(
+                        onPressed: () {
+                          ScreenSizeAdapter.setDesignSize(
+                            context,
+                            const Size(375, 667),
+                          );
+                        },
+                        child: const Text('resize'),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Tap the counter 3 times.
+      await tester.tap(find.byKey(const ValueKey('counter-inc')));
+      await tester.tap(find.byKey(const ValueKey('counter-inc')));
+      await tester.tap(find.byKey(const ValueKey('counter-inc')));
+      await tester.pump();
+      expect(find.text('count:3'), findsOneWidget);
+
+      // Resize. Subtree State must survive.
+      await tester.tap(find.text('resize'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('count:3'),
+        findsOneWidget,
+        reason:
+            'Counter State was destroyed — setDesignSize is still force-rebuilding.',
+      );
+    });
+
     testWidgets('maybeOf returns null outside ScreenSizeWidget', (
       WidgetTester tester,
     ) async {
@@ -574,4 +625,29 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
+}
+
+class _Counter extends StatefulWidget {
+  const _Counter();
+
+  @override
+  State<_Counter> createState() => _CounterState();
+}
+
+class _CounterState extends State<_Counter> {
+  int _count = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text('count:$_count'),
+        IconButton(
+          key: const ValueKey('counter-inc'),
+          icon: const Icon(Icons.add),
+          onPressed: () => setState(() => _count++),
+        ),
+      ],
+    );
+  }
 }
