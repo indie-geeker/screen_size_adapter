@@ -229,6 +229,92 @@ void main() {
     });
   });
 
+  group('ScreenSizeHelper.computeScale (pure function)', () {
+    const config = ScreenSizeAdapterConfig(maxScale: null);
+
+    test('portrait: returns origin.width / design.width', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(720, 1280),
+          design: const Size(360, 640),
+          isDesktop: false,
+          config: config,
+        ),
+        closeTo(2.0, 1e-9),
+      );
+    });
+
+    test('landscape (mobile): uses origin.height / design.width', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(1280, 720),
+          design: const Size(360, 640),
+          isDesktop: false,
+          config: config,
+        ),
+        closeTo(720 / 360, 1e-9),
+      );
+    });
+
+    test('desktop without opt-in returns 1.0', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(1200, 800),
+          design: const Size(360, 640),
+          isDesktop: true,
+          config: config,
+        ),
+        equals(1.0),
+      );
+    });
+
+    test('desktop with enableDesktopScaling=true uses width ratio', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(1200, 800),
+          design: const Size(360, 640),
+          isDesktop: true,
+          config: const ScreenSizeAdapterConfig(
+            enableDesktopScaling: true,
+            maxScale: null,
+          ),
+        ),
+        closeTo(1200 / 360, 1e-9),
+      );
+    });
+
+    test('degenerate inputs fall back to 1.0', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(0, 0),
+          design: const Size(360, 640),
+          isDesktop: false,
+          config: config,
+        ),
+        equals(1.0),
+      );
+    });
+
+    test('production setup() and pure function agree', () {
+      // Since initializeForTest() internally delegates to computeScale, this
+      // asserts the delegation path is wired (not an independent setup() vs.
+      // computeScale comparison — that would require a real FlutterView).
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+      final computed = ScreenSizeHelper.computeScale(
+        origin: const Size(390, 844),
+        design: const Size(360, 640),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+      expect(ScreenSizeHelper.instance.scale, closeTo(computed, 1e-12));
+    });
+  });
+
   group('ScreenSizeAdapter runtime control', () {
     testWidgets('setDesignSize updates design size and rebuilds subtree', (
       WidgetTester tester,
