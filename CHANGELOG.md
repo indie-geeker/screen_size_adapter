@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `ScreenSizeAdapterConfig.minScale` — lower bound for the scale factor, symmetric with `maxScale`. Defaults to `null` to preserve prior behavior.
+- `ScreenSizeAdapterConfig.copyWithMinScale(double?)` — escape hatch to set `minScale` back to `null`.
+- `ScreenSizeHelper.maybeInstance` — non-throwing accessor, returns `null` when the adapter has not been initialized.
+- `ScreenSizeHelper.isReady` — convenience boolean equivalent to `maybeInstance != null`.
+- `ScreenSizeHelper.resetForTest()` — test-only reset of the singleton. No-op in release builds.
+- `ScreenSizeHelper.computeScale(...)` — pure static function for computing the scale factor from inputs, shared by production and test paths.
+
+### Changed
+- `DimensionExt` getters (`dp`, `vw`, `vh`, `sp`, `r`, `sw`, `sh`) no longer throw `LateInitializationError` when called before `ensureInitialized`; they now return the raw value via `toDouble()` (or the passed-through fraction for `sw`/`sh`).
+
+### Fixed
+- `ScreenSizeAdapter.setDesignSize(context, ...)` no longer destroys descendant `State` objects. The previous implementation wrapped the subtree in a `KeyedSubtree` with a version-keyed `ValueKey`, which unmounted the entire subtree on every design-size change — losing form inputs, scroll positions, animation controllers, and `StreamSubscription`s. `InheritedWidget.updateShouldNotify` now drives dependent rebuilds without force-unmounting.
+- `setup()` and `initializeForTest()` no longer duplicate the scale-math logic. Both delegate to the new pure `ScreenSizeHelper.computeScale`, eliminating drift between production and test paths.
+
+### Migration notes
+- Any caller that relied on `setDesignSize` triggering `dispose`/`initState` on descendants must now wrap the subtree in its own `KeyedSubtree` or swap keys explicitly.
+
 ## [0.1.0] - 2026-02-09
 
 ### Added

@@ -73,9 +73,17 @@ class ScreenSizeHelper {
   static bool get isReady => maybeInstance != null;
 
   /// Test-only: clears the singleton so subsequent `maybeInstance` reads
-  /// return null and `isReady` returns false. Do not call in production.
+  /// return null and `isReady` returns false.
+  ///
+  /// In release builds this is a no-op — the state mutation is guarded by
+  /// an `assert`, which is stripped outside debug/profile modes. This keeps
+  /// the method safe to ship in the public API without a `meta`/`@visibleForTesting`
+  /// dependency.
   static void resetForTest() {
-    _instance = null;
+    assert(() {
+      _instance = null;
+      return true;
+    }());
   }
 
   static ScreenSizeHelper? _instance;
@@ -202,6 +210,10 @@ class ScreenSizeHelper {
   /// Pure computation of the scale factor given an origin size, design size,
   /// desktop flag, and config. Both [setup] and [initializeForTest] delegate
   /// to this function so the two call paths cannot drift.
+  ///
+  /// This is a stable public API — safe to call from user code to preview
+  /// what scale would be applied for a given hypothetical device/config
+  /// combination without touching the singleton.
   static double computeScale({
     required Size origin,
     required Size design,
