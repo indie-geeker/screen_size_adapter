@@ -59,6 +59,33 @@ class ScreenSizeHelper {
 
   /// 获取单例实例
   static ScreenSizeHelper get instance => _getInstance();
+
+  /// Returns the singleton if it has been initialized, otherwise null.
+  /// Never throws. Use this inside extension methods that must degrade
+  /// gracefully when called before `ensureInitialized`.
+  static ScreenSizeHelper? get maybeInstance {
+    final i = _instance;
+    if (i == null || !i._isInitialized) return null;
+    return i;
+  }
+
+  /// Whether the adapter is initialized and safe to use.
+  static bool get isReady => maybeInstance != null;
+
+  /// Test-only: clears the singleton so subsequent `maybeInstance` reads
+  /// return null and `isReady` returns false.
+  ///
+  /// In release builds this is a no-op — the state mutation is guarded by
+  /// an `assert`, which is stripped outside debug/profile modes. This keeps
+  /// the method safe to ship in the public API without a `meta`/`@visibleForTesting`
+  /// dependency.
+  static void resetForTest() {
+    assert(() {
+      _instance = null;
+      return true;
+    }());
+  }
+
   static ScreenSizeHelper? _instance;
   ScreenSizeHelper._internal();
 
@@ -95,32 +122,14 @@ class ScreenSizeHelper {
     final Size resolvedLogicalSize = logicalSize ?? size;
     _instance!.originMediaQueryData = MediaQueryData(size: resolvedLogicalSize);
 
-    if (!_instance!.shouldApplyScale) {
-      _instance!.scale = 1.0;
-      _instance!.newMediaQueryData = _instance!.originMediaQueryData;
-      return;
-    }
+    _instance!.scale = computeScale(
+      origin: resolvedLogicalSize,
+      design: size,
+      isDesktop: _instance!._isDesktop,
+      config: config,
+    );
 
-    final bool isLandscape =
-        resolvedLogicalSize.width > resolvedLogicalSize.height &&
-        !_instance!._isDesktop;
-
-    if (isLandscape) {
-      _instance!.scale = resolvedLogicalSize.height / size.width;
-    } else {
-      _instance!.scale = resolvedLogicalSize.width / size.width;
-    }
-
-    if (_instance!.scale.isNaN ||
-        _instance!.scale.isInfinite ||
-        _instance!.scale <= 0) {
-      _instance!.scale = 1.0;
-    }
-
-    _instance!._clampScale();
-
-    _instance!.newMediaQueryData =
-        _instance!.originMediaQueryData.copyWithScale();
+    _instance!.newMediaQueryData = _instance!.originMediaQueryData.copyWithScale();
   }
 
   void _applyConfig(ScreenSizeAdapterConfig value) {
@@ -180,7 +189,6 @@ class ScreenSizeHelper {
   void setup() {
     final view = _primaryView;
     if (view == null) {
-      // View not ready yet, use default values.
       originMediaQueryData = MediaQueryData(size: designSize);
       newMediaQueryData = originMediaQueryData;
       scale = 1.0;
@@ -189,37 +197,55 @@ class ScreenSizeHelper {
 
     originMediaQueryData = MediaQueryData.fromView(view);
 
-    if (!shouldApplyScale) {
-      scale = 1.0;
-      newMediaQueryData = originMediaQueryData;
-      return;
-    }
-
-    final bool isLandscape =
-        originMediaQueryData.size.width > originMediaQueryData.size.height && !_isDesktop;
-
-    if (isLandscape) {
-      // 横屏模式：使用屏幕高度与设计稿宽度的比例
-      scale = originMediaQueryData.size.height / designSize.width;
-    } else {
-      // 竖屏模式：使用屏幕宽度与设计稿宽度的比例
-      scale = originMediaQueryData.size.width / designSize.width;
-    }
-
-    // 确保 scale 是有效值
-    if (scale.isNaN || scale.isInfinite || scale <= 0) {
-      scale = 1.0;
-    }
-
-    _clampScale();
+    scale = computeScale(
+      origin: originMediaQueryData.size,
+      design: designSize,
+      isDesktop: _isDesktop,
+      config: config,
+    );
 
     newMediaQueryData = originMediaQueryData.copyWithScale();
   }
 
-  void _clampScale() {
-    if (config.maxScale != null && scale > config.maxScale!) {
-      scale = config.maxScale!;
+  /// Pure computation of the scale factor given an origin size, design size,
+  /// desktop flag, and config. Both [setup] and [initializeForTest] delegate
+  /// to this function so the two call paths cannot drift.
+  ///
+  /// This is a stable public API — safe to call from user code to preview
+  /// what scale would be applied for a given hypothetical device/config
+  /// combination without touching the singleton.
+  static double computeScale({
+    required Size origin,
+    required Size design,
+    required bool isDesktop,
+    required ScreenSizeAdapterConfig config,
+  }) {
+    final bool shouldApply = !isDesktop || config.enableDesktopScaling;
+    if (!shouldApply) return 1.0;
+
+    // !isDesktop is redundant under `shouldApply` (desktop path only reaches here
+    // when enableDesktopScaling=true), but kept explicit so desktops never take
+    // the landscape branch regardless of config mutation.
+    final bool isLandscape =
+        origin.width > origin.height && !isDesktop;
+    final double raw = isLandscape
+        ? origin.height / design.width
+        : origin.width / design.width;
+
+    if (raw.isNaN || raw.isInfinite || raw <= 0) return 1.0;
+
+    return _clampScaleValue(raw, config);
+  }
+
+  static double _clampScaleValue(double value, ScreenSizeAdapterConfig config) {
+    double s = value;
+    if (config.minScale != null && s < config.minScale!) {
+      s = config.minScale!;
     }
+    if (config.maxScale != null && s > config.maxScale!) {
+      s = config.maxScale!;
+    }
+    return s;
   }
 
   static ScreenSizeHelper _getInstance() {

@@ -26,8 +26,8 @@ extension DimensionExt on num {
   /// 根据屏幕宽度与设计稿宽度的比例进行缩放。
   /// 计算公式：this * (实际屏幕宽度 / 设计稿宽度)
   double get vw {
-    final helper = ScreenSizeHelper.instance;
-    if (!helper.shouldApplyScale) {
+    final helper = ScreenSizeHelper.maybeInstance;
+    if (helper == null || !helper.shouldApplyScale) {
       return toDouble();
     }
     final widthScale =
@@ -43,11 +43,10 @@ extension DimensionExt on num {
   /// This means on devices with non-design aspect ratios, `.vh` and `.vw`
   /// will return different values, correctly reflecting the device's shape.
   double get vh {
-    final helper = ScreenSizeHelper.instance;
-    if (!helper.shouldApplyScale) {
+    final helper = ScreenSizeHelper.maybeInstance;
+    if (helper == null || !helper.shouldApplyScale) {
       return toDouble();
     }
-
     final heightScale =
         helper.originMediaQueryData.size.height / helper.designSize.height;
     return this * heightScale / helper.scale;
@@ -65,7 +64,8 @@ extension DimensionExt on num {
   /// )
   /// ```
   double get sp {
-    final helper = ScreenSizeHelper.instance;
+    final helper = ScreenSizeHelper.maybeInstance;
+    if (helper == null) return toDouble();
     return switch (helper.config.textScaleMode) {
       ScreenSizeTextScaleMode.legacyScale => this * helper.scale,
       ScreenSizeTextScaleMode.design => toDouble(),
@@ -86,11 +86,10 @@ extension DimensionExt on num {
   /// BorderRadius.circular(16.r)
   /// ```
   double get r {
-    final helper = ScreenSizeHelper.instance;
-    if (!helper.shouldApplyScale) {
+    final helper = ScreenSizeHelper.maybeInstance;
+    if (helper == null || !helper.shouldApplyScale) {
       return toDouble();
     }
-
     final widthScale =
         helper.originMediaQueryData.size.width / helper.designSize.width;
     final heightScale =
@@ -105,8 +104,12 @@ extension DimensionExt on num {
   /// ```dart
   /// Container(width: 0.5.sw) // half the screen width
   /// ```
+  ///
+  /// If the adapter is not initialized, falls back to returning `toDouble()`
+  /// (i.e. `0.5.sw == 0.5`) — the value is a fraction, not pixels.
   double get sw {
-    final helper = ScreenSizeHelper.instance;
+    final helper = ScreenSizeHelper.maybeInstance;
+    if (helper == null) return toDouble();
     return this * helper.newMediaQueryData.size.width;
   }
 
@@ -116,8 +119,12 @@ extension DimensionExt on num {
   /// ```dart
   /// Container(height: 0.3.sh) // 30% of screen height
   /// ```
+  ///
+  /// If the adapter is not initialized, falls back to returning `toDouble()`
+  /// (i.e. `0.3.sh == 0.3`) — the value is a fraction, not pixels.
   double get sh {
-    final helper = ScreenSizeHelper.instance;
+    final helper = ScreenSizeHelper.maybeInstance;
+    if (helper == null) return toDouble();
     return this * helper.newMediaQueryData.size.height;
   }
 }

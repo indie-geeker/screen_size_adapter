@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
+  tearDown(ScreenSizeHelper.resetForTest);
+
   group('ScreenSizeHelper initializeForTest', () {
     test('initializes singleton without custom binding', () {
       ScreenSizeHelper.initializeForTest(const Size(360, 640));
@@ -227,6 +229,129 @@ void main() {
       expect(100.dp, closeTo(100.0, 0.0001));
       expect(14.sp, closeTo(14 * (1200 / 360), 0.0001));
     });
+
+    test('scale is floored at minScale on small screens', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(240, 320),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(minScale: 0.8, maxScale: null),
+      );
+
+      // raw scale = 240/360 = 0.667 → clamped to 0.8
+      expect(ScreenSizeHelper.instance.scale, closeTo(0.8, 1e-9));
+    });
+
+    test('minScale default null preserves old unclamped-below behavior', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(240, 320),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+
+      expect(ScreenSizeHelper.instance.scale, closeTo(240 / 360, 1e-9));
+    });
+
+    test('minScale copyWith threads through', () {
+      const original = ScreenSizeAdapterConfig();
+      final copied = original.copyWith(minScale: 0.5);
+      expect(copied.minScale, 0.5);
+      expect(copied.maxScale, original.maxScale);
+    });
+
+    test('minScale can be cleared to null via copyWithMinScale', () {
+      const config = ScreenSizeAdapterConfig(minScale: 0.8, maxScale: null);
+      final cleared = config.copyWithMinScale(null);
+      expect(cleared.minScale, isNull);
+      expect(cleared.maxScale, isNull);
+    });
+  });
+
+  group('ScreenSizeHelper.computeScale (pure function)', () {
+    const config = ScreenSizeAdapterConfig(maxScale: null);
+
+    test('portrait: returns origin.width / design.width', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(720, 1280),
+          design: const Size(360, 640),
+          isDesktop: false,
+          config: config,
+        ),
+        closeTo(2.0, 1e-9),
+      );
+    });
+
+    test('landscape (mobile): uses origin.height / design.width', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(1280, 720),
+          design: const Size(360, 640),
+          isDesktop: false,
+          config: config,
+        ),
+        closeTo(720 / 360, 1e-9),
+      );
+    });
+
+    test('desktop without opt-in returns 1.0', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(1200, 800),
+          design: const Size(360, 640),
+          isDesktop: true,
+          config: config,
+        ),
+        equals(1.0),
+      );
+    });
+
+    test('desktop with enableDesktopScaling=true uses width ratio', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(1200, 800),
+          design: const Size(360, 640),
+          isDesktop: true,
+          config: const ScreenSizeAdapterConfig(
+            enableDesktopScaling: true,
+            maxScale: null,
+          ),
+        ),
+        closeTo(1200 / 360, 1e-9),
+      );
+    });
+
+    test('degenerate inputs fall back to 1.0', () {
+      expect(
+        ScreenSizeHelper.computeScale(
+          origin: const Size(0, 0),
+          design: const Size(360, 640),
+          isDesktop: false,
+          config: config,
+        ),
+        equals(1.0),
+      );
+    });
+
+    test('production setup() and pure function agree', () {
+      // Since initializeForTest() internally delegates to computeScale, this
+      // asserts the delegation path is wired (not an independent setup() vs.
+      // computeScale comparison — that would require a real FlutterView).
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(390, 844),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+      final computed = ScreenSizeHelper.computeScale(
+        origin: const Size(390, 844),
+        design: const Size(360, 640),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+      expect(ScreenSizeHelper.instance.scale, closeTo(computed, 1e-12));
+    });
   });
 
   group('ScreenSizeAdapter runtime control', () {
@@ -271,6 +396,57 @@ void main() {
 
       expect(find.text('design:375'), findsOneWidget);
       expect(ScreenSizeHelper.instance.designSize, const Size(375, 667));
+    });
+
+    testWidgets('setDesignSize preserves subtree State', (
+      WidgetTester tester,
+    ) async {
+      ScreenSizeHelper.initializeForTest(const Size(360, 640));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ScreenSizeWidget(
+              child: Builder(
+                builder: (BuildContext context) {
+                  return Column(
+                    children: [
+                      const _Counter(),
+                      TextButton(
+                        onPressed: () {
+                          ScreenSizeAdapter.setDesignSize(
+                            context,
+                            const Size(375, 667),
+                          );
+                        },
+                        child: const Text('resize'),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Tap the counter 3 times.
+      await tester.tap(find.byKey(const ValueKey('counter-inc')));
+      await tester.tap(find.byKey(const ValueKey('counter-inc')));
+      await tester.tap(find.byKey(const ValueKey('counter-inc')));
+      await tester.pump();
+      expect(find.text('count:3'), findsOneWidget);
+
+      // Resize. Subtree State must survive.
+      await tester.tap(find.text('resize'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('count:3'),
+        findsOneWidget,
+        reason:
+            'Counter State was destroyed — setDesignSize is still force-rebuilding.',
+      );
     });
 
     testWidgets('maybeOf returns null outside ScreenSizeWidget', (
@@ -391,6 +567,54 @@ void main() {
     });
   });
 
+  group('Uninitialized fallback', () {
+    test('isReady is true after initializeForTest', () {
+      ScreenSizeHelper.initializeForTest(const Size(360, 640));
+      expect(ScreenSizeHelper.isReady, isTrue);
+    });
+
+    test('maybeInstance returns non-null after init', () {
+      ScreenSizeHelper.initializeForTest(const Size(360, 640));
+      expect(ScreenSizeHelper.maybeInstance, isNotNull);
+    });
+
+    test('extensions return raw value when helper is ready and identity-scaled', () {
+      // With a ready helper and identity scaling, extensions should return
+      // the raw value. This also exercises the maybeInstance null-safe
+      // code path under normal conditions.
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(360, 640),
+        isDesktop: false,
+      );
+      expect(ScreenSizeHelper.isReady, isTrue);
+      expect(42.dp, closeTo(42.0, 1e-9));
+      expect(42.vw, closeTo(42.0, 1e-9));
+      expect(42.vh, closeTo(42.0, 1e-9));
+      expect(42.r, closeTo(42.0, 1e-9));
+    });
+
+    test('isReady is false and maybeInstance is null after resetForTest', () {
+      ScreenSizeHelper.initializeForTest(const Size(360, 640));
+      expect(ScreenSizeHelper.isReady, isTrue);
+      ScreenSizeHelper.resetForTest();
+      expect(ScreenSizeHelper.isReady, isFalse);
+      expect(ScreenSizeHelper.maybeInstance, isNull);
+    });
+
+    test('extensions return raw toDouble() when helper is absent', () {
+      ScreenSizeHelper.resetForTest();
+      expect(ScreenSizeHelper.maybeInstance, isNull);
+      expect(42.dp, closeTo(42.0, 1e-12));
+      expect(42.vw, closeTo(42.0, 1e-12));
+      expect(42.vh, closeTo(42.0, 1e-12));
+      expect(42.sp, closeTo(42.0, 1e-12));
+      expect(42.r, closeTo(42.0, 1e-12));
+      expect(0.5.sw, closeTo(0.5, 1e-12));
+      expect(0.5.sh, closeTo(0.5, 1e-12));
+    });
+  });
+
   testWidgets('ensureInitialized fails after test binding is created', (
     WidgetTester tester,
   ) async {
@@ -401,4 +625,29 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
+}
+
+class _Counter extends StatefulWidget {
+  const _Counter();
+
+  @override
+  State<_Counter> createState() => _CounterState();
+}
+
+class _CounterState extends State<_Counter> {
+  int _count = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text('count:$_count'),
+        IconButton(
+          key: const ValueKey('counter-inc'),
+          icon: const Icon(Icons.add),
+          onPressed: () => setState(() => _count++),
+        ),
+      ],
+    );
+  }
 }

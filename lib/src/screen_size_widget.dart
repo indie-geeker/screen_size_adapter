@@ -19,7 +19,7 @@ class ScreenSizeWidgetState extends State<ScreenSizeWidget> {
       child: DesignSizeInheritedWidget(
         data: this,
         version: _version,
-        child: KeyedSubtree(key: ValueKey<int>(_version), child: widget.child),
+        child: widget.child,
       ),
     );
   }
