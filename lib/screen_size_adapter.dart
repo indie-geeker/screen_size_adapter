@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 part 'src/config.dart';
+part 'src/internal/view_provider.dart';
 part 'src/screen_size_helper.dart';
 part 'src/screen_size_widget.dart';
 part 'src/screen_size_widget_flutter_binding.dart';

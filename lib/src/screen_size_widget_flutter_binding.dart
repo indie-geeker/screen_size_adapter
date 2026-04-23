@@ -70,7 +70,7 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
 
   @override
   Widget wrapWithDefaultView(Widget rootWidget) {
-    final view = ScreenSizeHelper.instance._primaryView;
+    final view = primaryView();
     assert(view != null, 'No FlutterView available during wrapWithDefaultView');
     return View(view: view!, child: ScreenSizeWidget(child: rootWidget));
   }
