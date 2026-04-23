@@ -227,6 +227,43 @@ void main() {
       expect(100.dp, closeTo(100.0, 0.0001));
       expect(14.sp, closeTo(14 * (1200 / 360), 0.0001));
     });
+
+    test('scale is floored at minScale on small screens', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(240, 320),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(minScale: 0.8, maxScale: null),
+      );
+
+      // raw scale = 240/360 = 0.667 → clamped to 0.8
+      expect(ScreenSizeHelper.instance.scale, closeTo(0.8, 1e-9));
+    });
+
+    test('minScale default null preserves old unclamped-below behavior', () {
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(240, 320),
+        isDesktop: false,
+        config: const ScreenSizeAdapterConfig(maxScale: null),
+      );
+
+      expect(ScreenSizeHelper.instance.scale, closeTo(240 / 360, 1e-9));
+    });
+
+    test('minScale copyWith threads through', () {
+      const original = ScreenSizeAdapterConfig();
+      final copied = original.copyWith(minScale: 0.5);
+      expect(copied.minScale, 0.5);
+      expect(copied.maxScale, original.maxScale);
+    });
+
+    test('minScale can be cleared to null via copyWithMinScale', () {
+      const config = ScreenSizeAdapterConfig(minScale: 0.8, maxScale: null);
+      final cleared = config.copyWithMinScale(null);
+      expect(cleared.minScale, isNull);
+      expect(cleared.maxScale, isNull);
+    });
   });
 
   group('ScreenSizeHelper.computeScale (pure function)', () {

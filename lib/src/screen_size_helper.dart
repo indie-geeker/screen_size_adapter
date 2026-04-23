@@ -208,6 +208,9 @@ class ScreenSizeHelper {
 
   static double _clampScaleValue(double value, ScreenSizeAdapterConfig config) {
     double s = value;
+    if (config.minScale != null && s < config.minScale!) {
+      s = config.minScale!;
+    }
     if (config.maxScale != null && s > config.maxScale!) {
       s = config.maxScale!;
     }
