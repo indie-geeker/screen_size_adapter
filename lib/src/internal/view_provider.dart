@@ -1,4 +1,6 @@
-part of '../../screen_size_adapter.dart';
+import 'dart:ui';
+
+import 'package:flutter/widgets.dart';
 
 /// Returns the primary [FlutterView], preferring the modern multi-view API.
 /// Falls back to the deprecated `implicitView` for older Flutter versions.
@@ -6,6 +8,9 @@ part of '../../screen_size_adapter.dart';
 /// Internal helper — not exported from the public API. Call sites:
 /// [ScreenSizeHelper] (for sizing) and [ScreenSizeWidgetsFlutterBinding]
 /// (for the root View wrapper).
+///
+/// Safe to call before `WidgetsBinding` initializes — returns `null` only if
+/// neither the multi-view API nor `implicitView` is available.
 FlutterView? primaryView() {
   try {
     final views = WidgetsBinding.instance.platformDispatcher.views;

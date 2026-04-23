@@ -1,4 +1,7 @@
-part of '../screen_size_adapter.dart';
+import 'package:flutter/widgets.dart';
+
+import 'media_query_ext.dart';
+import 'screen_size_helper.dart';
 
 class ScreenSizeWidget extends StatefulWidget {
   final Widget child;

@@ -1,5 +1,3 @@
-part of '../screen_size_adapter.dart';
-
 /// Controls how [num.sp] values are transformed.
 enum ScreenSizeTextScaleMode {
   /// Keeps the legacy behavior for backward compatibility.

@@ -1,19 +1,12 @@
-import 'dart:async';
-import 'dart:collection';
-import 'dart:math' as math;
-import 'dart:ui';
+/// Screen-size adaptation for Flutter — scales the widget tree to a design
+/// size so layout code can use design-unit dimensions.
+library screen_size_adapter;
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-
-part 'src/config.dart';
-part 'src/internal/view_provider.dart';
-part 'src/screen_size_helper.dart';
-part 'src/screen_size_widget.dart';
-part 'src/screen_size_widget_flutter_binding.dart';
-part 'src/media_query_ext.dart';
-part 'src/dimension_ext.dart';
-part 'src/screen_size_adapter_controller.dart';
-part 'src/convenience_ext.dart';
+export 'src/config.dart';
+export 'src/convenience_ext.dart';
+export 'src/dimension_ext.dart';
+export 'src/media_query_ext.dart';
+export 'src/screen_size_adapter_controller.dart';
+export 'src/screen_size_helper.dart';
+export 'src/screen_size_widget.dart' show ScreenSizeWidget, ScreenSizeWidgetState;
+export 'src/screen_size_widget_flutter_binding.dart';

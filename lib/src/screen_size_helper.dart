@@ -1,4 +1,9 @@
-part of '../screen_size_adapter.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+import 'config.dart';
+import 'internal/view_provider.dart';
+import 'media_query_ext.dart';
 
 /// 屏幕适配辅助类（单例）
 ///

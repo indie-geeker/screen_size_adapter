@@ -1,4 +1,6 @@
-part of '../screen_size_adapter.dart';
+import 'package:flutter/widgets.dart';
+
+import 'dimension_ext.dart';
 
 /// Spacing convenience extensions.
 ///

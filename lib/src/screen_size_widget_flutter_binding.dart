@@ -1,4 +1,15 @@
-part of '../screen_size_adapter.dart';
+import 'dart:async';
+import 'dart:collection';
+import 'dart:ui';
+
+import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+
+import 'config.dart';
+import 'internal/view_provider.dart';
+import 'screen_size_helper.dart';
+import 'screen_size_widget.dart';
 
 /// 自定义 WidgetsFlutterBinding，用于屏幕适配
 ///

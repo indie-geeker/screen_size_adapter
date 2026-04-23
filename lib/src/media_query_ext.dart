@@ -1,4 +1,7 @@
-part of '../screen_size_adapter.dart';
+import 'package:flutter/widgets.dart';
+
+import 'screen_size_helper.dart';
+
 extension MediaQueryDataExt on MediaQueryData {
   MediaQueryData copyWithScale() {
     final scale = ScreenSizeHelper.instance.scale;
