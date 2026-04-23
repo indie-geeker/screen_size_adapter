@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
+  tearDown(ScreenSizeHelper.resetForTest);
+
   group('ScreenSizeHelper initializeForTest', () {
     test('initializes singleton without custom binding', () {
       ScreenSizeHelper.initializeForTest(const Size(360, 640));
@@ -511,6 +513,54 @@ void main() {
       final radius = BorderRadius.circular(16).r;
       expect(radius.topLeft.x, closeTo(16.r, 0.001));
       expect(radius.bottomRight.x, closeTo(16.r, 0.001));
+    });
+  });
+
+  group('Uninitialized fallback', () {
+    test('isReady is true after initializeForTest', () {
+      ScreenSizeHelper.initializeForTest(const Size(360, 640));
+      expect(ScreenSizeHelper.isReady, isTrue);
+    });
+
+    test('maybeInstance returns non-null after init', () {
+      ScreenSizeHelper.initializeForTest(const Size(360, 640));
+      expect(ScreenSizeHelper.maybeInstance, isNotNull);
+    });
+
+    test('extensions return raw value when helper is ready and identity-scaled', () {
+      // With a ready helper and identity scaling, extensions should return
+      // the raw value. This also exercises the maybeInstance null-safe
+      // code path under normal conditions.
+      ScreenSizeHelper.initializeForTest(
+        const Size(360, 640),
+        logicalSize: const Size(360, 640),
+        isDesktop: false,
+      );
+      expect(ScreenSizeHelper.isReady, isTrue);
+      expect(42.dp, closeTo(42.0, 1e-9));
+      expect(42.vw, closeTo(42.0, 1e-9));
+      expect(42.vh, closeTo(42.0, 1e-9));
+      expect(42.r, closeTo(42.0, 1e-9));
+    });
+
+    test('isReady is false and maybeInstance is null after resetForTest', () {
+      ScreenSizeHelper.initializeForTest(const Size(360, 640));
+      expect(ScreenSizeHelper.isReady, isTrue);
+      ScreenSizeHelper.resetForTest();
+      expect(ScreenSizeHelper.isReady, isFalse);
+      expect(ScreenSizeHelper.maybeInstance, isNull);
+    });
+
+    test('extensions return raw toDouble() when helper is absent', () {
+      ScreenSizeHelper.resetForTest();
+      expect(ScreenSizeHelper.maybeInstance, isNull);
+      expect(42.dp, closeTo(42.0, 1e-12));
+      expect(42.vw, closeTo(42.0, 1e-12));
+      expect(42.vh, closeTo(42.0, 1e-12));
+      expect(42.sp, closeTo(42.0, 1e-12));
+      expect(42.r, closeTo(42.0, 1e-12));
+      expect(0.5.sw, closeTo(0.5, 1e-12));
+      expect(0.5.sh, closeTo(0.5, 1e-12));
     });
   });
 

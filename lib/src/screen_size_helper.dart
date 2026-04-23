@@ -59,6 +59,25 @@ class ScreenSizeHelper {
 
   /// 获取单例实例
   static ScreenSizeHelper get instance => _getInstance();
+
+  /// Returns the singleton if it has been initialized, otherwise null.
+  /// Never throws. Use this inside extension methods that must degrade
+  /// gracefully when called before `ensureInitialized`.
+  static ScreenSizeHelper? get maybeInstance {
+    final i = _instance;
+    if (i == null || !i._isInitialized) return null;
+    return i;
+  }
+
+  /// Whether the adapter is initialized and safe to use.
+  static bool get isReady => maybeInstance != null;
+
+  /// Test-only: clears the singleton so subsequent `maybeInstance` reads
+  /// return null and `isReady` returns false. Do not call in production.
+  static void resetForTest() {
+    _instance = null;
+  }
+
   static ScreenSizeHelper? _instance;
   ScreenSizeHelper._internal();
 
