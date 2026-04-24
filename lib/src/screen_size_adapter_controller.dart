@@ -1,4 +1,7 @@
-part of '../screen_size_adapter.dart';
+import 'package:flutter/widgets.dart';
+
+import 'internal/design_size_inherited.dart';
+import 'screen_size_widget.dart';
 
 /// Public runtime control APIs for screen adaptation.
 class ScreenSizeAdapter {

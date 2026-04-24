@@ -481,7 +481,7 @@ void main() {
         viewInsets: const EdgeInsets.only(bottom: 336),
       );
 
-      final scaled = original.copyWithScale();
+      final scaled = original.copyWithScale(ScreenSizeHelper.instance.scale);
 
       // Insets should be preserved exactly
       expect(scaled.padding, original.padding);

@@ -1,4 +1,8 @@
-part of '../screen_size_adapter.dart';
+import 'package:flutter/widgets.dart';
+
+import 'internal/design_size_inherited.dart';
+import 'media_query_ext.dart';
+import 'screen_size_helper.dart';
 
 class ScreenSizeWidget extends StatefulWidget {
   final Widget child;
@@ -13,7 +17,7 @@ class ScreenSizeWidgetState extends State<ScreenSizeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQueryData = MediaQuery.of(context).copyWithScale();
+    final mediaQueryData = MediaQuery.of(context).copyWithScale(ScreenSizeHelper.instance.scale);
     return MediaQuery(
       data: mediaQueryData,
       child: DesignSizeInheritedWidget(
@@ -42,32 +46,4 @@ class ScreenSizeWidgetState extends State<ScreenSizeWidget> {
       _version++;
     });
   }
-}
-
-class DesignSizeInheritedWidget extends InheritedWidget {
-  final ScreenSizeWidgetState data;
-  final int version;
-
-  const DesignSizeInheritedWidget({
-    super.key,
-    required this.data,
-    required this.version,
-    required super.child,
-  });
-
-  static ScreenSizeWidgetState? maybeOf(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<DesignSizeInheritedWidget>()
-        ?.data;
-  }
-
-  static ScreenSizeWidgetState of(BuildContext context) {
-    final ScreenSizeWidgetState? result = maybeOf(context);
-    assert(result != null, 'No DesignSizeWidgetState found in context');
-    return result!;
-  }
-
-  @override
-  bool updateShouldNotify(DesignSizeInheritedWidget oldWidget) =>
-      version != oldWidget.version;
 }

@@ -1,4 +1,7 @@
-part of '../screen_size_adapter.dart';
+import 'dart:math' as math;
+
+import 'config.dart';
+import 'screen_size_helper.dart';
 
 /// 数字扩展，提供屏幕适配方法
 ///
