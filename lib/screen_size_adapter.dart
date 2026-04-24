@@ -8,5 +8,7 @@ export 'src/dimension_ext.dart';
 export 'src/media_query_ext.dart';
 export 'src/screen_size_adapter_controller.dart';
 export 'src/screen_size_helper.dart';
+// DesignSizeInheritedWidget is intentionally hidden — it will move to
+// src/internal/ in a subsequent refactor. Use ScreenSizeAdapter.of(context) instead.
 export 'src/screen_size_widget.dart' show ScreenSizeWidget, ScreenSizeWidgetState;
 export 'src/screen_size_widget_flutter_binding.dart';

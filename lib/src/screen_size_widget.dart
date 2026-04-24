@@ -16,7 +16,7 @@ class ScreenSizeWidgetState extends State<ScreenSizeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQueryData = MediaQuery.of(context).copyWithScale();
+    final mediaQueryData = MediaQuery.of(context).copyWithScale(ScreenSizeHelper.instance.scale);
     return MediaQuery(
       data: mediaQueryData,
       child: DesignSizeInheritedWidget(

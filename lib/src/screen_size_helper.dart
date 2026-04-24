@@ -121,7 +121,7 @@ class ScreenSizeHelper {
       config: config,
     );
 
-    _instance!.newMediaQueryData = _instance!.originMediaQueryData.copyWithScale();
+    _instance!.newMediaQueryData = _instance!.originMediaQueryData.copyWithScale(_instance!.scale);
   }
 
   void _applyConfig(ScreenSizeAdapterConfig value) {
@@ -175,7 +175,7 @@ class ScreenSizeHelper {
       designSize = designSize.flipped;
     }
     scale = 1.0;
-    newMediaQueryData = originMediaQueryData.copyWithScale();
+    newMediaQueryData = originMediaQueryData.copyWithScale(scale);
   }
 
   void setup() {
@@ -196,7 +196,7 @@ class ScreenSizeHelper {
       config: config,
     );
 
-    newMediaQueryData = originMediaQueryData.copyWithScale();
+    newMediaQueryData = originMediaQueryData.copyWithScale(scale);
   }
 
   /// Pure computation of the scale factor given an origin size, design size,
