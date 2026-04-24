@@ -1,3 +1,4 @@
+// ignore_for_file: unnecessary_library_name
 /// Screen-size adaptation for Flutter — scales the widget tree to a design
 /// size so layout code can use design-unit dimensions.
 library screen_size_adapter;

@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 /// Falls back to the deprecated `implicitView` for older Flutter versions.
 ///
 /// Internal helper — not exported from the public API. Call sites:
-/// [ScreenSizeHelper] (for sizing) and [ScreenSizeWidgetsFlutterBinding]
+/// `ScreenSizeHelper` (for sizing) and `ScreenSizeWidgetsFlutterBinding`
 /// (for the root View wrapper).
 ///
 /// Safe to call before `WidgetsBinding` initializes — returns `null` only if
