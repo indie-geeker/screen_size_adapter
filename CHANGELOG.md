@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-04-23
 
 ### Added
 - `ScreenSizeAdapterConfig.minScale` — lower bound for the scale factor, symmetric with `maxScale`. Defaults to `null` to preserve prior behavior.
@@ -17,13 +17,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `DimensionExt` getters (`dp`, `vw`, `vh`, `sp`, `r`, `sw`, `sh`) no longer throw `LateInitializationError` when called before `ensureInitialized`; they now return the raw value via `toDouble()` (or the passed-through fraction for `sw`/`sh`).
+- **BREAKING (library layout):** The package now uses a modern `library + export` layout instead of `part of`. Consumers importing from `package:screen_size_adapter/src/...` must switch to `package:screen_size_adapter/screen_size_adapter.dart`.
+- **BREAKING (API signature):** `MediaQueryDataExt.copyWithScale()` now requires a `double scale` argument. Previously it was parameterless and read `ScreenSizeHelper.instance.scale` internally. Callers must pass the scale explicitly: `mediaQueryData.copyWithScale(ScreenSizeHelper.instance.scale)`.
 
 ### Fixed
 - `ScreenSizeAdapter.setDesignSize(context, ...)` no longer destroys descendant `State` objects. The previous implementation wrapped the subtree in a `KeyedSubtree` with a version-keyed `ValueKey`, which unmounted the entire subtree on every design-size change — losing form inputs, scroll positions, animation controllers, and `StreamSubscription`s. `InheritedWidget.updateShouldNotify` now drives dependent rebuilds without force-unmounting.
 - `setup()` and `initializeForTest()` no longer duplicate the scale-math logic. Both delegate to the new pure `ScreenSizeHelper.computeScale`, eliminating drift between production and test paths.
 
+### Removed
+- **BREAKING (internal):** `DesignSizeInheritedWidget` is no longer part of the public API. It has moved to `lib/src/internal/` and is no longer exported. Callers must use `ScreenSizeAdapter.of(context)` or `ScreenSizeAdapter.maybeOf(context)` — both return the same `ScreenSizeWidgetState`.
+
 ### Migration notes
 - Any caller that relied on `setDesignSize` triggering `dispose`/`initState` on descendants must now wrap the subtree in its own `KeyedSubtree` or swap keys explicitly.
+- Replace `import 'package:screen_size_adapter/src/...';` with `import 'package:screen_size_adapter/screen_size_adapter.dart';`.
+- Replace direct `DesignSizeInheritedWidget.of(context)` / `.maybeOf(context)` calls with `ScreenSizeAdapter.of(context)` / `.maybeOf(context)` — return type is unchanged.
+- Update all `copyWithScale()` call sites to pass an explicit scale: `mediaQueryData.copyWithScale(ScreenSizeHelper.instance.scale)`.
 
 ## [0.1.0] - 2026-02-09
 
@@ -136,5 +144,6 @@ Container(
 
 ---
 
+[0.3.0]: https://github.com/yourusername/screen_size_adapter/releases/tag/v0.3.0
 [0.1.0]: https://github.com/yourusername/screen_size_adapter/releases/tag/v0.1.0
 [0.0.1]: https://github.com/yourusername/screen_size_adapter/releases/tag/v0.0.1
