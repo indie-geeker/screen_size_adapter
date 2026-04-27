@@ -27,7 +27,7 @@ void main() {
         isDesktop: false,
       );
       expect(v.originSize, const Size(720, 1280));
-      expect(v.scale, closeTo(2.0, 1e-9)); // 720/360 clamped to maxScale 2.0
+      expect(v.scale, closeTo(2.0, 1e-9)); // 720/360 = 2.0 (no clamp by default)
       expect(v.effectiveDpr, closeTo(4.0, 1e-9)); // 2.0 * 2.0
     });
 

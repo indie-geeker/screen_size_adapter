@@ -97,7 +97,7 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     required Size designSize,
     ScaleAxis scaleAxis = ScaleAxis.width,
     double? minScale,
-    double? maxScale = 2.0,
+    double? maxScale,
     bool enableDesktopScaling = false,
   }) {
     _views[view.viewId] = ViewSizing(ScreenSizeAdapterConfig(

@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-04-27
+
+> ⚠️ **BREAKING (default behavior):** `ScreenSizeAdapterConfig.maxScale` default changed from `2.0` to `null` (no upper bound). This makes `ScaleAxis.width` produce a consistent `MediaQuery.width == designSize.width` in **both** portrait and landscape — previously the 2.0 cap silently capped large landscape devices and broke the cross-orientation width contract. Existing apps that relied on the 2.0 cap (typically to prevent oversized fonts on tablets / desktop) must restore it explicitly.
+
+### Changed
+- **BREAKING:** `ScreenSizeAdapterConfig.maxScale` default is now `null` (was `2.0`). With `ScaleAxis.width` (default), this restores the framework's stated contract: a design unit always represents `1 / designSize.width` of the current screen width, in any orientation. Apps that need the old behavior should pass `maxScale: 2.0` explicitly:
+  ```dart
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+    const Size(360, 690),
+    config: const ScreenSizeAdapterConfig(
+      designSize: Size(360, 690),
+      maxScale: 2.0, // restore pre-0.5.0 cap
+    ),
+  );
+  ```
+- `ScreenSizeWidgetsFlutterBinding.attachView`'s `maxScale` parameter no longer defaults to `2.0`; passes through to the config (so it's `null` unless specified).
+
+### Migration
+- If your app rendered correctly on phones but was visually compressed on tablets / desktops with the 0.4.x defaults, you were riding the 2.0 cap. Decide:
+  - Want consistency across all screens (recommended): leave the new default; review tablet/desktop layouts since text and images will now scale by the device's full width ratio.
+  - Want the old cap: set `maxScale: 2.0` explicitly.
+- The example app's landscape validation message used 0.3.x's axis-swap semantics and reported false negatives even when adaptation was working. Fixed: it now checks `MediaQuery.width == designSize.width` consistently in both orientations.
+
+### Notes on landscape with a portrait design
+With `ScaleAxis.width` and no `maxScale` cap, landscape uses a larger scale than portrait (because the device width is the long side). One side effect: vertical content authored at the design's height will overflow the (now compressed) landscape height. This is the trade-off of single-scale adaptation; common mitigations:
+- Lock to portrait via `SystemChrome.setPreferredOrientations` (most apps do this).
+- Wrap content in `SingleChildScrollView` so vertical overflow becomes scrollable.
+- Switch the design size on rotation: `ScreenSizeAdapter.setDesignSize(context, Size(640, 360))` inside an `OrientationBuilder`.
+
 ## [0.4.1] - 2026-04-27
 
 ### Fixed

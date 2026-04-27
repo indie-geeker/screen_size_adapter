@@ -1,6 +1,6 @@
 name: screen_size_adapter
 description: Binding-level screen-size adapter for Flutter, with multi-view support.
-version: 0.4.1
+version: 0.5.0
 homepage: https://github.com/indie-geeker/screen_size_adapter
 repository: https://github.com/indie-geeker/screen_size_adapter
 issue_tracker: https://github.com/indie-geeker/screen_size_adapter/issues

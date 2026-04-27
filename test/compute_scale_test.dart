@@ -97,10 +97,24 @@ void main() {
         config: const ScreenSizeAdapterConfig(
           designSize: design,
           scaleAxis: ScaleAxis.longer,
+          maxScale: 2.0, // explicit since 0.5.0 (no default cap)
         ),
         isDesktop: false,
       );
       expect(s, 2.0);
+    });
+
+    test('default config does not clamp the scale (maxScale is null)', () {
+      // Wide landscape on a 1280-wide canvas — without an explicit cap,
+      // ScaleAxis.width follows origin.width / design.width unconditionally.
+      // Pre-0.5.0 this would have clamped to 2.0.
+      final s = ScreenSizeAdapter.computeScale(
+        origin: landscapeOrigin,
+        config: const ScreenSizeAdapterConfig(designSize: design),
+        isDesktop: false,
+      );
+      expect(s, closeTo(landscapeOrigin.width / design.width, 1e-9));
+      expect(s, greaterThan(2.0));
     });
 
     test('minScale floors a scale below 1 on a small device', () {
