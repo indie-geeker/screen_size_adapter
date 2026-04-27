@@ -131,9 +131,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   Text(
                     isLandscape
                         ? '横屏模式：MediaQuery.height ≈ 设计宽度\n'
-                            '适配基于高度，宽度=180 的两个矩形仍会充满屏幕'
-                        : '竖屏模式：直接写裸数字 180 即等于设计稿的 180\n'
-                            '适配通过 MediaQuery 实现，无需 .dp 之类的扩展',
+                            'binding 缩放 + ScreenSizeAdapterScope 共同作用'
+                        : '竖屏模式：MediaQuery 返回设计尺寸，裸数字 180 = 设计 180\n'
+                            'binding 缩放 + ScreenSizeAdapterScope 共同作用',
                     style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 11,
@@ -174,7 +174,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     '• MediaQuery 宽度应该等于设计宽度\n'
                     '• 在不同设备(平板/手机)上对比视觉占比\n\n'
                     '❌ 错误验证方法：\n'
-                    '• 期望物理像素和裸数字不一致(适配是在 MediaQuery 层完成)\n'
+                    '• 期望物理像素 == 设计尺寸（适配只缩 MediaQuery 与布局，不动物理尺寸）\n'
                     '• 修改设计尺寸后期望界面不变',
                     style: TextStyle(
                       fontSize: 12,
