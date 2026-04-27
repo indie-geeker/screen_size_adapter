@@ -86,6 +86,7 @@ class ScreenSizeAdapterConfig {
     );
   }
 
+  /// Creates a copy with [maxScale] explicitly set (including `null` for unlimited).
   ScreenSizeAdapterConfig copyWithMaxScale(double? maxScale) {
     return ScreenSizeAdapterConfig(
       designSize: designSize,
@@ -97,6 +98,7 @@ class ScreenSizeAdapterConfig {
     );
   }
 
+  /// Creates a copy with [minScale] explicitly set (including `null` to remove the floor).
   ScreenSizeAdapterConfig copyWithMinScale(double? minScale) {
     return ScreenSizeAdapterConfig(
       designSize: designSize,
