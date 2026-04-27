@@ -781,12 +781,32 @@ void main() {
       expect(s, closeTo(1920 / 360, 1e-9));
     });
 
-    test('NaN/infinite/non-positive raw scale falls back to 1.0', () {
+    test('non-positive raw scale falls back to 1.0', () {
       final s = ScreenSizeAdapter.computeScale(
         origin: const Size(0, 0),
         config: const ScreenSizeAdapterConfig(designSize: design),
         isDesktop: false,
       );
+      expect(s, 1.0);
+    });
+
+    test('NaN raw scale falls back to 1.0', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: const Size(0, 0),
+        config: const ScreenSizeAdapterConfig(designSize: Size(0, 0)),
+        isDesktop: false,
+      );
+      // 0/0 = NaN
+      expect(s, 1.0);
+    });
+
+    test('infinite raw scale falls back to 1.0', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: const Size(360, 690),
+        config: const ScreenSizeAdapterConfig(designSize: Size(0, 0)),
+        isDesktop: false,
+      );
+      // 360/0 = infinity
       expect(s, 1.0);
     });
   });
