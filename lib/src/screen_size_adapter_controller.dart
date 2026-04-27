@@ -76,6 +76,25 @@ class ScreenSizeAdapter {
     return binding.scaleForViewId(viewId) ?? 1.0;
   }
 
+  /// Returns the [FlutterView]'s **unscaled** logical size — i.e.
+  /// `view.physicalSize / view.devicePixelRatio`, computed before the
+  /// binding's per-view scaling is applied.
+  ///
+  /// Use this for responsive breakpoints (`width >= 600` for tablet
+  /// layouts, etc.). Once the adapter is active, `MediaQuery.sizeOf` always
+  /// reports the design size, so it can't distinguish a phone from a
+  /// tablet — that comparison must happen against the device's native
+  /// logical size, which is what this method returns.
+  ///
+  /// Read-only — safe in any binding, including `testWidgets`.
+  static Size originSizeOf(BuildContext context) {
+    final view = View.of(context);
+    return Size(
+      view.physicalSize.width / view.devicePixelRatio,
+      view.physicalSize.height / view.devicePixelRatio,
+    );
+  }
+
   static ScreenSizeWidgetsFlutterBinding _requireBinding() {
     final binding = WidgetsBinding.instance;
     if (binding is! ScreenSizeWidgetsFlutterBinding) {

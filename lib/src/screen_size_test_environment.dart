@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'config.dart';
+import 'internal/scale_media_query.dart';
 import 'screen_size_adapter_controller.dart';
 
 /// Widget-test helper that mimics [ScreenSizeWidgetsFlutterBinding]'s
@@ -8,14 +9,15 @@ import 'screen_size_adapter_controller.dart';
 ///
 /// Use inside `testWidgets` (which uses `AutomatedTestWidgetsFlutterBinding`,
 /// where the production binding is unavailable). Wraps [child] in a
-/// [MediaQuery] whose `size` is divided by the computed scale and whose
-/// `devicePixelRatio` is multiplied by it.
+/// [MediaQuery] whose `size` and inset/padding fields are divided by the
+/// computed scale and whose `devicePixelRatio` is multiplied by it.
 ///
-/// Scope: scales `size` and `devicePixelRatio` only. Does NOT scale
-/// `padding`, `viewPadding`, `viewInsets`, or `systemGestureInsets` — in
-/// production those are derived by `MediaQueryData.fromView` *after* the
-/// binding rewrites DPR, so they end up implicitly divided. Tests that
-/// exercise safe-area math should `copyWith` those fields manually.
+/// Scope mirrors `ScreenSizeAdapterScope`'s production behavior: `size`,
+/// `devicePixelRatio`, `padding`, `viewPadding`, `viewInsets`, and
+/// `systemGestureInsets` all reflect the per-view scale, so SafeArea math
+/// and keyboard-inset logic behave the same in tests as in production.
+/// `textScaler` and other accessibility-related fields are passed through
+/// unchanged.
 class ScreenSizeTestEnvironment extends StatelessWidget {
   /// Configuration to apply. Must include [ScreenSizeAdapterConfig.designSize].
   final ScreenSizeAdapterConfig config;
@@ -49,11 +51,9 @@ class ScreenSizeTestEnvironment extends StatelessWidget {
       config: config,
       isDesktop: isDesktop,
     );
+    final base = simulatedDeviceSize == null ? mq : mq.copyWith(size: actualSize);
     return MediaQuery(
-      data: mq.copyWith(
-        size: actualSize / scale,
-        devicePixelRatio: mq.devicePixelRatio * scale,
-      ),
+      data: scaleMediaQueryData(base, scale),
       child: child,
     );
   }

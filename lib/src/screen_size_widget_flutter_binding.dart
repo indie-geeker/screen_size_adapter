@@ -10,6 +10,7 @@ import 'config.dart';
 import 'internal/platform_detection.dart';
 import 'internal/view_provider.dart';
 import 'internal/view_sizing.dart';
+import 'screen_size_adapter_scope.dart';
 
 /// Custom WidgetsFlutterBinding for screen-size adaptation.
 ///
@@ -199,6 +200,23 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   }
 
   // ── Overrides ───────────────────────────────────────────────────────
+
+  /// Wraps the implicit view's root widget so the per-view scale is
+  /// reflected in [MediaQuery] (size, devicePixelRatio, padding,
+  /// viewInsets, etc.). The binding's `createViewConfigurationFor` only
+  /// affects `RenderView.configuration`, which Flutter's
+  /// `MediaQuery.fromView` does not consult — without this wrap,
+  /// `MediaQuery.sizeOf(context)` would return the unscaled native size.
+  ///
+  /// For non-implicit views attached via the multi-view APIs
+  /// (`runWidget` + an explicit [View] widget), wrap the [View]'s child
+  /// with [ScreenSizeAdapterScope] manually.
+  @override
+  Widget wrapWithDefaultView(Widget rootWidget) {
+    return super.wrapWithDefaultView(
+      ScreenSizeAdapterScope(child: rootWidget),
+    );
+  }
 
   @override
   ViewConfiguration createViewConfigurationFor(RenderView renderView) {
