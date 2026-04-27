@@ -61,6 +61,7 @@ void main() {
         logicalSize: const Size(720, 1280),
         isDesktop: false,
         config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
           textScaleMode: ScreenSizeTextScaleMode.legacyScale,
         ),
       );
@@ -72,6 +73,7 @@ void main() {
         logicalSize: const Size(720, 1280),
         isDesktop: false,
         config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
           textScaleMode: ScreenSizeTextScaleMode.design,
         ),
       );
@@ -104,7 +106,10 @@ void main() {
         const Size(360, 640),
         logicalSize: const Size(1024, 768),
         isDesktop: false,
-        config: const ScreenSizeAdapterConfig(maxScale: 2.0),
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
+          maxScale: 2.0,
+        ),
       );
 
       // Raw scale would be 1024/360 = 2.844, should be capped at 2.0
@@ -116,7 +121,10 @@ void main() {
         const Size(360, 640),
         logicalSize: const Size(1024, 768),
         isDesktop: false,
-        config: const ScreenSizeAdapterConfig(maxScale: null),
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
+          maxScale: null,
+        ),
       );
 
       // 1024 > 768 and isDesktop=false → landscape, scale = 768/360
@@ -141,6 +149,7 @@ void main() {
         logicalSize: const Size(1200, 400),
         isDesktop: true,
         config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
           enableDesktopScaling: true,
           maxScale: null,
         ),
@@ -168,6 +177,7 @@ void main() {
         logicalSize: const Size(390, 844),
         isDesktop: false,
         config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
           textScaleMode: ScreenSizeTextScaleMode.system,
         ),
       );
@@ -181,7 +191,10 @@ void main() {
         const Size(360, 640),
         logicalSize: const Size(390, 780),
         isDesktop: false,
-        config: const ScreenSizeAdapterConfig(maxScale: null),
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
+          maxScale: null,
+        ),
       );
 
       // scale = 390/360 = 1.0833
@@ -196,7 +209,10 @@ void main() {
         const Size(360, 640),
         logicalSize: const Size(720, 800),
         isDesktop: false,
-        config: const ScreenSizeAdapterConfig(maxScale: null),
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
+          maxScale: null,
+        ),
       );
 
       // scale = 720/360 = 2.0
@@ -213,6 +229,7 @@ void main() {
         logicalSize: const Size(1200, 800),
         isDesktop: true,
         config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
           enableDesktopScaling: true,
           maxScale: null,
           textScaleMode: ScreenSizeTextScaleMode.legacyScale,
@@ -235,7 +252,11 @@ void main() {
         const Size(360, 640),
         logicalSize: const Size(240, 320),
         isDesktop: false,
-        config: const ScreenSizeAdapterConfig(minScale: 0.8, maxScale: null),
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
+          minScale: 0.8,
+          maxScale: null,
+        ),
       );
 
       // raw scale = 240/360 = 0.667 → clamped to 0.8
@@ -247,21 +268,28 @@ void main() {
         const Size(360, 640),
         logicalSize: const Size(240, 320),
         isDesktop: false,
-        config: const ScreenSizeAdapterConfig(maxScale: null),
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
+          maxScale: null,
+        ),
       );
 
       expect(ScreenSizeHelper.instance.scale, closeTo(240 / 360, 1e-9));
     });
 
     test('minScale copyWith threads through', () {
-      const original = ScreenSizeAdapterConfig();
+      const original = ScreenSizeAdapterConfig(designSize: Size(360, 640));
       final copied = original.copyWith(minScale: 0.5);
       expect(copied.minScale, 0.5);
       expect(copied.maxScale, original.maxScale);
     });
 
     test('minScale can be cleared to null via copyWithMinScale', () {
-      const config = ScreenSizeAdapterConfig(minScale: 0.8, maxScale: null);
+      const config = ScreenSizeAdapterConfig(
+        designSize: Size(360, 640),
+        minScale: 0.8,
+        maxScale: null,
+      );
       final cleared = config.copyWithMinScale(null);
       expect(cleared.minScale, isNull);
       expect(cleared.maxScale, isNull);
@@ -269,7 +297,10 @@ void main() {
   });
 
   group('ScreenSizeHelper.computeScale (pure function)', () {
-    const config = ScreenSizeAdapterConfig(maxScale: null);
+    const config = ScreenSizeAdapterConfig(
+      designSize: Size(360, 640),
+      maxScale: null,
+    );
 
     test('portrait: returns origin.width / design.width', () {
       expect(
@@ -314,6 +345,7 @@ void main() {
           design: const Size(360, 640),
           isDesktop: true,
           config: const ScreenSizeAdapterConfig(
+            designSize: Size(360, 640),
             enableDesktopScaling: true,
             maxScale: null,
           ),
@@ -342,13 +374,19 @@ void main() {
         const Size(360, 640),
         logicalSize: const Size(390, 844),
         isDesktop: false,
-        config: const ScreenSizeAdapterConfig(maxScale: null),
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
+          maxScale: null,
+        ),
       );
       final computed = ScreenSizeHelper.computeScale(
         origin: const Size(390, 844),
         design: const Size(360, 640),
         isDesktop: false,
-        config: const ScreenSizeAdapterConfig(maxScale: null),
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(360, 640),
+          maxScale: null,
+        ),
       );
       expect(ScreenSizeHelper.instance.scale, closeTo(computed, 1e-12));
     });
@@ -624,6 +662,48 @@ void main() {
       ),
       throwsA(isA<StateError>()),
     );
+  });
+
+  group('Part C: ScreenSizeAdapterConfig new fields', () {
+    test('designSize is required and stored', () {
+      const config = ScreenSizeAdapterConfig(designSize: Size(360, 690));
+      expect(config.designSize, const Size(360, 690));
+    });
+
+    test('scaleAxis defaults to width', () {
+      const config = ScreenSizeAdapterConfig(designSize: Size(360, 690));
+      expect(config.scaleAxis, ScaleAxis.width);
+    });
+
+    test('scaleAxis is configurable', () {
+      const config = ScreenSizeAdapterConfig(
+        designSize: Size(360, 690),
+        scaleAxis: ScaleAxis.shorter,
+      );
+      expect(config.scaleAxis, ScaleAxis.shorter);
+    });
+
+    test('copyWith preserves designSize and scaleAxis', () {
+      const c1 = ScreenSizeAdapterConfig(
+        designSize: Size(360, 690), scaleAxis: ScaleAxis.height,
+      );
+      final c2 = c1.copyWith(maxScale: 3.0);
+      expect(c2.designSize, const Size(360, 690));
+      expect(c2.scaleAxis, ScaleAxis.height);
+      expect(c2.maxScale, 3.0);
+    });
+
+    test('copyWith can replace designSize', () {
+      const c1 = ScreenSizeAdapterConfig(designSize: Size(360, 690));
+      final c2 = c1.copyWith(designSize: const Size(414, 896));
+      expect(c2.designSize, const Size(414, 896));
+    });
+
+    test('ScaleAxis enum has 4 values', () {
+      expect(ScaleAxis.values, [
+        ScaleAxis.width, ScaleAxis.height, ScaleAxis.shorter, ScaleAxis.longer,
+      ]);
+    });
   });
 }
 

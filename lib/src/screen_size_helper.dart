@@ -26,7 +26,11 @@ class ScreenSizeHelper {
   double scale = 1.0;
 
   /// 运行时配置
-  ScreenSizeAdapterConfig config = const ScreenSizeAdapterConfig();
+  ///
+  /// Late-initialized in [setDesignSize] / [_applyConfig] before any read,
+  /// because [ScreenSizeAdapterConfig] now requires a non-null `designSize`
+  /// and we have no sensible package-level default.
+  late ScreenSizeAdapterConfig config;
 
   bool _isDesktop = false;
   bool _isInitialized = false;
@@ -87,10 +91,12 @@ class ScreenSizeHelper {
   /// [size] 设计稿尺寸，建议使用标准尺寸如 Size(360, 640)
   static void initialize(
     Size size, {
-    ScreenSizeAdapterConfig config = const ScreenSizeAdapterConfig(),
+    ScreenSizeAdapterConfig? config,
   }) {
+    final ScreenSizeAdapterConfig resolvedConfig =
+        config ?? ScreenSizeAdapterConfig(designSize: size);
     _instance ??= ScreenSizeHelper._internal();
-    _instance!._applyConfig(config);
+    _instance!._applyConfig(resolvedConfig);
     _instance!.setDesignSize(size);
   }
 
@@ -101,10 +107,12 @@ class ScreenSizeHelper {
     Size size, {
     Size? logicalSize,
     bool? isDesktop,
-    ScreenSizeAdapterConfig config = const ScreenSizeAdapterConfig(),
+    ScreenSizeAdapterConfig? config,
   }) {
+    final ScreenSizeAdapterConfig resolvedConfig =
+        config ?? ScreenSizeAdapterConfig(designSize: size);
     _instance ??= ScreenSizeHelper._internal();
-    _instance!._applyConfig(config);
+    _instance!._applyConfig(resolvedConfig);
     _instance!.setDesignSize(size);
 
     if (isDesktop != null) {
@@ -118,7 +126,7 @@ class ScreenSizeHelper {
       origin: resolvedLogicalSize,
       design: size,
       isDesktop: _instance!._isDesktop,
-      config: config,
+      config: resolvedConfig,
     );
 
     _instance!.newMediaQueryData = _instance!.originMediaQueryData.copyWithScale(_instance!.scale);

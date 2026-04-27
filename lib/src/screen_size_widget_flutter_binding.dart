@@ -37,8 +37,14 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   /// ```
   static WidgetsBinding ensureInitialized(
     Size size, {
-    ScreenSizeAdapterConfig config = const ScreenSizeAdapterConfig(),
+    ScreenSizeAdapterConfig? config,
   }) {
+    final ScreenSizeAdapterConfig resolvedConfig = config == null
+        ? ScreenSizeAdapterConfig(designSize: size)
+        : (config.designSize == size
+            ? config
+            : config.copyWith(designSize: size));
+
     WidgetsBinding? existingBinding;
     try {
       existingBinding = WidgetsBinding.instance;
@@ -47,11 +53,11 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     }
 
     if (existingBinding == null) {
-      return ScreenSizeWidgetsFlutterBinding._(size, config);
+      return ScreenSizeWidgetsFlutterBinding._(size, resolvedConfig);
     }
 
     if (existingBinding is ScreenSizeWidgetsFlutterBinding) {
-      ScreenSizeHelper.initialize(size, config: config);
+      ScreenSizeHelper.initialize(size, config: resolvedConfig);
       existingBinding.handleMetricsChanged();
       return existingBinding;
     }

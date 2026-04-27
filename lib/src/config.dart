@@ -1,3 +1,5 @@
+import 'dart:ui' show Size;
+
 /// Controls how [num.sp] values are transformed.
 enum ScreenSizeTextScaleMode {
   /// Keeps the legacy behavior for backward compatibility.
@@ -16,32 +18,47 @@ enum ScreenSizeTextScaleMode {
   system,
 }
 
+/// Which axis the binding uses to derive the scale factor.
+enum ScaleAxis {
+  /// scale = origin.width / design.width — the historical default.
+  width,
+
+  /// scale = origin.height / design.height.
+  height,
+
+  /// scale = min(origin.w / design.w, origin.h / design.h).
+  /// Use this when you want aspect-safe sizing (circles stay circular).
+  shorter,
+
+  /// scale = max(origin.w / design.w, origin.h / design.h).
+  longer,
+}
+
 /// Runtime configuration for [screen_size_adapter].
 class ScreenSizeAdapterConfig {
-  final ScreenSizeTextScaleMode textScaleMode;
+  /// Design canvas the app was authored against. Plain numbers in widget code
+  /// are interpreted in these units after the binding scales the view.
+  final Size designSize;
 
-  /// Whether desktop platforms (Windows/macOS/Linux) should apply
-  /// design-size scaling logic.
-  ///
-  /// Defaults to `false`, meaning desktop uses original window metrics.
+  /// Which axis the binding uses to derive the scale. See [ScaleAxis].
+  final ScaleAxis scaleAxis;
+
+  /// Whether desktop platforms (Windows/macOS/Linux) apply scaling at all.
+  /// Defaults to false: desktop windows use their native logical size.
   final bool enableDesktopScaling;
 
-  /// Upper bound for the computed scale factor.
-  ///
-  /// When non-null, the scale is clamped so it never exceeds this value.
-  /// Set to `null` to allow unlimited scaling.
-  /// Defaults to `2.0`.
+  /// Upper bound for the computed scale factor. `null` = unlimited.
   final double? maxScale;
 
-  /// Lower bound for the computed scale factor.
-  ///
-  /// When non-null, the scale is clamped so it never falls below this value.
-  /// Useful on small-screen phones or foldable cover displays where an
-  /// unbounded scale < 1 can shrink text below legibility.
-  /// Defaults to `null` (no lower bound) to preserve prior behavior.
+  /// Lower bound for the computed scale factor. `null` = no floor.
   final double? minScale;
 
+  /// Legacy text-scale mode. Will be removed in a follow-up task.
+  final ScreenSizeTextScaleMode textScaleMode;
+
   const ScreenSizeAdapterConfig({
+    required this.designSize,
+    this.scaleAxis = ScaleAxis.width,
     this.textScaleMode = ScreenSizeTextScaleMode.design,
     this.enableDesktopScaling = false,
     this.maxScale = 2.0,
@@ -51,17 +68,17 @@ class ScreenSizeAdapterConfig {
           'minScale must be <= maxScale',
         );
 
-  /// Creates a copy with the given fields replaced.
-  ///
-  /// To set [maxScale] to `null` (unlimited), use [copyWithMaxScale].
-  /// To set [minScale] to `null` (remove floor), use [copyWithMinScale].
   ScreenSizeAdapterConfig copyWith({
+    Size? designSize,
+    ScaleAxis? scaleAxis,
     ScreenSizeTextScaleMode? textScaleMode,
     bool? enableDesktopScaling,
     double? maxScale,
     double? minScale,
   }) {
     return ScreenSizeAdapterConfig(
+      designSize: designSize ?? this.designSize,
+      scaleAxis: scaleAxis ?? this.scaleAxis,
       textScaleMode: textScaleMode ?? this.textScaleMode,
       enableDesktopScaling: enableDesktopScaling ?? this.enableDesktopScaling,
       maxScale: maxScale ?? this.maxScale,
@@ -69,9 +86,10 @@ class ScreenSizeAdapterConfig {
     );
   }
 
-  /// Creates a copy with [maxScale] explicitly set (including `null` for unlimited).
   ScreenSizeAdapterConfig copyWithMaxScale(double? maxScale) {
     return ScreenSizeAdapterConfig(
+      designSize: designSize,
+      scaleAxis: scaleAxis,
       textScaleMode: textScaleMode,
       enableDesktopScaling: enableDesktopScaling,
       maxScale: maxScale,
@@ -79,9 +97,10 @@ class ScreenSizeAdapterConfig {
     );
   }
 
-  /// Creates a copy with [minScale] explicitly set (including `null` to remove the floor).
   ScreenSizeAdapterConfig copyWithMinScale(double? minScale) {
     return ScreenSizeAdapterConfig(
+      designSize: designSize,
+      scaleAxis: scaleAxis,
       textScaleMode: textScaleMode,
       enableDesktopScaling: enableDesktopScaling,
       maxScale: maxScale,
