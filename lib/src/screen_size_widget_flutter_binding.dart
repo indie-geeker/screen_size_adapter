@@ -87,7 +87,15 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
 
   // ── Public per-view registry API ─────────────────────────────────────
 
-  /// Attach (or replace) the configuration for [view]. Triggers a layout pass.
+  /// Register (or replace) the screen-size configuration for [view].
+  ///
+  /// Calling on a view that is already attached replaces its config
+  /// entirely. Triggers `handleMetricsChanged()` so Flutter's layout
+  /// pipeline applies the new configuration on the next frame.
+  ///
+  /// Use this for any non-primary [FlutterView] (embedded views,
+  /// secondary windows, multi-display). The primary view is registered
+  /// automatically by [ensureInitialized].
   void attachView({
     required FlutterView view,
     required Size designSize,
@@ -106,8 +114,17 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     handleMetricsChanged();
   }
 
-  /// Mutate fields of an already-attached view's configuration.
-  /// Throws [StateError] if [view] has no registration.
+  /// Mutate selected fields of an already-registered view's configuration.
+  /// Throws [StateError] if [view] has no registration — call [attachView]
+  /// first.
+  ///
+  /// Triggers `handleMetricsChanged()` so the next layout pass picks up
+  /// the new values.
+  ///
+  /// Note: passing `null` for [minScale] or [maxScale] does NOT clear an
+  /// existing value — the underlying `copyWith` treats `null` as
+  /// "no change." To clear a bound, call [attachView] with the full
+  /// desired configuration.
   void updateView({
     required FlutterView view,
     Size? designSize,
@@ -133,7 +150,13 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     handleMetricsChanged();
   }
 
-  /// Reset [view]'s designSize to its current logical size.
+  /// Reset [view]'s `designSize` to the view's current logical size
+  /// (physicalSize / devicePixelRatio).
+  ///
+  /// Does NOT revert to the value passed to [attachView] — the original
+  /// registration is overwritten. To restore a known config, call
+  /// [attachView] with the desired values.
+  ///
   /// No-op if [view] is not registered.
   void resetView({required FlutterView view}) {
     final sizing = _views[view.viewId];
@@ -147,12 +170,24 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   }
 
   /// Remove [view] from the registry. No-op if not registered.
+  ///
+  /// Subsequent `createViewConfigurationFor` calls for this view fall
+  /// through to stock Flutter behavior — the view will render at its
+  /// native devicePixelRatio. Trigger a layout pass via
+  /// `handleMetricsChanged()` immediately so the change is visible on
+  /// the next frame; expect a brief discontinuity if the view was
+  /// previously rendering at a scaled DPR.
   void detachView(FlutterView view) {
     _views.remove(view.viewId);
     handleMetricsChanged();
   }
 
-  /// The current scale factor for [viewId], or null if unmanaged.
+  /// The most-recently-computed scale factor for [viewId], or `null` if
+  /// the view is not registered.
+  ///
+  /// May return `1.0` for a registered view that has not yet undergone
+  /// its first layout pass. Read inside or after a frame for accurate
+  /// values.
   double? scaleForViewId(int viewId) => _views[viewId]?.scale;
 
   /// Test-only: returns the current config for [viewId], or null.
