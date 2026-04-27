@@ -1,26 +1,21 @@
-import 'package:flutter/material.dart';
+import 'package:example/main.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
-  testWidgets('example can render widget with adapter extensions', (
-    WidgetTester tester,
-  ) async {
-    ScreenSizeHelper.initializeForTest(const Size(360, 640));
-
+  testWidgets('example app pumps under ScreenSizeTestEnvironment',
+      (tester) async {
+    // testWidgets uses AutomatedTestWidgetsFlutterBinding, not the
+    // production ScreenSizeWidgetsFlutterBinding — so we use the
+    // MediaQuery-layer simulator.
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Container(
-            width: 120.dp,
-            height: 60.dp,
-            alignment: Alignment.center,
-            child: Text('demo', style: TextStyle(fontSize: 14.sp)),
-          ),
-        ),
+      const ScreenSizeTestEnvironment(
+        config: ScreenSizeAdapterConfig(designSize: Size(360, 640)),
+        simulatedDeviceSize: Size(720, 1280),
+        child: MyApp(),
       ),
     );
-
-    expect(find.text('demo'), findsOneWidget);
+    expect(find.byType(MyApp), findsOneWidget);
   });
 }
