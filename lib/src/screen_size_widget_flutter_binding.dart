@@ -11,7 +11,6 @@ import 'internal/platform_detection.dart';
 import 'internal/view_provider.dart';
 import 'internal/view_sizing.dart';
 import 'screen_size_helper.dart';
-import 'screen_size_widget.dart';
 
 /// Custom WidgetsFlutterBinding for screen-size adaptation.
 ///
@@ -231,14 +230,6 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       logicalConstraints: phys / sizing.effectiveDpr,
       devicePixelRatio: sizing.effectiveDpr,
     );
-  }
-
-  @override
-  Widget wrapWithDefaultView(Widget rootWidget) {
-    final view = primaryView();
-    assert(view != null, 'No FlutterView available during wrapWithDefaultView');
-    // Backward compat for ScreenSizeAdapter.of(context). Task 6 removes the wrap.
-    return View(view: view!, child: ScreenSizeWidget(child: rootWidget));
   }
 
   @override

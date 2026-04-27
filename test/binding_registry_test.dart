@@ -107,4 +107,49 @@ void main() {
       binding.attachView(view: primary, designSize: const Size(360, 690));
     });
   });
+
+  group('Part C: ScreenSizeAdapter facade', () {
+    // NOTE: testWidgets requires AutomatedTestWidgetsFlutterBinding which is
+    // incompatible with our ScreenSizeWidgetsFlutterBinding. We bootstrap a
+    // minimal widget tree directly via binding.attachRootWidget so the
+    // facade methods can resolve View.of(context) against our concrete
+    // binding and registry.
+    test('setDesignSize updates the registry for the enclosing view',
+        () async {
+      BuildContext? captured;
+      final primary = binding.platformDispatcher.views.first;
+      binding.attachRootWidget(View(
+        view: primary,
+        child: Builder(builder: (ctx) {
+          captured = ctx;
+          return const SizedBox.shrink();
+        }),
+      ));
+      binding.scheduleWarmUpFrame();
+      await Future<void>.delayed(Duration.zero);
+
+      ScreenSizeAdapter.setDesignSize(captured!, const Size(414, 896));
+      final viewId = View.of(captured!).viewId;
+      expect(binding.configForViewId(viewId)?.designSize,
+          const Size(414, 896));
+    });
+
+    test('scaleOf returns the registered scale (or 1.0 if unmanaged)',
+        () async {
+      BuildContext? captured;
+      final primary = binding.platformDispatcher.views.first;
+      binding.attachRootWidget(View(
+        view: primary,
+        child: Builder(builder: (ctx) {
+          captured = ctx;
+          return const SizedBox.shrink();
+        }),
+      ));
+      binding.scheduleWarmUpFrame();
+      await Future<void>.delayed(Duration.zero);
+
+      final scale = ScreenSizeAdapter.scaleOf(captured!);
+      expect(scale, isNonZero);
+    });
+  });
 }
