@@ -5,9 +5,8 @@ import 'package:flutter/widgets.dart';
 /// Returns the primary [FlutterView], preferring the modern multi-view API.
 /// Falls back to the deprecated `implicitView` for older Flutter versions.
 ///
-/// Internal helper — not exported from the public API. Call sites:
-/// `ScreenSizeHelper` (for sizing) and `ScreenSizeWidgetsFlutterBinding`
-/// (for the root View wrapper).
+/// Internal helper — not exported from the public API. Used by
+/// `ScreenSizeWidgetsFlutterBinding` to register the primary view.
 ///
 /// Safe to call before `WidgetsBinding` initializes — returns `null` only if
 /// neither the multi-view API nor `implicitView` is available.

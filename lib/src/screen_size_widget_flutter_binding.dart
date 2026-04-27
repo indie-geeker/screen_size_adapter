@@ -10,7 +10,6 @@ import 'config.dart';
 import 'internal/platform_detection.dart';
 import 'internal/view_provider.dart';
 import 'internal/view_sizing.dart';
-import 'screen_size_helper.dart';
 
 /// Custom WidgetsFlutterBinding for screen-size adaptation.
 ///
@@ -59,14 +58,11 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     if (existing == null) {
       final created = ScreenSizeWidgetsFlutterBinding._();
       created._registerPrimaryView(resolvedConfig);
-      // Backward compat: Task 7 deletes this.
-      ScreenSizeHelper.initialize(size, config: resolvedConfig);
       return created;
     }
 
     if (existing is ScreenSizeWidgetsFlutterBinding) {
       existing._registerPrimaryView(resolvedConfig);
-      ScreenSizeHelper.initialize(size, config: resolvedConfig);
       existing.handleMetricsChanged();
       return existing;
     }
@@ -219,9 +215,6 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       originDpr: flutterView.devicePixelRatio,
       isDesktop: isDesktopPlatform(),
     );
-
-    // Backward compat: Task 7 deletes this.
-    ScreenSizeHelper.instance.setup();
 
     final phys =
         BoxConstraints.fromViewConstraints(flutterView.physicalConstraints);
