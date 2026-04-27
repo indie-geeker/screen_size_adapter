@@ -91,6 +91,34 @@ binding.detachView(secondaryView);
 
 主视图由 `ensureInitialized` 自动注册。未注册的视图保持 Flutter 的原生行为，不做任何缩放。
 
+非主视图（`runWidget` 或 `ViewAnchor` 自行挂载的 `View(...)`）不会自动得到正确的 `MediaQuery` 缩放，需要手动包一层 `ScreenSizeAdapterScope`：
+
+```dart
+View(
+  view: secondaryView,
+  child: ScreenSizeAdapterScope(
+    child: MyApp(),
+  ),
+)
+```
+
+`runApp` 链路下的主视图由 binding 的 `wrapWithDefaultView` 自动注入，应用代码无需任何包装。
+
+## 响应式断点
+
+适配生效后，`MediaQuery.sizeOf(context)` 在所有设备上都返回设计尺寸 —— 你不能再用它来区分手机和平板。需要响应式判断时改读 `originSizeOf`：
+
+```dart
+final origin = ScreenSizeAdapter.originSizeOf(context);  // 设备原生逻辑尺寸
+if (origin.shortestSide >= 600) {
+  return TabletLayout();
+} else {
+  return PhoneLayout();
+}
+```
+
+`originSizeOf` 等价于 `view.physicalSize / view.devicePixelRatio`，**不**经过 binding 缩放。
+
 ## 运行时更新
 
 ```dart

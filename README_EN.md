@@ -91,6 +91,34 @@ binding.detachView(secondaryView);
 
 The primary view is registered automatically by `ensureInitialized`. Unregistered views fall through to stock Flutter behavior — no scaling.
 
+Non-primary views (those mounted via `runWidget` or `ViewAnchor`) do not get the auto-injected `MediaQuery` scaling. Wrap each subtree manually with `ScreenSizeAdapterScope`:
+
+```dart
+View(
+  view: secondaryView,
+  child: ScreenSizeAdapterScope(
+    child: MyApp(),
+  ),
+)
+```
+
+The implicit (primary) view used by `runApp` is wrapped automatically by the binding's `wrapWithDefaultView`, so app code needs no manual wrapping.
+
+## Responsive breakpoints
+
+Once the adapter is active, `MediaQuery.sizeOf(context)` reports the design size on every device — it can no longer distinguish a phone from a tablet. For breakpoint logic, read `originSizeOf` instead:
+
+```dart
+final origin = ScreenSizeAdapter.originSizeOf(context);  // native logical size
+if (origin.shortestSide >= 600) {
+  return TabletLayout();
+} else {
+  return PhoneLayout();
+}
+```
+
+`originSizeOf` is equivalent to `view.physicalSize / view.devicePixelRatio` and is **not** scaled by the binding.
+
 ## Runtime updates
 
 ```dart

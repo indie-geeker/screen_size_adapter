@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-04-27
+
+### Fixed
+- **`MediaQuery` now reports design-unit values.** In Flutter 3.27+ the `View` widget wraps its child with `MediaQuery.fromView(view: ...)`, which constructs `MediaQueryData` directly from `FlutterView.physicalSize / FlutterView.devicePixelRatio`. The binding's `createViewConfigurationFor` override could not influence that path, so `MediaQuery.sizeOf(context)` returned the unscaled native size — contradicting the README's claim that it equals `designSize`. The 0.4.0 migration guidance for `0.5.sw → MediaQuery.sizeOf(context).width * 0.5` was therefore broken in production, while `ScreenSizeTestEnvironment` masked the issue in tests.
+- `SafeArea` over-padded by ~`scale` and `Scaffold.resizeToAvoidBottomInset` overshot keyboard insets by the same factor, because `MediaQuery.padding` / `viewInsets` were not divided by the per-view scale.
+
+### Added
+- `ScreenSizeAdapterScope` — `StatefulWidget` that wraps its subtree in a corrected `MediaQuery` (size, devicePixelRatio, padding, viewPadding, viewInsets, systemGestureInsets all consistent with the binding's per-view scale). Listens to `didChangeMetrics` so runtime changes via `setDesignSize` / `attachView` propagate immediately.
+- Auto-injection via `ScreenSizeWidgetsFlutterBinding.wrapWithDefaultView` — apps started by `runApp` get the scope at the implicit view's root with no code change. Multi-view apps that mount additional `View` widgets (`runWidget` / `ViewAnchor`) should wrap each subtree manually with `ScreenSizeAdapterScope`.
+- `ScreenSizeAdapter.originSizeOf(context)` — returns the unscaled native logical size (`view.physicalSize / view.devicePixelRatio`). Use this for responsive breakpoints (phone vs. tablet), since `MediaQuery.sizeOf` now always reports the design size and can't distinguish device classes.
+
+### Changed
+- `ScreenSizeTestEnvironment` now scales `padding`, `viewPadding`, `viewInsets`, and `systemGestureInsets` in addition to `size` / `devicePixelRatio`, so test behavior matches production.
+
 ## [0.4.0] - 2026-04-27
 
 ### Added
