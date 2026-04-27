@@ -44,30 +44,50 @@ class ScreenSizeAdapter {
   ///
   /// Throws [StateError] if no enclosing [View] exists (this only happens
   /// outside the widget tree, e.g. in custom test scaffolding without
-  /// `runApp`).
+  /// `runApp`), or if the active [WidgetsBinding] is not a
+  /// [ScreenSizeWidgetsFlutterBinding] (e.g. during widget tests that use
+  /// `AutomatedTestWidgetsFlutterBinding` — use [ScreenSizeTestEnvironment]
+  /// in that case).
   static void setDesignSize(BuildContext context, Size size) {
     final view = View.of(context);
-    final binding =
-        WidgetsBinding.instance as ScreenSizeWidgetsFlutterBinding;
+    final binding = _requireBinding();
     binding.updateView(view: view, designSize: size);
   }
 
   /// Reset the [FlutterView] that owns [context] to its current logical
   /// size — clears any in-app design-size override.
+  ///
+  /// Same binding requirements as [setDesignSize].
   static void reset(BuildContext context) {
     final view = View.of(context);
-    final binding =
-        WidgetsBinding.instance as ScreenSizeWidgetsFlutterBinding;
+    final binding = _requireBinding();
     binding.resetView(view: view);
   }
 
   /// Returns the most-recently-computed scale factor for the
   /// [FlutterView] that owns [context]. Returns `1.0` if the view has no
-  /// registered configuration or has not yet undergone its first layout pass.
+  /// registered configuration, has not yet undergone its first layout pass,
+  /// or if the active [WidgetsBinding] is not a
+  /// [ScreenSizeWidgetsFlutterBinding] (e.g. inside `testWidgets`, which
+  /// uses `AutomatedTestWidgetsFlutterBinding`). Read-only — safe in any
+  /// binding.
   static double scaleOf(BuildContext context) {
+    final binding = WidgetsBinding.instance;
+    if (binding is! ScreenSizeWidgetsFlutterBinding) return 1.0;
     final viewId = View.of(context).viewId;
-    final binding =
-        WidgetsBinding.instance as ScreenSizeWidgetsFlutterBinding;
     return binding.scaleForViewId(viewId) ?? 1.0;
+  }
+
+  static ScreenSizeWidgetsFlutterBinding _requireBinding() {
+    final binding = WidgetsBinding.instance;
+    if (binding is! ScreenSizeWidgetsFlutterBinding) {
+      throw StateError(
+        'ScreenSizeAdapter.setDesignSize/reset require '
+        'ScreenSizeWidgetsFlutterBinding to be installed. '
+        'Call ScreenSizeWidgetsFlutterBinding.ensureInitialized(...) before '
+        'runApp, or in widget tests use ScreenSizeTestEnvironment instead.',
+      );
+    }
+    return binding;
   }
 }

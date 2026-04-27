@@ -1,15 +1,21 @@
 import 'package:example/main.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
-  test('MyApp can be instantiated', () {
-    // The example's runtime path (MyHomePage.build calls
-    // ScreenSizeAdapter.scaleOf, which casts WidgetsBinding.instance to
-    // ScreenSizeWidgetsFlutterBinding) is not reachable from
-    // AutomatedTestWidgetsFlutterBinding used by testWidgets. This smoke
-    // test stays on the constructor surface — enough to catch import or
-    // class-shape regressions in main.dart.
-    const app = MyApp();
-    expect(app, isNotNull);
+  testWidgets('example app pumps under ScreenSizeTestEnvironment',
+      (tester) async {
+    // testWidgets uses AutomatedTestWidgetsFlutterBinding, not the
+    // production ScreenSizeWidgetsFlutterBinding — so we use the
+    // MediaQuery-layer simulator.
+    await tester.pumpWidget(
+      const ScreenSizeTestEnvironment(
+        config: ScreenSizeAdapterConfig(designSize: Size(360, 640)),
+        simulatedDeviceSize: Size(720, 1280),
+        child: MyApp(),
+      ),
+    );
+    expect(find.byType(MyApp), findsOneWidget);
   });
 }
