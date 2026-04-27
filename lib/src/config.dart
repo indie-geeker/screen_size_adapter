@@ -32,7 +32,8 @@ class ScreenSizeAdapterConfig {
   /// Defaults to false: desktop windows use their native logical size.
   final bool enableDesktopScaling;
 
-  /// Upper bound for the computed scale factor. `null` = unlimited.
+  /// Upper bound for the computed scale factor. `null` = unlimited (default
+  /// since 0.5.0). Set explicitly to cap the scale on very large screens.
   final double? maxScale;
 
   /// Lower bound for the computed scale factor. `null` = no floor.
@@ -42,7 +43,7 @@ class ScreenSizeAdapterConfig {
     required this.designSize,
     this.scaleAxis = ScaleAxis.width,
     this.enableDesktopScaling = false,
-    this.maxScale = 2.0,
+    this.maxScale,
     this.minScale,
   }) : assert(
           minScale == null || maxScale == null || minScale <= maxScale,
