@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-04-27
+
+### Added
+- `ScaleAxis` enum (`width`, `height`, `shorter`, `longer`) — selects which axis the binding uses to compute scale.
+- `ScreenSizeWidgetsFlutterBinding.attachView` / `updateView` / `detachView` / `resetView` — explicit per-view registry for multi-view apps (desktop multi-window, embedded views, Add-to-App).
+- `ScreenSizeWidgetsFlutterBinding.scaleForViewId` / `configForViewId` — per-view inspection (configForViewId is test-only).
+- `ScreenSizeAdapter.setDesignSize(context, size)` / `reset(context)` / `scaleOf(context)` — context-resolving facade methods that operate on the FlutterView owning the calling widget.
+- `ScreenSizeAdapter.computeScale(origin, config, isDesktop)` — public pure function for unit tests and preview math.
+- `ScreenSizeTestEnvironment` widget — mimics the binding's scaling at the MediaQuery layer for widget tests under `AutomatedTestWidgetsFlutterBinding`.
+- `ScreenSizeAdapterConfig.designSize` field — was a separate `ensureInitialized` argument in 0.3.x; now the canonical home.
+- `ScreenSizeAdapterConfig.scaleAxis` field — defaults to `ScaleAxis.width`.
+
+### Changed
+- **BREAKING (architecture):** Per-view scale state lives in the binding's registry, keyed by `FlutterView.viewId`. Each view can have its own `ScreenSizeAdapterConfig`. The previous `ScreenSizeHelper` singleton is gone.
+- **BREAKING (architecture):** `ScreenSizeWidgetsFlutterBinding.wrapWithDefaultView` no longer wraps with `ScreenSizeWidget` — the binding scales views via `ViewConfiguration.devicePixelRatio` directly. No widget-tree wrap is needed.
+- `ScreenSizeAdapter.scaleOf(context)` is defensive — returns `1.0` when the active binding is not `ScreenSizeWidgetsFlutterBinding` (e.g. inside `testWidgets`). `setDesignSize` / `reset` throw a clear `StateError` in the same situation, directing callers to `ScreenSizeTestEnvironment`.
+- Minimum Flutter version raised from 3.16 to 3.27 (for stable multi-view APIs).
+
+### Removed
+- **BREAKING (API surface):** All bare-num extensions: `100.dp`, `100.vw`, `100.vh`, `100.r`, `14.sp`, `0.5.sw`, `0.5.sh`. The binding scales the view's `devicePixelRatio` directly; user code writes plain numbers in design units.
+- **BREAKING (API surface):** `EdgeInsetsScaleExt` (`.w`, `.r`), `BorderRadiusScaleExt` (`.w`, `.r`), `SpacingExt` (`verticalSpace`, `horizontalSpace`). Use `const EdgeInsets.all(16)`, `BorderRadius.circular(16)`, `const SizedBox(height: 16)` directly.
+- **BREAKING (API surface):** `MediaQueryDataExt.copyWithScale` — implementation detail.
+- **BREAKING (API surface):** `ScreenSizeHelper` class (singleton) — replaced by per-view binding registry. Reads of `ScreenSizeHelper.instance.scale` become `ScreenSizeAdapter.scaleOf(context)`.
+- **BREAKING (API surface):** `ScreenSizeWidget`, `ScreenSizeWidgetState`, `DesignSizeInheritedWidget` — no widget wrap needed; binding handles scaling at the framework level.
+- **BREAKING (API surface):** `ScreenSizeTextScaleMode` enum and the `textScaleMode` config field — Flutter's native `MediaQuery.textScaler` propagates accessibility text scaling automatically.
+- **BREAKING (API surface):** `ScreenSizeAdapter.of(context)` / `.maybeOf(context)` — no `State` to expose.
+
+### Migration
+- Every `100.dp` / `.vw` / `.vh` / `.r` becomes `100`. Every `14.sp` becomes `14`.
+- Every `EdgeInsets.all(16).w` becomes `const EdgeInsets.all(16)`. Every `BorderRadius.circular(16).w` becomes `BorderRadius.circular(16)`.
+- Every `0.5.sw` becomes `MediaQuery.sizeOf(context).width * 0.5`.
+- Every `16.verticalSpace` becomes `const SizedBox(height: 16)`.
+- `ScreenSizeAdapter.of(context).setDesignSize(s)` becomes `ScreenSizeAdapter.setDesignSize(context, s)`.
+- Reads of `ScreenSizeHelper.instance.scale` become `ScreenSizeAdapter.scaleOf(context)`.
+- Reads of `ScreenSizeHelper.instance.designSize` become `MediaQuery.sizeOf(context)` (post-binding it equals the design size).
+- If you previously used `100.r` for aspect-safe circles, configure `scaleAxis: ScaleAxis.shorter` at `ensureInitialized` time.
+- If you used `legacyScale` text mode, expect smaller fonts in 0.4.0 — the new behavior is correct (legacy mode double-scaled fonts on top of the binding's view scaling).
+- For widget tests, wrap your `tester.pumpWidget` content in `ScreenSizeTestEnvironment(config: ..., simulatedDeviceSize: ..., child: ...)` — the production binding can't be installed under `testWidgets`.
+
 ## [0.3.0] - 2026-04-23
 
 ### Added
@@ -144,6 +183,7 @@ Container(
 
 ---
 
-[0.3.0]: https://github.com/yourusername/screen_size_adapter/releases/tag/v0.3.0
-[0.1.0]: https://github.com/yourusername/screen_size_adapter/releases/tag/v0.1.0
-[0.0.1]: https://github.com/yourusername/screen_size_adapter/releases/tag/v0.0.1
+[0.4.0]: https://github.com/indie-geeker/screen_size_adapter/releases/tag/v0.4.0
+[0.3.0]: https://github.com/indie-geeker/screen_size_adapter/releases/tag/v0.3.0
+[0.1.0]: https://github.com/indie-geeker/screen_size_adapter/releases/tag/v0.1.0
+[0.0.1]: https://github.com/indie-geeker/screen_size_adapter/releases/tag/v0.0.1
