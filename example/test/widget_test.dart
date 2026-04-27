@@ -11,11 +11,13 @@ void main() {
     // MediaQuery-layer simulator.
     await tester.pumpWidget(
       const ScreenSizeTestEnvironment(
-        config: ScreenSizeAdapterConfig(designSize: Size(360, 640)),
-        simulatedDeviceSize: Size(720, 1280),
+        config: ScreenSizeAdapterConfig(designSize: Size(360, 690)),
+        simulatedDeviceSize: Size(720, 1380),
         child: MyApp(),
       ),
     );
+    await tester.pump();
     expect(find.byType(MyApp), findsOneWidget);
+    expect(find.text('screen_size_adapter · 实时调试'), findsOneWidget);
   });
 }
