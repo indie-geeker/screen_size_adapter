@@ -9,8 +9,13 @@ import 'screen_size_adapter_controller.dart';
 /// Use inside `testWidgets` (which uses `AutomatedTestWidgetsFlutterBinding`,
 /// where the production binding is unavailable). Wraps [child] in a
 /// [MediaQuery] whose `size` is divided by the computed scale and whose
-/// `devicePixelRatio` is multiplied by it — observably the same view
-/// transformation the production binding performs.
+/// `devicePixelRatio` is multiplied by it.
+///
+/// Scope: scales `size` and `devicePixelRatio` only. Does NOT scale
+/// `padding`, `viewPadding`, `viewInsets`, or `systemGestureInsets` — in
+/// production those are derived by `MediaQueryData.fromView` *after* the
+/// binding rewrites DPR, so they end up implicitly divided. Tests that
+/// exercise safe-area math should `copyWith` those fields manually.
 class ScreenSizeTestEnvironment extends StatelessWidget {
   /// Configuration to apply. Must include [ScreenSizeAdapterConfig.designSize].
   final ScreenSizeAdapterConfig config;

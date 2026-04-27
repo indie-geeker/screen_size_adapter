@@ -65,7 +65,7 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 
 `scaleAxis` controls which axis derives the scale factor:
 
-- `width` — `scale = origin.width / design.width`. Default; matches the historical behavior.
+- `width` — `scale = origin.width / design.width`. Default. **Note:** 0.3.x's mobile path silently switched to height-derived scaling in landscape; 0.4.0 does not. Use `shorter` if you want aspect-safe sizing across orientations.
 - `height` — `scale = origin.height / design.height`.
 - `shorter` — uses the smaller of the two ratios. Use this when you want aspect-safe sizing (circles stay circular regardless of device aspect ratio).
 - `longer` — uses the larger ratio. Pairs with `maxScale` to clamp aggressively-wide devices.

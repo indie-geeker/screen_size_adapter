@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING (architecture):** Per-view scale state lives in the binding's registry, keyed by `FlutterView.viewId`. Each view can have its own `ScreenSizeAdapterConfig`. The previous `ScreenSizeHelper` singleton is gone.
 - **BREAKING (architecture):** `ScreenSizeWidgetsFlutterBinding.wrapWithDefaultView` no longer wraps with `ScreenSizeWidget` — the binding scales views via `ViewConfiguration.devicePixelRatio` directly. No widget-tree wrap is needed.
 - `ScreenSizeAdapter.scaleOf(context)` is defensive — returns `1.0` when the active binding is not `ScreenSizeWidgetsFlutterBinding` (e.g. inside `testWidgets`). `setDesignSize` / `reset` throw a clear `StateError` in the same situation, directing callers to `ScreenSizeTestEnvironment`.
-- Minimum Flutter version raised from 3.16 to 3.27 (for stable multi-view APIs).
+- **BREAKING (behavior):** Removed the implicit landscape axis-swap that 0.3.x's mobile path performed (it silently used `origin.height / design.width` in landscape under the default scale formula). 0.4.0's `ScaleAxis.width` is unconditional. Apps that depended on the old aspect-safe behavior should configure `scaleAxis: ScaleAxis.shorter` at `ensureInitialized` time.
+- Added explicit minimum Flutter `>=3.27.0` constraint to `pubspec.yaml` (for stable multi-view APIs).
 
 ### Removed
 - **BREAKING (API surface):** All bare-num extensions: `100.dp`, `100.vw`, `100.vh`, `100.r`, `14.sp`, `0.5.sw`, `0.5.sh`. The binding scales the view's `devicePixelRatio` directly; user code writes plain numbers in design units.

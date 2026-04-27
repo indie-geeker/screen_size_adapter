@@ -2,7 +2,10 @@ import 'dart:ui' show Size;
 
 /// Which axis the binding uses to derive the scale factor.
 enum ScaleAxis {
-  /// scale = origin.width / design.width — the historical default.
+  /// scale = origin.width / design.width — applied unconditionally regardless
+  /// of orientation. (0.3.x silently used origin.height / design.width in
+  /// landscape on mobile; that implicit axis-swap is gone in 0.4.0. Use
+  /// `ScaleAxis.shorter` if you want aspect-safe sizing across orientations.)
   width,
 
   /// scale = origin.height / design.height.

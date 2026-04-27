@@ -65,7 +65,7 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 
 `scaleAxis` 决定按哪个轴计算缩放系数：
 
-- `width` — `scale = origin.width / design.width`。默认值，与历史行为一致。
+- `width` — `scale = origin.width / design.width`。默认值。**注意**：0.3.x 的移动端在横屏时会隐式改用高度推导（`origin.height / design.width`），0.4.0 不再这样做。如果希望在横竖屏切换时保持纵横比安全，请使用 `shorter`。
 - `height` — `scale = origin.height / design.height`。
 - `shorter` — 取两个比值中的较小者。需要保持纵横比安全（无论设备纵横比如何，圆形依然是圆形）时使用。
 - `longer` — 取较大者。配合 `maxScale` 用来限制过宽设备的过度缩放。

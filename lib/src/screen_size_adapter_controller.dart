@@ -9,8 +9,6 @@ import 'screen_size_widget_flutter_binding.dart';
 /// call operates on the FlutterView that owns the calling widget — the
 /// foundation for multi-view correctness.
 class ScreenSizeAdapter {
-  const ScreenSizeAdapter._();
-
   /// Pure: compute the scale factor given an origin size, config, and platform flag.
   /// Returns 1.0 when scaling should not apply (desktop without enableDesktopScaling),
   /// or when the raw value is non-finite / non-positive.
