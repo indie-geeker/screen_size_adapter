@@ -705,6 +705,91 @@ void main() {
       ]);
     });
   });
+
+  group('Part C: ScreenSizeAdapter.computeScale', () {
+    const portraitOrigin = Size(720, 1280);
+    const landscapeOrigin = Size(1280, 720);
+    const design = Size(360, 690);
+
+    test('width axis: scale = origin.w / design.w', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: portraitOrigin,
+        config: const ScreenSizeAdapterConfig(designSize: design, scaleAxis: ScaleAxis.width),
+        isDesktop: false,
+      );
+      expect(s, closeTo(720 / 360, 1e-9));
+    });
+
+    test('height axis: scale = origin.h / design.h', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: portraitOrigin,
+        config: const ScreenSizeAdapterConfig(designSize: design, scaleAxis: ScaleAxis.height),
+        isDesktop: false,
+      );
+      expect(s, closeTo(1280 / 690, 1e-9));
+    });
+
+    test('shorter axis on landscape picks height', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: landscapeOrigin,
+        config: const ScreenSizeAdapterConfig(designSize: design, scaleAxis: ScaleAxis.shorter),
+        isDesktop: false,
+      );
+      // 1280/360 = 3.55, 720/690 = 1.04 -> shorter wins (1.04). Under default maxScale=2.0.
+      expect(s, closeTo(720 / 690, 1e-9));
+    });
+
+    test('longer axis on landscape picks width then clamps to maxScale', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: landscapeOrigin,
+        config: const ScreenSizeAdapterConfig(designSize: design, scaleAxis: ScaleAxis.longer),
+        isDesktop: false,
+      );
+      // 1280/360 ~= 3.55 clamped to 2.0
+      expect(s, 2.0);
+    });
+
+    test('minScale floors a scale below 1 on a small device', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: const Size(180, 320),
+        config: const ScreenSizeAdapterConfig(designSize: design, minScale: 0.8),
+        isDesktop: false,
+      );
+      expect(s, 0.8);
+    });
+
+    test('isDesktop with enableDesktopScaling=false short-circuits to 1.0', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: const Size(1920, 1080),
+        config: const ScreenSizeAdapterConfig(designSize: design, enableDesktopScaling: false),
+        isDesktop: true,
+      );
+      expect(s, 1.0);
+    });
+
+    test('isDesktop with enableDesktopScaling=true applies scaleAxis', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: const Size(1920, 1080),
+        config: const ScreenSizeAdapterConfig(
+          designSize: design,
+          enableDesktopScaling: true,
+          scaleAxis: ScaleAxis.width,
+          maxScale: null,
+        ),
+        isDesktop: true,
+      );
+      expect(s, closeTo(1920 / 360, 1e-9));
+    });
+
+    test('NaN/infinite/non-positive raw scale falls back to 1.0', () {
+      final s = ScreenSizeAdapter.computeScale(
+        origin: const Size(0, 0),
+        config: const ScreenSizeAdapterConfig(designSize: design),
+        isDesktop: false,
+      );
+      expect(s, 1.0);
+    });
+  });
 }
 
 class _Counter extends StatefulWidget {
