@@ -57,7 +57,7 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
     designSize: Size(360, 690),
     scaleAxis: ScaleAxis.width,        // .width | .height | .shorter | .longer
     minScale: null,
-    maxScale: 2.0,
+    maxScale: null,                    // 0.5.0+: no upper bound by default
     enableDesktopScaling: false,
   ),
 );
@@ -65,10 +65,10 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 
 `scaleAxis` controls which axis derives the scale factor:
 
-- `width` — `scale = origin.width / design.width`. Default. **Note:** 0.3.x's mobile path silently switched to height-derived scaling in landscape; 0.4.0 does not. Use `shorter` if you want aspect-safe sizing across orientations.
-- `height` — `scale = origin.height / design.height`.
-- `shorter` — uses the smaller of the two ratios. Use this when you want aspect-safe sizing (circles stay circular regardless of device aspect ratio).
-- `longer` — uses the larger ratio. Pairs with `maxScale` to clamp aggressively-wide devices.
+- `width` — `scale = origin.width / design.width`. Default. **Orientation behavior:** in portrait `origin.width` is the device's short side; in landscape it's the long side, so the scale grows. The benefit is `MediaQuery.width == designSize.width` in both orientations ("two 180-wide rectangles always fill the width"). The cost is that vertical content scales by the same factor in landscape, so it can overflow the now-compressed view height — see [Orientation](#orientation). 0.3.x's mobile path silently switched to height-derived scaling in landscape; 0.4.0+ does not. If you need the old "long-side-to-long-side" semantics, swap the design size on rotation via `OrientationBuilder` + `ScreenSizeAdapter.setDesignSize`.
+- `height` — `scale = origin.height / design.height`. Mirror of `width`: pins `MediaQuery.height` to `designSize.height` instead.
+- `shorter` — uses the smaller of the two ratios. The design canvas is always fully visible (no overflow), but the width is no longer pinned, **and the scale differs across orientations**. Suitable when "design must be fully visible" trumps "width consistency" (full-screen illustrations, modal dialogs). Not suitable for the "two 180s fill the width" contract.
+- `longer` — uses the larger ratio. At least one design edge fills the screen; the other overflows. Pairs with `maxScale` for crop-style layouts.
 
 ## Multi-view
 
@@ -103,6 +103,45 @@ View(
 ```
 
 The implicit (primary) view used by `runApp` is wrapped automatically by the binding's `wrapWithDefaultView`, so app code needs no manual wrapping.
+
+## Orientation
+
+The default `ScaleAxis.width` makes `MediaQuery.width` equal `designSize.width` in both portrait and landscape. So a `Container(width: 180)` written against a 360-design always covers half the screen width. The **trade-off** is an inconsistent scale across orientations — landscape uses a much larger scale (the device width is now the long side), and vertical content authored at the design's height will overflow the compressed landscape height. Pick one of the standard mitigations:
+
+```dart
+// 1) Simplest: lock to portrait (what 90%+ of apps in the ecosystem do)
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690));
+  runApp(const MyApp());
+}
+
+// 2) Make the vertical content scrollable
+Scaffold(
+  body: SingleChildScrollView(
+    child: Column(children: [...]),
+  ),
+)
+
+// 3) Swap the design size on rotation (recommended when you genuinely build for landscape)
+OrientationBuilder(
+  builder: (ctx, orientation) {
+    final design = orientation == Orientation.landscape
+        ? const Size(640, 360)
+        : const Size(360, 640);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScreenSizeAdapter.setDesignSize(ctx, design);
+    });
+    return MyHomePage();
+  },
+)
+```
+
+If your goal is "the entire design canvas must be visible" (no overflow, possibly with empty space) rather than "width always matches `designSize.width`", switch to `ScaleAxis.shorter` — these are different trade-offs, choose by app type.
 
 ## Responsive breakpoints
 

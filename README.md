@@ -57,7 +57,7 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
     designSize: Size(360, 690),
     scaleAxis: ScaleAxis.width,        // .width | .height | .shorter | .longer
     minScale: null,
-    maxScale: 2.0,
+    maxScale: null,                    // 0.5.0 起默认无上限
     enableDesktopScaling: false,
   ),
 );
@@ -65,10 +65,10 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 
 `scaleAxis` 决定按哪个轴计算缩放系数：
 
-- `width` — `scale = origin.width / design.width`。默认值。**注意**：0.3.x 的移动端在横屏时会隐式改用高度推导（`origin.height / design.width`），0.4.0 不再这样做。如果希望在横竖屏切换时保持纵横比安全，请使用 `shorter`。
-- `height` — `scale = origin.height / design.height`。
-- `shorter` — 取两个比值中的较小者。需要保持纵横比安全（无论设备纵横比如何，圆形依然是圆形）时使用。
-- `longer` — 取较大者。配合 `maxScale` 用来限制过宽设备的过度缩放。
+- `width` — `scale = origin.width / design.width`。默认值。**横竖屏行为**：竖屏时 origin.width 是设备短边，横屏时是长边，scale 跟着变大；好处是 `MediaQuery.width` 在两个方向都等于 `designSize.width`（"两个 180 的矩形永远充满宽度"）。代价是横屏下纵向内容会按同一 scale 放大，超出屏幕高度的部分需要靠 `SingleChildScrollView` 等手段处理 —— 见 [横竖屏](#横竖屏) 章节。0.3.x 的移动端在横屏时会隐式改用高度推导（`origin.height / design.width`），0.4.0 起去除了这一行为；如果你需要"长边对长边"的旧语义，监听 `OrientationBuilder` 调用 `ScreenSizeAdapter.setDesignSize` 显式切换设计稿即可。
+- `height` — `scale = origin.height / design.height`。镜像 `width`：让 `MediaQuery.height == designSize.height`，但 `width` 方向不再固定。
+- `shorter` — 取两个比值中的较小者。设计画布永远完整地塞进屏幕（不会有内容因 scale 过大而溢出），代价是宽度不再固定，**横竖屏下的 scale 不一致**。适合"必须保证设计稿全部可见"的场景（弹窗、全屏插画）。不适合"两个 180 永远充满宽度"。
+- `longer` — 取较大者。设计画布至少有一条边贴满屏幕，另一条边会溢出。配合 `maxScale` 用于裁切式布局。
 
 ## 多视图
 
@@ -103,6 +103,46 @@ View(
 ```
 
 `runApp` 链路下的主视图由 binding 的 `wrapWithDefaultView` 自动注入，应用代码无需任何包装。
+
+## 横竖屏
+
+默认 `ScaleAxis.width` 让 `MediaQuery.width` 在横竖屏下都等于 `designSize.width`。也就是说设计稿写的 `Container(width: 180)`，在 360 设计宽度下永远占满半屏。**代价**是 scale 在两个方向不一致 —— 横屏 scale 远大于竖屏（因为设备宽度变成了长边），纵向内容会按同一 scale 放大，超出屏幕高度的部分要靠下面的手段之一处理：
+
+```dart
+// 1) 最简单：锁定竖屏（生态里 90%+ 应用的选择）
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690));
+  runApp(const MyApp());
+}
+
+// 2) 让纵向内容可滚动
+Scaffold(
+  body: SingleChildScrollView(
+    child: Column(children: [...]),
+  ),
+)
+
+// 3) 横屏时切换设计稿（真要做横屏 UI 时推荐）
+OrientationBuilder(
+  builder: (ctx, orientation) {
+    final design = orientation == Orientation.landscape
+        ? const Size(640, 360)
+        : const Size(360, 640);
+    // 第一帧之后再切换，避免竖屏初始化抖动
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScreenSizeAdapter.setDesignSize(ctx, design);
+    });
+    return MyHomePage();
+  },
+)
+```
+
+如果你想要"设计画布永远完整可见"（不溢出，但宽度可能不到屏宽）而非"宽度永远等于 designSize.width"，改用 `ScaleAxis.shorter` —— 这两种是不同的 trade-off，根据应用类型选。
 
 ## 响应式断点
 
