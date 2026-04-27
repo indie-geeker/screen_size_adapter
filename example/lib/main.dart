@@ -111,17 +111,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         ? '✅ 是 (${(originSize.width - screenSize.width).toStringAsFixed(1)}px差异)'
                         : '❌ 否 (无缩放)',
                   ),
-                  _buildInfoRow('MediaQuery ≈ 设计宽度', () {
-                    // 横屏模式下检查 height，竖屏模式下检查 width
-                    final targetSize =
-                        isLandscape ? screenSize.height : screenSize.width;
-                    final diff = (targetSize - designSize.width).abs();
-
+                  _buildInfoRow('MediaQuery.width ≈ 设计宽度', () {
+                    // 0.5.0 起 maxScale 默认 null，ScaleAxis.width 在横竖屏
+                    // 都让 MediaQuery.width == designSize.width。
+                    final diff = (screenSize.width - designSize.width).abs();
                     if (diff < 0.1) {
                       return '✅ 是 (适配生效)${isLandscape ? " [横屏]" : ""}';
-                    } else {
-                      return '❌ 否 (差${diff.toStringAsFixed(1)}px)';
                     }
+                    return '❌ 否 (差${diff.toStringAsFixed(1)}px) — 检查 maxScale 是否被显式设置';
                   }()),
                   const SizedBox(height: 8),
                   const Text(
@@ -130,9 +127,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   Text(
                     isLandscape
-                        ? '横屏模式：MediaQuery.height ≈ 设计宽度\n'
-                            'binding 缩放 + ScreenSizeAdapterScope 共同作用'
-                        : '竖屏模式：MediaQuery 返回设计尺寸，裸数字 180 = 设计 180\n'
+                        ? '横屏：MediaQuery.width ≈ 设计宽度（裸数字 180 = 设计 180）\n'
+                            'scale 跟随当前宽度变大；高度方向需要 ScrollView 处理纵向溢出'
+                        : '竖屏：MediaQuery.width ≈ 设计宽度（裸数字 180 = 设计 180）\n'
                             'binding 缩放 + ScreenSizeAdapterScope 共同作用',
                     style: const TextStyle(
                       color: Colors.white70,
@@ -252,9 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    isLandscape
-                        ? 'MediaQuery 被缩放：横屏下 height ≈ 设计宽度'
-                        : 'MediaQuery 被缩放：竖屏下 width ≈ 设计宽度',
+                    'MediaQuery 被缩放：横竖屏下 width 都 ≈ 设计宽度',
                     style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                   ),
                 ],
@@ -331,29 +326,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   // 验证结果
                   Text(
                     () {
-                      // 横屏检查 height，竖屏检查 width
-                      final targetSize =
-                          isLandscape ? screenSize.height : screenSize.width;
-                      final diff = (targetSize - designSize.width).abs();
-
+                      // 横竖屏统一：ScaleAxis.width 让 MediaQuery.width 永远等于设计宽度。
+                      final diff = (screenSize.width - designSize.width).abs();
                       if (diff < 0.1) {
-                        return isLandscape
-                            ? '✅ MediaQuery.height ≈ 设计宽度 → 适配生效！[横屏]'
-                            : '✅ MediaQuery.width ≈ 设计宽度 → 适配生效！';
-                      } else {
-                        return '⚠️ MediaQuery ${isLandscape ? "height" : "width"} ≠ 设计宽度 → 检查配置';
+                        return '✅ MediaQuery.width ≈ 设计宽度 → 适配生效${isLandscape ? "（横屏）" : "（竖屏）"}';
                       }
+                      return '⚠️ MediaQuery.width ≠ 设计宽度（差 ${diff.toStringAsFixed(1)}px）→ 检查 maxScale 设置';
                     }(),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: () {
-                        final targetSize = isLandscape
-                            ? screenSize.height
-                            : screenSize.width;
-                        final diff = (targetSize - designSize.width).abs();
-                        return diff < 0.1 ? Colors.green[800] : Colors.red[800];
-                      }(),
+                      color: (screenSize.width - designSize.width).abs() < 0.1
+                          ? Colors.green[800]
+                          : Colors.red[800],
                     ),
                   ),
                 ],
@@ -587,7 +572,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    '提示: 默认 maxScale=2.0，可在 ensureInitialized 时通过 ScreenSizeAdapterConfig 自定义。',
+                    '提示：0.5.0 起默认无 maxScale 上限，确保横竖屏下 MediaQuery.width '
+                    '都等于设计宽度。要在大屏限制缩放，显式传 maxScale。',
                     style: TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                 ],
