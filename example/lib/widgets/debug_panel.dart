@@ -77,9 +77,14 @@ import 'info_row.dart';
 /// 顶部深色调试面板：实时显示当前 design / origin / MQ 尺寸、
 /// scale，以及"MediaQuery.width 是否等于设计宽度"的契约校验。
 class DebugPanel extends StatelessWidget {
-  const DebugPanel({super.key, required this.designSize});
+  const DebugPanel({
+    super.key,
+    required this.designSize,
+    required this.scaleAxis,
+  });
 
   final Size designSize;
+  final ScaleAxis scaleAxis;
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +93,11 @@ class DebugPanel extends StatelessWidget {
     final scale = ScreenSizeAdapter.scaleOf(context);
     final isLandscape = origin.width > origin.height;
 
-    final widthDiff = (mq.width - designSize.width).abs();
-    final widthMatches = widthDiff < 0.5;
+    final contract = checkContract(
+      axis: scaleAxis,
+      mq: mq,
+      design: designSize,
+    );
 
     return Container(
       width: double.infinity,
@@ -104,6 +112,7 @@ class DebugPanel extends StatelessWidget {
           InfoRow.dark(label: '物理逻辑尺寸（origin）', value: _fmt(origin)),
           InfoRow.dark(label: 'MediaQuery 尺寸', value: _fmt(mq)),
           InfoRow.dark(label: '当前 scale', value: scale.toStringAsFixed(3)),
+          InfoRow.dark(label: '当前 axis', value: scaleAxis.name),
           InfoRow.dark(
             label: '方向',
             value: isLandscape ? '横屏 landscape' : '竖屏 portrait',
@@ -111,7 +120,7 @@ class DebugPanel extends StatelessWidget {
           const SizedBox(height: 8),
           const Divider(color: Colors.white24, height: 1),
           const SizedBox(height: 6),
-          _ContractCheck(matched: widthMatches, diff: widthDiff),
+          _ContractCheck(matched: contract.matched, message: contract.message),
         ],
       ),
     );
@@ -144,17 +153,14 @@ class _PanelHeader extends StatelessWidget {
 }
 
 class _ContractCheck extends StatelessWidget {
-  const _ContractCheck({required this.matched, required this.diff});
+  const _ContractCheck({required this.matched, required this.message});
 
   final bool matched;
-  final double diff;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     final color = matched ? Colors.greenAccent : Colors.redAccent;
-    final text = matched
-        ? '✅ MediaQuery.width ≈ designSize.width — 横竖屏宽度契约成立'
-        : '⚠️ 差 ${diff.toStringAsFixed(1)}px — 检查 maxScale 是否被显式设置';
-    return Text(text, style: TextStyle(color: color, fontSize: 12));
+    return Text(message, style: TextStyle(color: color, fontSize: 12));
   }
 }

@@ -28,7 +28,10 @@ class HomePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DebugPanel(designSize: settings.designSize),
+                DebugPanel(
+                  designSize: settings.designSize,
+                  scaleAxis: settings.scaleAxis,
+                ),
                 const SizedBox(height: 8),
                 ScaleAxisPicker(settings: settings),
                 FillWidthDemo(designSize: settings.designSize),
