@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../state/adapter_settings.dart';
+import '../widgets/adapter_compare_demo.dart';
 import '../widgets/debug_panel.dart';
 import '../widgets/design_size_buttons.dart';
-import '../widgets/fill_width_demo.dart';
 import '../widgets/multi_view_panel.dart';
 import '../widgets/orientation_design_demo.dart';
 import '../widgets/scale_axis_picker.dart';
@@ -34,7 +34,7 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 ScaleAxisPicker(settings: settings),
-                FillWidthDemo(designSize: settings.designSize),
+                AdapterCompareDemo(designSize: settings.designSize),
                 OrientationDesignDemo(settings: settings),
                 DesignSizeButtons(settings: settings),
                 const MultiViewPanel(),
