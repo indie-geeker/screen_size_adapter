@@ -74,8 +74,8 @@ import 'info_row.dart';
   }
 }
 
-/// 顶部深色调试面板：实时显示当前 design / origin / MQ 尺寸、
-/// scale，以及"MediaQuery.width 是否等于设计宽度"的契约校验。
+/// 顶部深色调试面板：实时显示当前 design / origin / MQ / scale / axis
+/// 等运行时数据，并根据当前 [ScaleAxis] 校验对应的契约（见 [checkContract]）。
 class DebugPanel extends StatelessWidget {
   const DebugPanel({
     super.key,
