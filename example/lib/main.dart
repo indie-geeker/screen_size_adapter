@@ -5,7 +5,13 @@ import 'pages/home_page.dart';
 import 'state/adapter_settings.dart';
 
 void main() {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(kPortraitDesign);
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+    kPortraitDesign,
+    config: const ScreenSizeAdapterConfig(
+      designSize: kPortraitDesign,
+      enableDesktopScaling: true,
+    ),
+  );
   runApp(const MyApp());
 }
 
