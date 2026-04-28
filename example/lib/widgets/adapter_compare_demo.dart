@@ -131,6 +131,17 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                   ),
                 ],
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '设计稿 ${widget.designSize.width.toInt()}×${widget.designSize.height.toInt()}'
+                  ' — Picker 改这个值会让左 bezel 变形（mq 跟着变），右 bezel 不变。',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.black54,
+                  ),
+                ),
+              ),
               const SizedBox(height: 12),
               const Text(
                 '同一份代码 width: 280, height: 56——'
