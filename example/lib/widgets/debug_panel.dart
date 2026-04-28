@@ -139,12 +139,15 @@ class _PanelHeader extends StatelessWidget {
       children: [
         Icon(Icons.bug_report, color: Colors.amberAccent, size: 18),
         SizedBox(width: 6),
-        Text(
-          'screen_size_adapter · 实时调试',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+        Expanded(
+          child: Text(
+            'screen_size_adapter · 实时调试',
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
