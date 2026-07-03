@@ -8,9 +8,9 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 void main() {
   late ScreenSizeWidgetsFlutterBinding binding;
   setUpAll(() {
-    binding = ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-      const Size(360, 690),
-    ) as ScreenSizeWidgetsFlutterBinding;
+    binding =
+        ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690))
+            as ScreenSizeWidgetsFlutterBinding;
   });
 
   tearDown(() {
@@ -32,71 +32,91 @@ void main() {
 
     MediaQueryData? captured;
     double? capturedScale;
-    binding.attachRootWidget(View(
-      view: primary,
-      child: ScreenSizeAdapterScope(
-        child: Builder(builder: (ctx) {
-          captured = MediaQuery.maybeOf(ctx);
-          capturedScale = ScreenSizeAdapter.scaleOf(ctx);
-          return const SizedBox.shrink();
-        }),
+    binding.attachRootWidget(
+      View(
+        view: primary,
+        child: ScreenSizeAdapterScope(
+          child: Builder(
+            builder: (ctx) {
+              captured = MediaQuery.maybeOf(ctx);
+              capturedScale = ScreenSizeAdapter.scaleOf(ctx);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
       ),
-    ));
+    );
     binding.scheduleWarmUpFrame();
     await Future<void>.delayed(Duration.zero);
 
     expect(captured, isNotNull);
     expect(capturedScale, isNotNull);
-    expect(captured!.size.width * capturedScale!,
-        closeTo(originSize.width, 0.01));
-    expect(captured!.size.height * capturedScale!,
-        closeTo(originSize.height, 0.01));
-  });
-
-  test('MediaQuery.devicePixelRatio inside the scope reflects effectiveDpr',
-      () async {
-    final primary = binding.platformDispatcher.views.first;
-    final originDpr = primary.devicePixelRatio;
-    final originSize = Size(
-      primary.physicalSize.width / primary.devicePixelRatio,
-      primary.physicalSize.height / primary.devicePixelRatio,
+    expect(
+      captured!.size.width * capturedScale!,
+      closeTo(originSize.width, 0.01),
     );
-    final designSize = Size(originSize.width / 2, originSize.height / 2);
-    binding.attachView(view: primary, designSize: designSize);
-
-    MediaQueryData? captured;
-    double? capturedScale;
-    binding.attachRootWidget(View(
-      view: primary,
-      child: ScreenSizeAdapterScope(
-        child: Builder(builder: (ctx) {
-          captured = MediaQuery.maybeOf(ctx);
-          capturedScale = ScreenSizeAdapter.scaleOf(ctx);
-          return const SizedBox.shrink();
-        }),
-      ),
-    ));
-    binding.scheduleWarmUpFrame();
-    await Future<void>.delayed(Duration.zero);
-
-    expect(captured!.devicePixelRatio,
-        closeTo(originDpr * capturedScale!, 0.001));
+    expect(
+      captured!.size.height * capturedScale!,
+      closeTo(originSize.height, 0.01),
+    );
   });
+
+  test(
+    'MediaQuery.devicePixelRatio inside the scope reflects effectiveDpr',
+    () async {
+      final primary = binding.platformDispatcher.views.first;
+      final originDpr = primary.devicePixelRatio;
+      final originSize = Size(
+        primary.physicalSize.width / primary.devicePixelRatio,
+        primary.physicalSize.height / primary.devicePixelRatio,
+      );
+      final designSize = Size(originSize.width / 2, originSize.height / 2);
+      binding.attachView(view: primary, designSize: designSize);
+
+      MediaQueryData? captured;
+      double? capturedScale;
+      binding.attachRootWidget(
+        View(
+          view: primary,
+          child: ScreenSizeAdapterScope(
+            child: Builder(
+              builder: (ctx) {
+                captured = MediaQuery.maybeOf(ctx);
+                capturedScale = ScreenSizeAdapter.scaleOf(ctx);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      binding.scheduleWarmUpFrame();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        captured!.devicePixelRatio,
+        closeTo(originDpr * capturedScale!, 0.001),
+      );
+    },
+  );
 
   test('scope is a no-op when the view is not registered', () async {
     final primary = binding.platformDispatcher.views.first;
     binding.detachView(primary);
 
     MediaQueryData? captured;
-    binding.attachRootWidget(View(
-      view: primary,
-      child: ScreenSizeAdapterScope(
-        child: Builder(builder: (ctx) {
-          captured = MediaQuery.maybeOf(ctx);
-          return const SizedBox.shrink();
-        }),
+    binding.attachRootWidget(
+      View(
+        view: primary,
+        child: ScreenSizeAdapterScope(
+          child: Builder(
+            builder: (ctx) {
+              captured = MediaQuery.maybeOf(ctx);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
       ),
-    ));
+    );
     binding.scheduleWarmUpFrame();
     await Future<void>.delayed(Duration.zero);
 

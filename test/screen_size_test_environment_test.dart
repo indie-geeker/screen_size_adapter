@@ -17,8 +17,9 @@ void main() {
     expect(tester.getSize(find.byType(SizedBox)), const Size(100, 50));
   });
 
-  testWidgets('with maxScale clamp, SizedBox still measures at design size',
-      (tester) async {
+  testWidgets('with maxScale clamp, SizedBox still measures at design size', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ScreenSizeTestEnvironment(
         config: const ScreenSizeAdapterConfig(
@@ -36,36 +37,40 @@ void main() {
   });
 
   testWidgets(
-      'isDesktop=true with enableDesktopScaling=false leaves layout raw',
-      (tester) async {
-    await tester.pumpWidget(
-      ScreenSizeTestEnvironment(
-        config: const ScreenSizeAdapterConfig(
-          designSize: Size(360, 690),
-          enableDesktopScaling: false,
+    'isDesktop=true with enableDesktopScaling=false leaves layout raw',
+    (tester) async {
+      await tester.pumpWidget(
+        ScreenSizeTestEnvironment(
+          config: const ScreenSizeAdapterConfig(
+            designSize: Size(360, 690),
+            enableDesktopScaling: false,
+          ),
+          isDesktop: true,
+          simulatedDeviceSize: const Size(1920, 1080),
+          child: const Directionality(
+            textDirection: TextDirection.ltr,
+            child: Center(child: SizedBox(width: 100, height: 50)),
+          ),
         ),
-        isDesktop: true,
-        simulatedDeviceSize: const Size(1920, 1080),
-        child: const Directionality(
-          textDirection: TextDirection.ltr,
-          child: Center(child: SizedBox(width: 100, height: 50)),
-        ),
-      ),
-    );
-    expect(tester.getSize(find.byType(SizedBox)), const Size(100, 50));
-  });
+      );
+      expect(tester.getSize(find.byType(SizedBox)), const Size(100, 50));
+    },
+  );
 
-  testWidgets('MediaQuery size and devicePixelRatio reflect scale',
-      (tester) async {
+  testWidgets('MediaQuery size and devicePixelRatio reflect scale', (
+    tester,
+  ) async {
     MediaQueryData? captured;
     await tester.pumpWidget(
       ScreenSizeTestEnvironment(
         config: const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
         simulatedDeviceSize: const Size(720, 1380),
-        child: Builder(builder: (ctx) {
-          captured = MediaQuery.of(ctx);
-          return const SizedBox.shrink();
-        }),
+        child: Builder(
+          builder: (ctx) {
+            captured = MediaQuery.of(ctx);
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
     expect(captured!.size, const Size(360, 690));
@@ -73,8 +78,9 @@ void main() {
     expect(captured!.devicePixelRatio, greaterThan(1.0));
   });
 
-  testWidgets('padding, viewPadding, viewInsets scale with the view',
-      (tester) async {
+  testWidgets('padding, viewPadding, viewInsets scale with the view', (
+    tester,
+  ) async {
     MediaQueryData? captured;
     await tester.pumpWidget(
       MediaQuery(
@@ -91,10 +97,12 @@ void main() {
           config: const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
           // No simulatedDeviceSize → reads parent MediaQuery size (720x1380),
           // scale becomes 2.0.
-          child: Builder(builder: (ctx) {
-            captured = MediaQuery.of(ctx);
-            return const SizedBox.shrink();
-          }),
+          child: Builder(
+            builder: (ctx) {
+              captured = MediaQuery.of(ctx);
+              return const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     );

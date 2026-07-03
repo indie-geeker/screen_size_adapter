@@ -6,19 +6,22 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('computeBezels', () {
-    test('portrait phone: total width fits, max bezel height capped at 200', () {
-      final r = computeBezels(
-        mqSize: const Size(309.2, 690),
-        rawSize: const Size(426.7, 952),
-        maxWidth: 360,
-      );
-      expect(r.left.width + 16 + r.right.width, lessThanOrEqualTo(360 + 0.5));
-      expect(
-        math.max(r.left.height, r.right.height),
-        lessThanOrEqualTo(200 + 0.5),
-      );
-      expect(r.left.width / r.right.width, closeTo(309.2 / 426.7, 0.01));
-    });
+    test(
+      'portrait phone: total width fits, max bezel height capped at 200',
+      () {
+        final r = computeBezels(
+          mqSize: const Size(309.2, 690),
+          rawSize: const Size(426.7, 952),
+          maxWidth: 360,
+        );
+        expect(r.left.width + 16 + r.right.width, lessThanOrEqualTo(360 + 0.5));
+        expect(
+          math.max(r.left.height, r.right.height),
+          lessThanOrEqualTo(200 + 0.5),
+        );
+        expect(r.left.width / r.right.width, closeTo(309.2 / 426.7, 0.01));
+      },
+    );
 
     test('scale=1 degenerate: left == right exactly', () {
       final r = computeBezels(

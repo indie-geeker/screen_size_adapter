@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies (package)
         run: flutter pub get
 
+      - name: Check formatting
+        run: dart format --set-exit-if-changed .
+
       - name: Analyze (package)
         run: flutter analyze
 
@@ -34,6 +37,16 @@ jobs:
         working-directory: example
         run: flutter pub get
 
+      - name: Analyze (example)
+        working-directory: example
+        run: flutter analyze
+
       - name: Test (example)
         working-directory: example
         run: flutter test
+
+      - name: Check API docs
+        run: dart doc --dry-run
+
+      - name: Validate pub package
+        run: flutter pub publish --dry-run

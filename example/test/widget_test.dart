@@ -4,8 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
-  testWidgets('example app pumps under ScreenSizeTestEnvironment',
-      (tester) async {
+  testWidgets('example app pumps under ScreenSizeTestEnvironment', (
+    tester,
+  ) async {
     // testWidgets uses AutomatedTestWidgetsFlutterBinding, not the
     // production ScreenSizeWidgetsFlutterBinding — so we use the
     // MediaQuery-layer simulator.

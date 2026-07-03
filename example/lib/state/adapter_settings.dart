@@ -12,9 +12,9 @@ class AdapterSettings extends ChangeNotifier {
     Size designSize = kPortraitDesign,
     ScaleAxis scaleAxis = ScaleAxis.width,
     bool autoSwapByOrientation = true,
-  })  : _designSize = designSize,
-        _scaleAxis = scaleAxis,
-        _autoSwapByOrientation = autoSwapByOrientation;
+  }) : _designSize = designSize,
+       _scaleAxis = scaleAxis,
+       _autoSwapByOrientation = autoSwapByOrientation;
 
   Size _designSize;
   ScaleAxis _scaleAxis;

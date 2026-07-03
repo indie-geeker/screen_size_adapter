@@ -22,7 +22,9 @@ class ViewSizing {
   }) {
     this.originSize = originSize;
     scale = ScreenSizeAdapter.computeScale(
-      origin: originSize, config: config, isDesktop: isDesktop,
+      origin: originSize,
+      config: config,
+      isDesktop: isDesktop,
     );
     effectiveDpr = originDpr * scale;
   }

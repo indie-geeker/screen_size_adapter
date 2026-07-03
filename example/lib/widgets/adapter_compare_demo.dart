@@ -26,9 +26,7 @@ import 'section_card.dart';
   final smallerVisualH = math.min(mqSize.height, rawSize.height);
   final biggerVisualW = math.max(mqSize.width, rawSize.width);
   final biggerVisualH = math.max(mqSize.height, rawSize.height);
-  if (smallerVisualW <= 0 ||
-      smallerVisualH <= 0 ||
-      maxThumbWidthEach <= 0) {
+  if (smallerVisualW <= 0 || smallerVisualH <= 0 || maxThumbWidthEach <= 0) {
     return (left: Size.zero, right: Size.zero, scale: 0.0);
   }
   final thumbScale = math.min(
@@ -87,7 +85,7 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
     );
     final isDegenerate =
         (mqSize.width - rawSize.width).abs() < 0.5 &&
-            (mqSize.height - rawSize.height).abs() < 0.5;
+        (mqSize.height - rawSize.height).abs() < 0.5;
 
     return SectionCard(
       title: 'Adapter 开/关 孪生（同代码、对照实验）',
@@ -113,7 +111,8 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _BezelTile(
-                    label: 'adapter on · viewport '
+                    label:
+                        'adapter on · viewport '
                         '${mqSize.width.toStringAsFixed(0)}×'
                         '${mqSize.height.toStringAsFixed(0)} 设计单位',
                     bezelSize: geom.left,
@@ -122,7 +121,8 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                   ),
                   const SizedBox(width: 16),
                   _BezelTile(
-                    label: 'adapter off · viewport '
+                    label:
+                        'adapter off · viewport '
                         '${rawSize.width.toStringAsFixed(0)}×'
                         '${rawSize.height.toStringAsFixed(0)} raw px',
                     bezelSize: geom.right,
@@ -136,10 +136,7 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                 child: Text(
                   '设计稿 ${widget.designSize.width.toInt()}×${widget.designSize.height.toInt()}'
                   ' — Picker 改这个值会让左 bezel 变形（mq 跟着变），右 bezel 不变。',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.black54,
-                  ),
+                  style: const TextStyle(fontSize: 11, color: Colors.black54),
                 ),
               ),
               const SizedBox(height: 12),
@@ -234,9 +231,7 @@ class _BezelTile extends StatelessWidget {
                   top: 0,
                   width: bezelSize.width,
                   height: 44 * s,
-                  child: Container(
-                    color: accent.withValues(alpha: 0.85),
-                  ),
+                  child: Container(color: accent.withValues(alpha: 0.85)),
                 ),
                 // 按钮卡：280×56，居中横向，距顶栏 16
                 Positioned(
@@ -247,8 +242,9 @@ class _BezelTile extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       color: accent.withValues(alpha: 0.4),
-                      borderRadius:
-                          BorderRadius.circular(6 * s.clamp(0.0, 1.0)),
+                      borderRadius: BorderRadius.circular(
+                        6 * s.clamp(0.0, 1.0),
+                      ),
                     ),
                   ),
                 ),

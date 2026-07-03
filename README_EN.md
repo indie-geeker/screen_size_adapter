@@ -110,13 +110,12 @@ The default `ScaleAxis.width` makes `MediaQuery.width` equal `designSize.width` 
 
 ```dart
 // 1) Simplest: lock to portrait (what 90%+ of apps in the ecosystem do)
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
+void main() async {
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690));
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690));
   runApp(const MyApp());
 }
 
@@ -173,6 +172,13 @@ final scale = ScreenSizeAdapter.scaleOf(context);
 
 `setDesignSize` and `reset` resolve the active view via `View.of(context)`, so they correctly target the FlutterView that owns the calling widget — multi-view-correct by construction.
 
+## Integration limits
+
+- `ScreenSizeWidgetsFlutterBinding.ensureInitialized(...)` must run before `runApp` and before any code that initializes `WidgetsBinding`. This package works by installing a custom binding, so it cannot replace another binding after one is already active.
+- If your app or test harness already uses another custom `WidgetsBinding`, decide which binding owns `createViewConfigurationFor` and pointer-event handling. Two bindings cannot both be the global binding.
+- `testWidgets` uses Flutter's test binding, so it cannot install the production binding. Use `ScreenSizeTestEnvironment` to simulate the scaled `MediaQuery`.
+- Non-primary `FlutterView`s need both steps: register the view with `ScreenSizeWidgetsFlutterBinding.instance.attachView(...)`, and wrap that `View` subtree with `ScreenSizeAdapterScope`.
+
 ## Testing
 
 For widget tests, the production binding cannot be used (it conflicts with `AutomatedTestWidgetsFlutterBinding` that `testWidgets` requires). Use `ScreenSizeTestEnvironment` to simulate the binding's effect at the MediaQuery layer:
@@ -228,6 +234,10 @@ If you used `100.r` for aspect-safe circles, configure `scaleAxis: ScaleAxis.sho
 
 - Flutter `>=3.27.0`
 - Dart `^3.7.2`
+
+## Security
+
+This package does not process network data or secrets. For security-sensitive reports, please use the repository maintainer contact path if one is listed.
 
 ## License
 

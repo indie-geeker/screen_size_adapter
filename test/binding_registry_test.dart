@@ -5,9 +5,9 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 void main() {
   late ScreenSizeWidgetsFlutterBinding binding;
   setUpAll(() {
-    binding = ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-      const Size(360, 690),
-    ) as ScreenSizeWidgetsFlutterBinding;
+    binding =
+        ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690))
+            as ScreenSizeWidgetsFlutterBinding;
   });
 
   tearDown(() {
@@ -18,6 +18,10 @@ void main() {
   });
 
   group('Part C: binding registry', () {
+    test('typed instance getter returns the installed adapter binding', () {
+      expect(ScreenSizeWidgetsFlutterBinding.instance, same(binding));
+    });
+
     test('ensureInitialized registers primary view', () {
       final primaryViewId = binding.platformDispatcher.views.first.viewId;
       expect(binding.scaleForViewId(primaryViewId), isNotNull);
@@ -31,18 +35,44 @@ void main() {
         scaleAxis: ScaleAxis.shorter,
       );
       expect(binding.scaleForViewId(primary.viewId), isNotNull);
-      expect(binding.configForViewId(primary.viewId)?.designSize,
-          const Size(800, 600));
-      expect(binding.configForViewId(primary.viewId)?.scaleAxis,
-          ScaleAxis.shorter);
+      expect(
+        binding.configForViewId(primary.viewId)?.designSize,
+        const Size(800, 600),
+      );
+      expect(
+        binding.configForViewId(primary.viewId)?.scaleAxis,
+        ScaleAxis.shorter,
+      );
 
       binding.detachView(primary);
       expect(binding.scaleForViewId(primary.viewId), isNull);
 
       // Re-register so subsequent tests in this file have a primary view.
-      binding.attachView(
-        view: primary,
-        designSize: const Size(360, 690),
+      binding.attachView(view: primary, designSize: const Size(360, 690));
+    });
+
+    test('attachView rejects non-positive design sizes and scale bounds', () {
+      final primary = binding.platformDispatcher.views.first;
+
+      expect(
+        () => binding.attachView(view: primary, designSize: Size.zero),
+        throwsArgumentError,
+      );
+      expect(
+        () => binding.attachView(
+          view: primary,
+          designSize: const Size(360, 690),
+          minScale: 0,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => binding.attachView(
+          view: primary,
+          designSize: const Size(360, 690),
+          maxScale: -1,
+        ),
+        throwsArgumentError,
       );
     });
 
@@ -54,10 +84,32 @@ void main() {
         scaleAxis: ScaleAxis.height,
       );
       binding.updateView(view: primary, designSize: const Size(414, 896));
-      expect(binding.configForViewId(primary.viewId)?.designSize,
-          const Size(414, 896));
-      expect(binding.configForViewId(primary.viewId)?.scaleAxis,
-          ScaleAxis.height);
+      expect(
+        binding.configForViewId(primary.viewId)?.designSize,
+        const Size(414, 896),
+      );
+      expect(
+        binding.configForViewId(primary.viewId)?.scaleAxis,
+        ScaleAxis.height,
+      );
+    });
+
+    test('updateView rejects invalid replacement config values', () {
+      final primary = binding.platformDispatcher.views.first;
+      binding.attachView(view: primary, designSize: const Size(360, 690));
+
+      expect(
+        () => binding.updateView(view: primary, designSize: Size.zero),
+        throwsArgumentError,
+      );
+      expect(
+        () => binding.updateView(view: primary, minScale: 0),
+        throwsArgumentError,
+      );
+      expect(
+        () => binding.updateView(view: primary, maxScale: -1),
+        throwsArgumentError,
+      );
     });
 
     test('updateView throws if view not registered', () {
@@ -83,8 +135,10 @@ void main() {
     test('resetView sets designSize to current view logical size', () {
       final primary = binding.platformDispatcher.views.first;
       binding.attachView(view: primary, designSize: const Size(100, 100));
-      expect(binding.configForViewId(primary.viewId)?.designSize,
-          const Size(100, 100));
+      expect(
+        binding.configForViewId(primary.viewId)?.designSize,
+        const Size(100, 100),
+      );
 
       binding.resetView(view: primary);
 
@@ -114,42 +168,50 @@ void main() {
     // minimal widget tree directly via binding.attachRootWidget so the
     // facade methods can resolve View.of(context) against our concrete
     // binding and registry.
-    test('setDesignSize updates the registry for the enclosing view',
-        () async {
+    test('setDesignSize updates the registry for the enclosing view', () async {
       BuildContext? captured;
       final primary = binding.platformDispatcher.views.first;
-      binding.attachRootWidget(View(
-        view: primary,
-        child: Builder(builder: (ctx) {
-          captured = ctx;
-          return const SizedBox.shrink();
-        }),
-      ));
+      binding.attachRootWidget(
+        View(
+          view: primary,
+          child: Builder(
+            builder: (ctx) {
+              captured = ctx;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
       binding.scheduleWarmUpFrame();
       await Future<void>.delayed(Duration.zero);
 
       ScreenSizeAdapter.setDesignSize(captured!, const Size(414, 896));
       final viewId = View.of(captured!).viewId;
-      expect(binding.configForViewId(viewId)?.designSize,
-          const Size(414, 896));
+      expect(binding.configForViewId(viewId)?.designSize, const Size(414, 896));
     });
 
-    test('scaleOf returns the registered scale (or 1.0 if unmanaged)',
-        () async {
-      BuildContext? captured;
-      final primary = binding.platformDispatcher.views.first;
-      binding.attachRootWidget(View(
-        view: primary,
-        child: Builder(builder: (ctx) {
-          captured = ctx;
-          return const SizedBox.shrink();
-        }),
-      ));
-      binding.scheduleWarmUpFrame();
-      await Future<void>.delayed(Duration.zero);
+    test(
+      'scaleOf returns the registered scale (or 1.0 if unmanaged)',
+      () async {
+        BuildContext? captured;
+        final primary = binding.platformDispatcher.views.first;
+        binding.attachRootWidget(
+          View(
+            view: primary,
+            child: Builder(
+              builder: (ctx) {
+                captured = ctx;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        binding.scheduleWarmUpFrame();
+        await Future<void>.delayed(Duration.zero);
 
-      final scale = ScreenSizeAdapter.scaleOf(captured!);
-      expect(scale, isNonZero);
-    });
+        final scale = ScreenSizeAdapter.scaleOf(captured!);
+        expect(scale, isNonZero);
+      },
+    );
   });
 }

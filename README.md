@@ -110,13 +110,12 @@ View(
 
 ```dart
 // 1) 最简单：锁定竖屏（生态里 90%+ 应用的选择）
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
+void main() async {
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690));
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690));
   runApp(const MyApp());
 }
 
@@ -174,6 +173,13 @@ final scale = ScreenSizeAdapter.scaleOf(context);
 
 `setDesignSize` 和 `reset` 通过 `View.of(context)` 解析当前激活的视图，因此能精确作用于调用方所在的 FlutterView——天然支持多视图正确性。
 
+## 集成限制
+
+- `ScreenSizeWidgetsFlutterBinding.ensureInitialized(...)` 必须在 `runApp` 前调用，并且要早于其它会初始化 `WidgetsBinding` 的代码。这个包通过自定义 binding 接管视图配置，不能在另一个 binding 已安装后再切换。
+- 如果你的应用或测试框架已经使用其它自定义 `WidgetsBinding`，需要先评估谁负责 `createViewConfigurationFor` 和 pointer event 的处理；两个 binding 不能同时成为全局 binding。
+- `testWidgets` 使用 Flutter 自带测试 binding，不能安装生产 binding。请用 `ScreenSizeTestEnvironment` 模拟缩放后的 `MediaQuery`。
+- 非主 `FlutterView` 需要同时做两件事：调用 `ScreenSizeWidgetsFlutterBinding.instance.attachView(...)` 注册视图，并在该 `View` 子树外包 `ScreenSizeAdapterScope`。
+
 ## 测试
 
 在 widget 测试中无法使用生产环境的 binding（它与 `testWidgets` 所要求的 `AutomatedTestWidgetsFlutterBinding` 冲突）。请使用 `ScreenSizeTestEnvironment` 在 MediaQuery 层模拟 binding 的效果：
@@ -229,6 +235,10 @@ test('scale on a 2x device', () {
 
 - Flutter `>=3.27.0`
 - Dart `^3.7.2`
+
+## Security
+
+This package does not process network data or secrets. For security-sensitive reports, please use the repository maintainer contact path if one is listed.
 
 ## License
 

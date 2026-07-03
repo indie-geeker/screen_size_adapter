@@ -36,8 +36,7 @@ class OrientationDesignDemo extends StatelessWidget {
               style: TextStyle(fontSize: 11),
             ),
           ),
-          if (settings.autoSwapByOrientation)
-            _AutoSwapBody(settings: settings),
+          if (settings.autoSwapByOrientation) _AutoSwapBody(settings: settings),
         ],
       ),
     );

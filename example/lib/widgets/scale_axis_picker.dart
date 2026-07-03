@@ -65,16 +65,16 @@ class _AxisChip extends StatelessWidget {
   }
 
   static String _label(ScaleAxis axis) => switch (axis) {
-        ScaleAxis.width => 'width（默认）',
-        ScaleAxis.height => 'height',
-        ScaleAxis.shorter => 'shorter（画布完整）',
-        ScaleAxis.longer => 'longer（贴边裁切）',
-      };
+    ScaleAxis.width => 'width（默认）',
+    ScaleAxis.height => 'height',
+    ScaleAxis.shorter => 'shorter（画布完整）',
+    ScaleAxis.longer => 'longer（贴边裁切）',
+  };
 
   static String _tooltip(ScaleAxis axis) => switch (axis) {
-        ScaleAxis.width => 'scale = origin.w / design.w；MQ.width 永远等于设计宽度',
-        ScaleAxis.height => 'scale = origin.h / design.h；MQ.height 永远等于设计高度',
-        ScaleAxis.shorter => '取较小比；圆永远是圆，但宽度不再固定',
-        ScaleAxis.longer => '取较大比；至少一边贴满，另一边可能溢出',
-      };
+    ScaleAxis.width => 'scale = origin.w / design.w；MQ.width 永远等于设计宽度',
+    ScaleAxis.height => 'scale = origin.h / design.h；MQ.height 永远等于设计高度',
+    ScaleAxis.shorter => '取较小比；圆永远是圆，但宽度不再固定',
+    ScaleAxis.longer => '取较大比；至少一边贴满，另一边可能溢出',
+  };
 }

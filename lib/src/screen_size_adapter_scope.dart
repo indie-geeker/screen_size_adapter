@@ -8,8 +8,8 @@ import 'screen_size_widget_flutter_binding.dart';
 /// `devicePixelRatioOf`, etc., are reported in **design units** rather than
 /// the underlying [FlutterView]'s native logical pixels.
 ///
-/// Why this exists: the binding's [createViewConfigurationFor] override
-/// only modifies `RenderView.configuration` — that drives layout, but
+/// Why this exists: the binding only modifies `RenderView.configuration` via
+/// `createViewConfigurationFor` — that drives layout, but
 /// Flutter's `MediaQuery.fromView` (the one wired up by the [View] widget)
 /// reads `view.physicalSize / view.devicePixelRatio` straight from
 /// [FlutterView], which we cannot override. Without this scope, layout in

@@ -33,8 +33,9 @@ void main() {
     expect(observed!.padding, parent.padding);
   });
 
-  testWidgets('passes through when no parent MediaQuery exists',
-      (tester) async {
+  testWidgets('passes through when no parent MediaQuery exists', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const ScreenSizeAdapterScope(child: SizedBox.shrink()),
     );

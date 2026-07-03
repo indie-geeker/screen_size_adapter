@@ -22,26 +22,27 @@ class HomePage extends StatelessWidget {
       backgroundColor: Colors.grey.shade50,
       body: ListenableBuilder(
         listenable: settings,
-        builder: (ctx, _) => SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DebugPanel(
-                  designSize: settings.designSize,
-                  scaleAxis: settings.scaleAxis,
+        builder:
+            (ctx, _) => SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DebugPanel(
+                      designSize: settings.designSize,
+                      scaleAxis: settings.scaleAxis,
+                    ),
+                    const SizedBox(height: 8),
+                    ScaleAxisPicker(settings: settings),
+                    AdapterCompareDemo(designSize: settings.designSize),
+                    OrientationDesignDemo(settings: settings),
+                    DesignSizeButtons(settings: settings),
+                    const MultiViewPanel(),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                ScaleAxisPicker(settings: settings),
-                AdapterCompareDemo(designSize: settings.designSize),
-                OrientationDesignDemo(settings: settings),
-                DesignSizeButtons(settings: settings),
-                const MultiViewPanel(),
-              ],
+              ),
             ),
-          ),
-        ),
       ),
     );
   }

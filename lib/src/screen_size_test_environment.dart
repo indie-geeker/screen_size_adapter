@@ -27,8 +27,8 @@ class ScreenSizeTestEnvironment extends StatelessWidget {
   final Size? simulatedDeviceSize;
 
   /// Whether to treat the simulated environment as desktop. Defaults to
-  /// false. Combined with [config.enableDesktopScaling] to determine
-  /// whether scaling actually applies.
+  /// false. Combined with [ScreenSizeAdapterConfig.enableDesktopScaling] to
+  /// determine whether scaling actually applies.
   final bool isDesktop;
 
   /// Subtree that runs under the simulated MediaQuery.
@@ -51,10 +51,8 @@ class ScreenSizeTestEnvironment extends StatelessWidget {
       config: config,
       isDesktop: isDesktop,
     );
-    final base = simulatedDeviceSize == null ? mq : mq.copyWith(size: actualSize);
-    return MediaQuery(
-      data: scaleMediaQueryData(base, scale),
-      child: child,
-    );
+    final base =
+        simulatedDeviceSize == null ? mq : mq.copyWith(size: actualSize);
+    return MediaQuery(data: scaleMediaQueryData(base, scale), child: child);
   }
 }

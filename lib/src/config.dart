@@ -46,9 +46,9 @@ class ScreenSizeAdapterConfig {
     this.maxScale,
     this.minScale,
   }) : assert(
-          minScale == null || maxScale == null || minScale <= maxScale,
-          'minScale must be <= maxScale',
-        );
+         minScale == null || maxScale == null || minScale <= maxScale,
+         'minScale must be <= maxScale',
+       );
 
   ScreenSizeAdapterConfig copyWith({
     Size? designSize,

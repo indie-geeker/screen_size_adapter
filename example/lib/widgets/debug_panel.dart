@@ -27,35 +27,38 @@ import 'info_row.dart';
       final ok = diff < eps;
       return (
         matched: ok,
-        message: ok
-            ? '✅ MQ.width ≈ design.width — width 轴契约成立'
-            : '⚠️ width 轴：MQ.width=${mq.width.toStringAsFixed(1)} '
-                '与 design.width=${design.width.toStringAsFixed(1)} '
-                '差 ${diff.toStringAsFixed(1)}px（检查 minScale/maxScale）',
+        message:
+            ok
+                ? '✅ MQ.width ≈ design.width — width 轴契约成立'
+                : '⚠️ width 轴：MQ.width=${mq.width.toStringAsFixed(1)} '
+                    '与 design.width=${design.width.toStringAsFixed(1)} '
+                    '差 ${diff.toStringAsFixed(1)}px（检查 minScale/maxScale）',
       );
     case ScaleAxis.height:
       final diff = (mq.height - design.height).abs();
       final ok = diff < eps;
       return (
         matched: ok,
-        message: ok
-            ? '✅ MQ.height ≈ design.height — height 轴契约成立'
-            : '⚠️ height 轴：MQ.height=${mq.height.toStringAsFixed(1)} '
-                '与 design.height=${design.height.toStringAsFixed(1)} '
-                '差 ${diff.toStringAsFixed(1)}px（检查 minScale/maxScale）',
+        message:
+            ok
+                ? '✅ MQ.height ≈ design.height — height 轴契约成立'
+                : '⚠️ height 轴：MQ.height=${mq.height.toStringAsFixed(1)} '
+                    '与 design.height=${design.height.toStringAsFixed(1)} '
+                    '差 ${diff.toStringAsFixed(1)}px（检查 minScale/maxScale）',
       );
     case ScaleAxis.shorter:
-      final ok = mq.width >= design.width - eps &&
-          mq.height >= design.height - eps;
+      final ok =
+          mq.width >= design.width - eps && mq.height >= design.height - eps;
       return (
         matched: ok,
-        message: ok
-            ? '✅ design 完整内嵌于 MQ — shorter 轴契约成立（不裁切）'
-            : '⚠️ shorter 轴：design '
-                '${design.width.toStringAsFixed(0)}×${design.height.toStringAsFixed(0)} '
-                '部分超出 MQ '
-                '${mq.width.toStringAsFixed(0)}×${mq.height.toStringAsFixed(0)}'
-                '（检查 minScale/maxScale）',
+        message:
+            ok
+                ? '✅ design 完整内嵌于 MQ — shorter 轴契约成立（不裁切）'
+                : '⚠️ shorter 轴：design '
+                    '${design.width.toStringAsFixed(0)}×${design.height.toStringAsFixed(0)} '
+                    '部分超出 MQ '
+                    '${mq.width.toStringAsFixed(0)}×${mq.height.toStringAsFixed(0)}'
+                    '（检查 minScale/maxScale）',
       );
     case ScaleAxis.longer:
       final wAligned = (mq.width - design.width).abs() < eps;
@@ -63,13 +66,14 @@ import 'info_row.dart';
       final ok = wAligned || hAligned;
       return (
         matched: ok,
-        message: ok
-            ? '✅ design 至少有一边精确等于 MQ — longer 轴契约成立（贴边）'
-            : '⚠️ longer 轴：MQ '
-                '${mq.width.toStringAsFixed(0)}×${mq.height.toStringAsFixed(0)} '
-                '与 design '
-                '${design.width.toStringAsFixed(0)}×${design.height.toStringAsFixed(0)} '
-                '无对齐边（检查 minScale/maxScale）',
+        message:
+            ok
+                ? '✅ design 至少有一边精确等于 MQ — longer 轴契约成立（贴边）'
+                : '⚠️ longer 轴：MQ '
+                    '${mq.width.toStringAsFixed(0)}×${mq.height.toStringAsFixed(0)} '
+                    '与 design '
+                    '${design.width.toStringAsFixed(0)}×${design.height.toStringAsFixed(0)} '
+                    '无对齐边（检查 minScale/maxScale）',
       );
   }
 }
@@ -93,11 +97,7 @@ class DebugPanel extends StatelessWidget {
     final scale = ScreenSizeAdapter.scaleOf(context);
     final isLandscape = origin.width > origin.height;
 
-    final contract = checkContract(
-      axis: scaleAxis,
-      mq: mq,
-      design: designSize,
-    );
+    final contract = checkContract(axis: scaleAxis, mq: mq, design: designSize);
 
     return Container(
       width: double.infinity,

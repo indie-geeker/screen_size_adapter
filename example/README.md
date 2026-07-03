@@ -1,16 +1,31 @@
-# example
+# screen_size_adapter example
 
-A new Flutter project.
+This example app demonstrates the package's production integration path:
 
-## Getting Started
+- installing `ScreenSizeWidgetsFlutterBinding` before `runApp`;
+- reading scaled design-unit values from `MediaQuery`;
+- switching `ScaleAxis` at runtime;
+- swapping portrait and landscape design sizes;
+- comparing adapter-on and adapter-off layout behavior;
+- inspecting the per-view registry used for multi-view apps.
 
-This project is a starting point for a Flutter application.
+## Run
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+cd example
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+The example enables desktop scaling so the behavior is visible on macOS,
+Windows, and Linux windows as well as on mobile devices.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Test
+
+```bash
+cd example
+flutter analyze
+flutter test
+```
+
+The widget test uses `ScreenSizeTestEnvironment`, because Flutter's
+`testWidgets` binding cannot install the production binding.

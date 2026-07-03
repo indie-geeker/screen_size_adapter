@@ -12,8 +12,8 @@ class InfoRow extends StatelessWidget {
   });
 
   const InfoRow.dark({super.key, required this.label, required this.value})
-      : labelColor = Colors.white70,
-        valueColor = Colors.greenAccent;
+    : labelColor = Colors.white70,
+      valueColor = Colors.greenAccent;
 
   final String label;
   final String value;

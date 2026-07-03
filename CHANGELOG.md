@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `ScreenSizeWidgetsFlutterBinding.instance` typed accessor for multi-view
+  integration code that needs the installed adapter binding.
+- Lightweight `CONTRIBUTING.md` with local validation and release checklist.
+
+### Changed
+- README orientation-lock snippets now install
+  `ScreenSizeWidgetsFlutterBinding` before setting preferred orientations, so
+  copied code respects the binding initialization requirement.
+- CI now checks formatting, example analysis, dartdoc, and pub publish dry-run.
+- The pub package ignore list now excludes local agent/tooling files and lock
+  files that are not needed by consumers.
+
+### Fixed
+- `attachView`, `updateView`, and `ensureInitialized` now reject non-positive or
+  non-finite design sizes and scale bounds before they can enter view scaling.
+- Dartdoc link warnings in public API comments.
+
 ## [0.5.0] - 2026-04-27
 
 > ⚠️ **BREAKING (default behavior):** `ScreenSizeAdapterConfig.maxScale` default changed from `2.0` to `null` (no upper bound). This makes `ScaleAxis.width` produce a consistent `MediaQuery.width == designSize.width` in **both** portrait and landscape — previously the 2.0 cap silently capped large landscape devices and broke the cross-orientation width contract. Existing apps that relied on the 2.0 cap (typically to prevent oversized fonts on tablets / desktop) must restore it explicitly.

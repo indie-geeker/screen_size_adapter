@@ -8,13 +8,14 @@ void main() {
   // It must NOT call ScreenSizeWidgetsFlutterBinding.ensureInitialized in
   // setUpAll — the type-mismatch StateError is the property under test.
   testWidgets(
-      'ensureInitialized throws when AutomatedTestWidgetsFlutterBinding is active',
-      (tester) async {
-    expect(
-      () => ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-        const Size(360, 640),
-      ),
-      throwsA(isA<StateError>()),
-    );
-  });
+    'ensureInitialized throws when AutomatedTestWidgetsFlutterBinding is active',
+    (tester) async {
+      expect(
+        () => ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+          const Size(360, 640),
+        ),
+        throwsA(isA<StateError>()),
+      );
+    },
+  );
 }

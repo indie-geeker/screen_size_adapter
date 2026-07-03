@@ -58,8 +58,7 @@ class _MultiViewPanelState extends State<MultiViewPanel>
             style: const TextStyle(fontSize: 12, color: Colors.black87),
           ),
           const SizedBox(height: 6),
-          for (final v in views)
-            _ViewRow(view: v, binding: adapterBinding),
+          for (final v in views) _ViewRow(view: v, binding: adapterBinding),
           const SizedBox(height: 8),
           const _MultiViewHint(),
         ],
@@ -105,16 +104,14 @@ class _ViewRow extends StatelessWidget {
           InfoRow(label: 'devicePixelRatio', value: dpr.toStringAsFixed(2)),
           InfoRow(
             label: '注册的 designSize',
-            value: config == null
-                ? '—'
-                : '${config.designSize.width.toInt()}×'
-                    '${config.designSize.height.toInt()}',
+            value:
+                config == null
+                    ? '—'
+                    : '${config.designSize.width.toInt()}×'
+                        '${config.designSize.height.toInt()}',
           ),
           InfoRow(label: '当前 scale', value: scale?.toStringAsFixed(3) ?? '—'),
-          InfoRow(
-            label: 'scaleAxis',
-            value: config?.scaleAxis.name ?? '—',
-          ),
+          InfoRow(label: 'scaleAxis', value: config?.scaleAxis.name ?? '—'),
         ],
       ),
     );

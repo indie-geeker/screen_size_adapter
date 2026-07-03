@@ -50,11 +50,13 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       existing = null;
     }
 
-    final resolvedConfig = config == null
-        ? ScreenSizeAdapterConfig(designSize: size)
-        : (config.designSize == size
-            ? config
-            : config.copyWith(designSize: size));
+    final resolvedConfig =
+        config == null
+            ? ScreenSizeAdapterConfig(designSize: size)
+            : (config.designSize == size
+                ? config
+                : config.copyWith(designSize: size));
+    _validateConfig(resolvedConfig);
 
     if (existing == null) {
       final created = ScreenSizeWidgetsFlutterBinding._();
@@ -72,6 +74,20 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       'A ${existing.runtimeType} is already initialized. '
       'ScreenSizeWidgetsFlutterBinding.ensureInitialized must be called before '
       'any other binding initialization.',
+    );
+  }
+
+  /// The installed adapter binding.
+  ///
+  /// Throws [StateError] when a different [WidgetsBinding] is active. Use after
+  /// [ensureInitialized] has installed this binding.
+  static ScreenSizeWidgetsFlutterBinding get instance {
+    final binding = WidgetsBinding.instance;
+    if (binding is ScreenSizeWidgetsFlutterBinding) return binding;
+    throw StateError(
+      'ScreenSizeWidgetsFlutterBinding is not installed. '
+      'Call ScreenSizeWidgetsFlutterBinding.ensureInitialized(...) before '
+      'accessing ScreenSizeWidgetsFlutterBinding.instance.',
     );
   }
 
@@ -100,13 +116,15 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     double? maxScale,
     bool enableDesktopScaling = false,
   }) {
-    _views[view.viewId] = ViewSizing(ScreenSizeAdapterConfig(
+    final config = ScreenSizeAdapterConfig(
       designSize: designSize,
       scaleAxis: scaleAxis,
       minScale: minScale,
       maxScale: maxScale,
       enableDesktopScaling: enableDesktopScaling,
-    ));
+    );
+    _validateConfig(config);
+    _views[view.viewId] = ViewSizing(config);
     handleMetricsChanged();
   }
 
@@ -136,13 +154,15 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
         'Call attachView first.',
       );
     }
-    sizing.config = sizing.config.copyWith(
+    final nextConfig = sizing.config.copyWith(
       designSize: designSize,
       scaleAxis: scaleAxis,
       minScale: minScale,
       maxScale: maxScale,
       enableDesktopScaling: enableDesktopScaling,
     );
+    _validateConfig(nextConfig);
+    sizing.config = nextConfig;
     handleMetricsChanged();
   }
 
@@ -199,6 +219,38 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     _views.removeWhere((id, _) => !liveIds.contains(id));
   }
 
+  static void _validateConfig(ScreenSizeAdapterConfig config) {
+    final size = config.designSize;
+    if (!size.width.isFinite ||
+        !size.height.isFinite ||
+        size.width <= 0 ||
+        size.height <= 0) {
+      throw ArgumentError.value(
+        size,
+        'designSize',
+        'must have finite positive width and height',
+      );
+    }
+
+    final minScale = config.minScale;
+    if (minScale != null && (!minScale.isFinite || minScale <= 0)) {
+      throw ArgumentError.value(
+        minScale,
+        'minScale',
+        'must be finite and greater than zero',
+      );
+    }
+
+    final maxScale = config.maxScale;
+    if (maxScale != null && (!maxScale.isFinite || maxScale <= 0)) {
+      throw ArgumentError.value(
+        maxScale,
+        'maxScale',
+        'must be finite and greater than zero',
+      );
+    }
+  }
+
   // ── Overrides ───────────────────────────────────────────────────────
 
   /// Wraps the implicit view's root widget so the per-view scale is
@@ -213,9 +265,7 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   /// with [ScreenSizeAdapterScope] manually.
   @override
   Widget wrapWithDefaultView(Widget rootWidget) {
-    return super.wrapWithDefaultView(
-      ScreenSizeAdapterScope(child: rootWidget),
-    );
+    return super.wrapWithDefaultView(ScreenSizeAdapterScope(child: rootWidget));
   }
 
   @override
@@ -234,8 +284,9 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       isDesktop: isDesktopPlatform(),
     );
 
-    final phys =
-        BoxConstraints.fromViewConstraints(flutterView.physicalConstraints);
+    final phys = BoxConstraints.fromViewConstraints(
+      flutterView.physicalConstraints,
+    );
     return ViewConfiguration(
       physicalConstraints: phys,
       logicalConstraints: phys / sizing.effectiveDpr,
@@ -264,12 +315,14 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       );
       if (!locked) _flushPointerEventQueue();
     } catch (error, stack) {
-      FlutterError.reportError(FlutterErrorDetails(
-        exception: error,
-        stack: stack,
-        library: 'gestures library',
-        context: ErrorDescription('while handling a pointer data packet'),
-      ));
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'gestures library',
+          context: ErrorDescription('while handling a pointer data packet'),
+        ),
+      );
     }
   }
 
