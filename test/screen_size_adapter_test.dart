@@ -12,7 +12,7 @@ void main() {
     (tester) async {
       expect(
         () => ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-          const Size(360, 640),
+          const ScreenSizeAdapterConfig(designSize: Size(360, 640)),
         ),
         throwsA(isA<StateError>()),
       );

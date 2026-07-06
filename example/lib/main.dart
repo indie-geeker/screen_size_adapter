@@ -6,8 +6,7 @@ import 'state/adapter_settings.dart';
 
 void main() {
   ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    kPortraitDesign,
-    config: const ScreenSizeAdapterConfig(
+    const ScreenSizeAdapterConfig(
       designSize: kPortraitDesign,
       enableDesktopScaling: true,
     ),

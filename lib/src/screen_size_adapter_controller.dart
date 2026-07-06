@@ -49,7 +49,14 @@ class ScreenSizeAdapter {
   static void setDesignSize(BuildContext context, Size size) {
     final view = View.of(context);
     final binding = _requireBinding();
-    binding.updateView(view: view, designSize: size);
+    final current = binding.configForView(view);
+    if (current == null) {
+      throw StateError(
+        'ScreenSizeAdapter.setDesignSize called for an unregistered FlutterView. '
+        'Call ScreenSizeWidgetsFlutterBinding.instance.attachView first.',
+      );
+    }
+    binding.updateView(view: view, config: current.copyWith(designSize: size));
   }
 
   /// Reset the [FlutterView] that owns [context] to its current logical
@@ -72,8 +79,7 @@ class ScreenSizeAdapter {
   static double scaleOf(BuildContext context) {
     final binding = WidgetsBinding.instance;
     if (binding is! ScreenSizeWidgetsFlutterBinding) return 1.0;
-    final viewId = View.of(context).viewId;
-    return binding.scaleForViewId(viewId) ?? 1.0;
+    return binding.scaleForView(View.of(context)) ?? 1.0;
   }
 
   /// Returns the [FlutterView]'s **unscaled** logical size — i.e.

@@ -2,10 +2,9 @@ import 'dart:ui' show Size;
 
 /// Which axis the binding uses to derive the scale factor.
 enum ScaleAxis {
-  /// scale = origin.width / design.width — applied unconditionally regardless
-  /// of orientation. (0.3.x silently used origin.height / design.width in
-  /// landscape on mobile; that implicit axis-swap is gone in 0.4.0. Use
-  /// `ScaleAxis.shorter` if you want aspect-safe sizing across orientations.)
+  /// scale = origin.width / design.width, applied unconditionally regardless
+  /// of orientation. Use `ScaleAxis.shorter` if you want aspect-safe sizing
+  /// across orientations.
   width,
 
   /// scale = origin.height / design.height.
@@ -32,8 +31,7 @@ class ScreenSizeAdapterConfig {
   /// Defaults to false: desktop windows use their native logical size.
   final bool enableDesktopScaling;
 
-  /// Upper bound for the computed scale factor. `null` = unlimited (default
-  /// since 0.5.0). Set explicitly to cap the scale on very large screens.
+  /// Upper bound for the computed scale factor. `null` = unlimited.
   final double? maxScale;
 
   /// Lower bound for the computed scale factor. `null` = no floor.
@@ -56,35 +54,29 @@ class ScreenSizeAdapterConfig {
     bool? enableDesktopScaling,
     double? maxScale,
     double? minScale,
+    bool clearMaxScale = false,
+    bool clearMinScale = false,
   }) {
+    if (clearMaxScale && maxScale != null) {
+      throw ArgumentError.value(
+        maxScale,
+        'maxScale',
+        'cannot be provided when clearMaxScale is true',
+      );
+    }
+    if (clearMinScale && minScale != null) {
+      throw ArgumentError.value(
+        minScale,
+        'minScale',
+        'cannot be provided when clearMinScale is true',
+      );
+    }
     return ScreenSizeAdapterConfig(
       designSize: designSize ?? this.designSize,
       scaleAxis: scaleAxis ?? this.scaleAxis,
       enableDesktopScaling: enableDesktopScaling ?? this.enableDesktopScaling,
-      maxScale: maxScale ?? this.maxScale,
-      minScale: minScale ?? this.minScale,
-    );
-  }
-
-  /// Creates a copy with [maxScale] explicitly set (including `null` for unlimited).
-  ScreenSizeAdapterConfig copyWithMaxScale(double? maxScale) {
-    return ScreenSizeAdapterConfig(
-      designSize: designSize,
-      scaleAxis: scaleAxis,
-      enableDesktopScaling: enableDesktopScaling,
-      maxScale: maxScale,
-      minScale: minScale,
-    );
-  }
-
-  /// Creates a copy with [minScale] explicitly set (including `null` to remove the floor).
-  ScreenSizeAdapterConfig copyWithMinScale(double? minScale) {
-    return ScreenSizeAdapterConfig(
-      designSize: designSize,
-      scaleAxis: scaleAxis,
-      enableDesktopScaling: enableDesktopScaling,
-      maxScale: maxScale,
-      minScale: minScale,
+      maxScale: clearMaxScale ? null : maxScale ?? this.maxScale,
+      minScale: clearMinScale ? null : minScale ?? this.minScale,
     );
   }
 }

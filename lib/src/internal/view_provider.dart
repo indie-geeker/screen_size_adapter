@@ -15,7 +15,7 @@ FlutterView? primaryView() {
     final views = WidgetsBinding.instance.platformDispatcher.views;
     if (views.isNotEmpty) return views.first;
   } catch (_) {
-    // Binding not yet initialized — fall through to legacy API.
+    // Binding not yet initialized; use the platform fallback.
   }
   // ignore: deprecated_member_use
   return PlatformDispatcher.instance.implicitView;

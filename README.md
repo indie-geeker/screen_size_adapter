@@ -20,7 +20,9 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
   ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    const Size(360, 690),
+    const ScreenSizeAdapterConfig(
+      designSize: Size(360, 690),
+    ),
   );
   runApp(const MyApp());
 }
@@ -52,12 +54,11 @@ class HomePage extends StatelessWidget {
 
 ```dart
 ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-  const Size(360, 690),
-  config: const ScreenSizeAdapterConfig(
+  const ScreenSizeAdapterConfig(
     designSize: Size(360, 690),
     scaleAxis: ScaleAxis.width,        // .width | .height | .shorter | .longer
     minScale: null,
-    maxScale: null,                    // 0.5.0 起默认无上限
+    maxScale: null,                    // 不限制最大缩放
     enableDesktopScaling: false,
   ),
 );
@@ -65,7 +66,7 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 
 `scaleAxis` 决定按哪个轴计算缩放系数：
 
-- `width` — `scale = origin.width / design.width`。默认值。**横竖屏行为**：竖屏时 origin.width 是设备短边，横屏时是长边，scale 跟着变大；好处是 `MediaQuery.width` 在两个方向都等于 `designSize.width`（"两个 180 的矩形永远充满宽度"）。代价是横屏下纵向内容会按同一 scale 放大，超出屏幕高度的部分需要靠 `SingleChildScrollView` 等手段处理 —— 见 [横竖屏](#横竖屏) 章节。0.3.x 的移动端在横屏时会隐式改用高度推导（`origin.height / design.width`），0.4.0 起去除了这一行为；如果你需要"长边对长边"的旧语义，监听 `OrientationBuilder` 调用 `ScreenSizeAdapter.setDesignSize` 显式切换设计稿即可。
+- `width` — `scale = origin.width / design.width`。默认值。**横竖屏行为**：竖屏时 origin.width 是设备短边，横屏时是长边，scale 跟着变大；好处是 `MediaQuery.width` 在两个方向都等于 `designSize.width`（"两个 180 的矩形永远充满宽度"）。代价是横屏下纵向内容会按同一 scale 放大，超出屏幕高度的部分需要靠 `SingleChildScrollView` 等手段处理 —— 见 [横竖屏](#横竖屏) 章节。如果你需要"长边对长边"的语义，监听 `OrientationBuilder` 调用 `ScreenSizeAdapter.setDesignSize` 显式切换设计稿即可。
 - `height` — `scale = origin.height / design.height`。镜像 `width`：让 `MediaQuery.height == designSize.height`，但 `width` 方向不再固定。
 - `shorter` — 取两个比值中的较小者。设计画布永远完整地塞进屏幕（不会有内容因 scale 过大而溢出），代价是宽度不再固定，**横竖屏下的 scale 不一致**。适合"必须保证设计稿全部可见"的场景（弹窗、全屏插画）。不适合"两个 180 永远充满宽度"。
 - `longer` — 取较大者。设计画布至少有一条边贴满屏幕，另一条边会溢出。配合 `maxScale` 用于裁切式布局。
@@ -78,12 +79,20 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 final binding = ScreenSizeWidgetsFlutterBinding.instance;
 binding.attachView(
   view: secondaryView,
-  designSize: const Size(800, 600),
-  scaleAxis: ScaleAxis.shorter,
+  config: const ScreenSizeAdapterConfig(
+    designSize: Size(800, 600),
+    scaleAxis: ScaleAxis.shorter,
+  ),
 );
 
 // 运行时更新：
-binding.updateView(view: secondaryView, designSize: const Size(1024, 768));
+binding.updateView(
+  view: secondaryView,
+  config: const ScreenSizeAdapterConfig(
+    designSize: Size(1024, 768),
+    scaleAxis: ScaleAxis.shorter,
+  ),
+);
 
 // 视图销毁时清理：
 binding.detachView(secondaryView);
@@ -111,7 +120,9 @@ View(
 ```dart
 // 1) 最简单：锁定竖屏（生态里 90%+ 应用的选择）
 void main() async {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690));
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+    const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
+  );
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -213,27 +224,9 @@ test('scale on a 2x device', () {
 });
 ```
 
-## 从 0.3.x 迁移
-
-之前所有使用尺寸扩展的数字字面量，现在都直接写成纯数字。缩放工作完全交给 binding。
-
-| 0.3.x | 0.4.0 |
-|---|---|
-| `100.dp`, `100.vw`, `100.vh`, `100.r` | `100` |
-| `14.sp` | `14` |
-| `0.5.sw`, `0.5.sh` | `MediaQuery.sizeOf(context).width * 0.5`（或 `.height`） |
-| `EdgeInsets.all(16).w` | `const EdgeInsets.all(16)` |
-| `BorderRadius.circular(16).w` | `BorderRadius.circular(16)` |
-| `16.verticalSpace` | `const SizedBox(height: 16)` |
-| `ScreenSizeAdapter.of(context).setDesignSize(s)` | `ScreenSizeAdapter.setDesignSize(context, s)` |
-| `ScreenSizeHelper.instance.scale` | `ScreenSizeAdapter.scaleOf(context)` |
-| `ScreenSizeHelper.instance.designSize` | `MediaQuery.sizeOf(context)` |
-
-如果之前使用 `100.r` 来保持圆形不变形，请在初始化时配置 `scaleAxis: ScaleAxis.shorter`。如果之前使用了 `ScreenSizeTextScaleMode.legacyScale`，在 0.4.0 中字体会显得更小——legacy 模式实际上在 binding 缩放之上又叠加了一层，属于重复缩放。完整的破坏性变更清单见 `CHANGELOG.md`。
-
 ## 环境要求
 
-- Flutter `>=3.27.0`
+- Flutter `>=3.29.0`
 - Dart `^3.7.2`
 
 ## Security

@@ -29,3 +29,17 @@ flutter test
 
 The widget test uses `ScreenSizeTestEnvironment`, because Flutter's
 `testWidgets` binding cannot install the production binding.
+
+## Multi-view check
+
+The package tests cover per-view registry isolation with the real primary
+`FlutterView`. Flutter's test binding does not create a second engine-backed
+view, so fake view objects would not prove framework or engine behavior.
+
+For release validation, run the example on a desktop target or an Add-to-App
+host that creates a real secondary `FlutterView`, then confirm:
+
+- the secondary view is registered with `attachView(view: ..., config: ...)`;
+- `ScreenSizeAdapterScope` wraps the secondary `View` subtree;
+- the panel shows the expected config and scale for that view;
+- closing the secondary view calls `detachView`.

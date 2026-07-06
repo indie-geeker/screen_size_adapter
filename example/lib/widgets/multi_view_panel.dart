@@ -75,8 +75,8 @@ class _ViewRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = binding?.configForViewId(view.viewId);
-    final scale = binding?.scaleForViewId(view.viewId);
+    final config = binding?.configForView(view);
+    final scale = binding?.scaleForView(view);
     final phys = view.physicalSize;
     final dpr = view.devicePixelRatio;
 
@@ -125,7 +125,7 @@ class _MultiViewHint extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Text(
       '在桌面多窗、runWidget + View、ViewAnchor、Add-to-App 等场景，'
-      '为每个非主 view 调 binding.attachView(view: ..., designSize: ...) '
+      '为每个非主 view 调 binding.attachView(view: ..., config: ...) '
       '即可让它们各自独立适配；同时记得在 View 子树外手包 ScreenSizeAdapterScope，'
       '保证 MediaQuery 也按对应的 scale 报告尺寸。',
       style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5),

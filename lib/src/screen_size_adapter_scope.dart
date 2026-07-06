@@ -84,10 +84,10 @@ class _ScreenSizeAdapterScopeState extends State<ScreenSizeAdapterScope>
     final binding = WidgetsBinding.instance;
     if (binding is! ScreenSizeWidgetsFlutterBinding) return widget.child;
 
-    final viewId = View.maybeOf(context)?.viewId;
-    if (viewId == null) return widget.child;
+    final view = View.maybeOf(context);
+    if (view == null) return widget.child;
 
-    final scale = binding.scaleForViewId(viewId) ?? 1.0;
+    final scale = binding.scaleForView(view) ?? 1.0;
     if (scale == 1.0) return widget.child;
 
     return MediaQuery(

@@ -36,7 +36,14 @@ class ScaleAxisPicker extends StatelessWidget {
   void _select(BuildContext context, ScaleAxis axis) {
     final binding = WidgetsBinding.instance;
     if (binding is ScreenSizeWidgetsFlutterBinding) {
-      binding.updateView(view: View.of(context), scaleAxis: axis);
+      final view = View.of(context);
+      final current = binding.configForView(view);
+      if (current != null) {
+        binding.updateView(
+          view: view,
+          config: current.copyWith(scaleAxis: axis),
+        );
+      }
     }
     settings.setScaleAxis(axis);
   }

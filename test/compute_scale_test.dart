@@ -39,6 +39,46 @@ void main() {
       expect(c2.designSize, const Size(414, 896));
     });
 
+    test('copyWith can clear maxScale explicitly', () {
+      const c1 = ScreenSizeAdapterConfig(
+        designSize: Size(360, 690),
+        maxScale: 2.0,
+      );
+
+      final c2 = c1.copyWith(clearMaxScale: true);
+
+      expect(c2.maxScale, isNull);
+    });
+
+    test('copyWith can clear minScale explicitly', () {
+      const c1 = ScreenSizeAdapterConfig(
+        designSize: Size(360, 690),
+        minScale: 0.8,
+      );
+
+      final c2 = c1.copyWith(clearMinScale: true);
+
+      expect(c2.minScale, isNull);
+    });
+
+    test('copyWith rejects maxScale value when clearMaxScale is true', () {
+      const c1 = ScreenSizeAdapterConfig(designSize: Size(360, 690));
+
+      expect(
+        () => c1.copyWith(maxScale: 2.0, clearMaxScale: true),
+        throwsArgumentError,
+      );
+    });
+
+    test('copyWith rejects minScale value when clearMinScale is true', () {
+      const c1 = ScreenSizeAdapterConfig(designSize: Size(360, 690));
+
+      expect(
+        () => c1.copyWith(minScale: 0.8, clearMinScale: true),
+        throwsArgumentError,
+      );
+    });
+
     test('ScaleAxis enum has 4 values', () {
       expect(ScaleAxis.values, [
         ScaleAxis.width,
@@ -97,7 +137,7 @@ void main() {
         config: const ScreenSizeAdapterConfig(
           designSize: design,
           scaleAxis: ScaleAxis.longer,
-          maxScale: 2.0, // explicit since 0.5.0 (no default cap)
+          maxScale: 2.0,
         ),
         isDesktop: false,
       );
@@ -107,7 +147,6 @@ void main() {
     test('default config does not clamp the scale (maxScale is null)', () {
       // Wide landscape on a 1280-wide canvas — without an explicit cap,
       // ScaleAxis.width follows origin.width / design.width unconditionally.
-      // Pre-0.5.0 this would have clamped to 2.0.
       final s = ScreenSizeAdapter.computeScale(
         origin: landscapeOrigin,
         config: const ScreenSizeAdapterConfig(designSize: design),

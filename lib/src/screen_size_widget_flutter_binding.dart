@@ -35,14 +35,9 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   /// Initialize the screen-size adapter and register the primary view.
   ///
   /// Must be called before [runApp]. Returns the binding instance.
-  ///
-  /// Public signature is preserved from 0.3.0 for backward compatibility.
-  /// Internally, the function arguments are translated into a
-  /// [ScreenSizeAdapterConfig] that is stored against the primary view.
-  static WidgetsBinding ensureInitialized(
-    Size size, {
-    ScreenSizeAdapterConfig? config,
-  }) {
+  static ScreenSizeWidgetsFlutterBinding ensureInitialized(
+    ScreenSizeAdapterConfig config,
+  ) {
     WidgetsBinding? existing;
     try {
       existing = WidgetsBinding.instance;
@@ -50,22 +45,16 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       existing = null;
     }
 
-    final resolvedConfig =
-        config == null
-            ? ScreenSizeAdapterConfig(designSize: size)
-            : (config.designSize == size
-                ? config
-                : config.copyWith(designSize: size));
-    _validateConfig(resolvedConfig);
+    _validateConfig(config);
 
     if (existing == null) {
       final created = ScreenSizeWidgetsFlutterBinding._();
-      created._registerPrimaryView(resolvedConfig);
+      created._registerPrimaryView(config);
       return created;
     }
 
     if (existing is ScreenSizeWidgetsFlutterBinding) {
-      existing._registerPrimaryView(resolvedConfig);
+      existing._registerPrimaryView(config);
       existing.handleMetricsChanged();
       return existing;
     }
@@ -110,42 +99,23 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   /// automatically by [ensureInitialized].
   void attachView({
     required FlutterView view,
-    required Size designSize,
-    ScaleAxis scaleAxis = ScaleAxis.width,
-    double? minScale,
-    double? maxScale,
-    bool enableDesktopScaling = false,
+    required ScreenSizeAdapterConfig config,
   }) {
-    final config = ScreenSizeAdapterConfig(
-      designSize: designSize,
-      scaleAxis: scaleAxis,
-      minScale: minScale,
-      maxScale: maxScale,
-      enableDesktopScaling: enableDesktopScaling,
-    );
     _validateConfig(config);
     _views[view.viewId] = ViewSizing(config);
     handleMetricsChanged();
   }
 
-  /// Mutate selected fields of an already-registered view's configuration.
+  /// Replace an already-registered view's configuration.
   /// Throws [StateError] if [view] has no registration — call [attachView]
   /// first.
   ///
   /// Triggers `handleMetricsChanged()` so the next layout pass picks up
   /// the new values.
   ///
-  /// Note: passing `null` for [minScale] or [maxScale] does NOT clear an
-  /// existing value — the underlying `copyWith` treats `null` as
-  /// "no change." To clear a bound, call [attachView] with the full
-  /// desired configuration.
   void updateView({
     required FlutterView view,
-    Size? designSize,
-    ScaleAxis? scaleAxis,
-    double? minScale,
-    double? maxScale,
-    bool? enableDesktopScaling,
+    required ScreenSizeAdapterConfig config,
   }) {
     final sizing = _views[view.viewId];
     if (sizing == null) {
@@ -154,15 +124,8 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
         'Call attachView first.',
       );
     }
-    final nextConfig = sizing.config.copyWith(
-      designSize: designSize,
-      scaleAxis: scaleAxis,
-      minScale: minScale,
-      maxScale: maxScale,
-      enableDesktopScaling: enableDesktopScaling,
-    );
-    _validateConfig(nextConfig);
-    sizing.config = nextConfig;
+    _validateConfig(config);
+    sizing.config = config;
     handleMetricsChanged();
   }
 
@@ -198,19 +161,17 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     handleMetricsChanged();
   }
 
-  /// The most-recently-computed scale factor for [viewId], or `null` if
+  /// The most-recently-computed scale factor for [view], or `null` if
   /// the view is not registered.
   ///
   /// May return `1.0` for a registered view that has not yet undergone
   /// its first layout pass. Read inside or after a frame for accurate
   /// values.
-  double? scaleForViewId(int viewId) => _views[viewId]?.scale;
+  double? scaleForView(FlutterView view) => _views[view.viewId]?.scale;
 
-  /// Test-only: returns the current config for [viewId], or null.
-  ///
-  /// Exposed for unit tests; not intended for production use.
-  ScreenSizeAdapterConfig? configForViewId(int viewId) =>
-      _views[viewId]?.config;
+  /// Returns the current config for [view], or null when not registered.
+  ScreenSizeAdapterConfig? configForView(FlutterView view) =>
+      _views[view.viewId]?.config;
 
   // ── Auto-cleanup ────────────────────────────────────────────────────
 

@@ -20,7 +20,9 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
   ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    const Size(360, 690),
+    const ScreenSizeAdapterConfig(
+      designSize: Size(360, 690),
+    ),
   );
   runApp(const MyApp());
 }
@@ -52,12 +54,11 @@ class HomePage extends StatelessWidget {
 
 ```dart
 ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-  const Size(360, 690),
-  config: const ScreenSizeAdapterConfig(
+  const ScreenSizeAdapterConfig(
     designSize: Size(360, 690),
     scaleAxis: ScaleAxis.width,        // .width | .height | .shorter | .longer
     minScale: null,
-    maxScale: null,                    // 0.5.0+: no upper bound by default
+    maxScale: null,                    // no upper bound
     enableDesktopScaling: false,
   ),
 );
@@ -65,7 +66,7 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 
 `scaleAxis` controls which axis derives the scale factor:
 
-- `width` — `scale = origin.width / design.width`. Default. **Orientation behavior:** in portrait `origin.width` is the device's short side; in landscape it's the long side, so the scale grows. The benefit is `MediaQuery.width == designSize.width` in both orientations ("two 180-wide rectangles always fill the width"). The cost is that vertical content scales by the same factor in landscape, so it can overflow the now-compressed view height — see [Orientation](#orientation). 0.3.x's mobile path silently switched to height-derived scaling in landscape; 0.4.0+ does not. If you need the old "long-side-to-long-side" semantics, swap the design size on rotation via `OrientationBuilder` + `ScreenSizeAdapter.setDesignSize`.
+- `width` — `scale = origin.width / design.width`. Default. **Orientation behavior:** in portrait `origin.width` is the device's short side; in landscape it's the long side, so the scale grows. The benefit is `MediaQuery.width == designSize.width` in both orientations ("two 180-wide rectangles always fill the width"). The cost is that vertical content scales by the same factor in landscape, so it can overflow the now-compressed view height — see [Orientation](#orientation). If you need "long-side-to-long-side" semantics, swap the design size on rotation via `OrientationBuilder` + `ScreenSizeAdapter.setDesignSize`.
 - `height` — `scale = origin.height / design.height`. Mirror of `width`: pins `MediaQuery.height` to `designSize.height` instead.
 - `shorter` — uses the smaller of the two ratios. The design canvas is always fully visible (no overflow), but the width is no longer pinned, **and the scale differs across orientations**. Suitable when "design must be fully visible" trumps "width consistency" (full-screen illustrations, modal dialogs). Not suitable for the "two 180s fill the width" contract.
 - `longer` — uses the larger ratio. At least one design edge fills the screen; the other overflows. Pairs with `maxScale` for crop-style layouts.
@@ -78,12 +79,20 @@ For Flutter apps with multiple `FlutterView`s (desktop multi-window, embedded vi
 final binding = ScreenSizeWidgetsFlutterBinding.instance;
 binding.attachView(
   view: secondaryView,
-  designSize: const Size(800, 600),
-  scaleAxis: ScaleAxis.shorter,
+  config: const ScreenSizeAdapterConfig(
+    designSize: Size(800, 600),
+    scaleAxis: ScaleAxis.shorter,
+  ),
 );
 
 // Update at runtime:
-binding.updateView(view: secondaryView, designSize: const Size(1024, 768));
+binding.updateView(
+  view: secondaryView,
+  config: const ScreenSizeAdapterConfig(
+    designSize: Size(1024, 768),
+    scaleAxis: ScaleAxis.shorter,
+  ),
+);
 
 // Clean up when the view goes away:
 binding.detachView(secondaryView);
@@ -111,7 +120,9 @@ The default `ScaleAxis.width` makes `MediaQuery.width` equal `designSize.width` 
 ```dart
 // 1) Simplest: lock to portrait (what 90%+ of apps in the ecosystem do)
 void main() async {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690));
+  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+    const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
+  );
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -212,27 +223,9 @@ test('scale on a 2x device', () {
 });
 ```
 
-## Migration from 0.3.x
-
-Every numeric literal that previously used a sizing extension becomes a plain number. The binding does the scaling.
-
-| 0.3.x | 0.4.0 |
-|---|---|
-| `100.dp`, `100.vw`, `100.vh`, `100.r` | `100` |
-| `14.sp` | `14` |
-| `0.5.sw`, `0.5.sh` | `MediaQuery.sizeOf(context).width * 0.5` (or `.height`) |
-| `EdgeInsets.all(16).w` | `const EdgeInsets.all(16)` |
-| `BorderRadius.circular(16).w` | `BorderRadius.circular(16)` |
-| `16.verticalSpace` | `const SizedBox(height: 16)` |
-| `ScreenSizeAdapter.of(context).setDesignSize(s)` | `ScreenSizeAdapter.setDesignSize(context, s)` |
-| `ScreenSizeHelper.instance.scale` | `ScreenSizeAdapter.scaleOf(context)` |
-| `ScreenSizeHelper.instance.designSize` | `MediaQuery.sizeOf(context)` |
-
-If you used `100.r` for aspect-safe circles, configure `scaleAxis: ScaleAxis.shorter`. If you used `ScreenSizeTextScaleMode.legacyScale`, fonts will appear smaller in 0.4.0 — the legacy mode was double-scaling. See `CHANGELOG.md` for the full breaking-change list.
-
 ## Requirements
 
-- Flutter `>=3.27.0`
+- Flutter `>=3.29.0`
 - Dart `^3.7.2`
 
 ## Security

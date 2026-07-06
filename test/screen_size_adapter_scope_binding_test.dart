@@ -8,14 +8,17 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 void main() {
   late ScreenSizeWidgetsFlutterBinding binding;
   setUpAll(() {
-    binding =
-        ScreenSizeWidgetsFlutterBinding.ensureInitialized(const Size(360, 690))
-            as ScreenSizeWidgetsFlutterBinding;
+    binding = ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+      const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
+    );
   });
 
   tearDown(() {
     final primary = binding.platformDispatcher.views.first;
-    binding.attachView(view: primary, designSize: const Size(360, 690));
+    binding.attachView(
+      view: primary,
+      config: const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
+    );
   });
 
   test('MediaQuery.sizeOf inside the scope reports designSize', () async {
@@ -28,7 +31,10 @@ void main() {
     // Pick a designSize that yields a non-trivial scale on whatever
     // logical view-size the test harness reports.
     final designSize = Size(originSize.width / 2, originSize.height / 2);
-    binding.attachView(view: primary, designSize: designSize);
+    binding.attachView(
+      view: primary,
+      config: ScreenSizeAdapterConfig(designSize: designSize),
+    );
 
     MediaQueryData? captured;
     double? capturedScale;
@@ -71,7 +77,10 @@ void main() {
         primary.physicalSize.height / primary.devicePixelRatio,
       );
       final designSize = Size(originSize.width / 2, originSize.height / 2);
-      binding.attachView(view: primary, designSize: designSize);
+      binding.attachView(
+        view: primary,
+        config: ScreenSizeAdapterConfig(designSize: designSize),
+      );
 
       MediaQueryData? captured;
       double? capturedScale;

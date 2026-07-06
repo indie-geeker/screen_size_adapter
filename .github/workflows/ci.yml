@@ -10,13 +10,30 @@ on:
 
 jobs:
   package:
+    name: Package (Flutter ${{ matrix.flutter-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flutter-version: '3.29.0'
+            release-gates: false
+          - flutter-version: latest-stable
+            release-gates: true
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Setup Flutter (minimum supported)
+        if: matrix.flutter-version != 'latest-stable'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ matrix.flutter-version }}
+
+      - name: Setup Flutter (latest stable)
+        if: matrix.flutter-version == 'latest-stable'
         uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -29,6 +46,9 @@ jobs:
 
       - name: Analyze (package)
         run: flutter analyze
+
+      - name: Verify README snippet fixtures
+        run: dart run tool/verify_readme_snippets.dart
 
       - name: Test (package)
         run: flutter test
@@ -46,7 +66,9 @@ jobs:
         run: flutter test
 
       - name: Check API docs
+        if: matrix.release-gates == true
         run: dart doc --dry-run
 
       - name: Validate pub package
+        if: matrix.release-gates == true
         run: flutter pub publish --dry-run
