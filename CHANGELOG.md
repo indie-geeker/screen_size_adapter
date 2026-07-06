@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ScreenSizeTestEnvironment` for widget tests that cannot install the
   production binding.
 - Example app, package validation workflow, and release-readiness checklist.
+- Desktop multi-view release verification checklist.
 
 ### Changed
 - Public initialization and per-view registration APIs use a complete
@@ -28,5 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Design-size and scale-bound validation rejects non-finite or non-positive
   values before they enter the view registry.
+- Runtime config validation rejects `minScale` values greater than `maxScale`.
 - Scaled `MediaQuery` values now include size, device pixel ratio, padding,
   view padding, view insets, and system gesture insets.

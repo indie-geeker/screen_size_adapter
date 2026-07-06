@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import 'config.dart';
+import 'internal/config_validation.dart';
 import 'internal/platform_detection.dart';
 import 'internal/view_provider.dart';
 import 'internal/view_sizing.dart';
@@ -210,6 +211,8 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
         'must be finite and greater than zero',
       );
     }
+
+    validateScaleBounds(minScale: minScale, maxScale: maxScale);
   }
 
   // ── Overrides ───────────────────────────────────────────────────────

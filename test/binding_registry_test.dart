@@ -83,6 +83,17 @@ void main() {
         ),
         throwsArgumentError,
       );
+      expect(
+        () => binding.attachView(
+          view: primary,
+          config: ScreenSizeAdapterConfig(
+            designSize: const Size(360, 690),
+            minScale: 2.0,
+            maxScale: 1.0,
+          ),
+        ),
+        throwsArgumentError,
+      );
     });
 
     test('updateView replaces config with complete config', () {
@@ -135,6 +146,17 @@ void main() {
           config: const ScreenSizeAdapterConfig(
             designSize: Size(360, 690),
             maxScale: -1,
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => binding.updateView(
+          view: primary,
+          config: ScreenSizeAdapterConfig(
+            designSize: const Size(360, 690),
+            minScale: 2.0,
+            maxScale: 1.0,
           ),
         ),
         throwsArgumentError,

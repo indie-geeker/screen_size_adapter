@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'config.dart';
+import 'internal/config_validation.dart';
 import 'screen_size_widget_flutter_binding.dart';
 
 /// Public runtime control APIs for screen adaptation.
@@ -17,6 +18,8 @@ class ScreenSizeAdapter {
     required ScreenSizeAdapterConfig config,
     required bool isDesktop,
   }) {
+    validateScaleBounds(minScale: config.minScale, maxScale: config.maxScale);
+
     final shouldApply = !isDesktop || config.enableDesktopScaling;
     if (!shouldApply) return 1.0;
 

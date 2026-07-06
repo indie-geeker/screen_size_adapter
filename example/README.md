@@ -43,3 +43,7 @@ host that creates a real secondary `FlutterView`, then confirm:
 - `ScreenSizeAdapterScope` wraps the secondary `View` subtree;
 - the panel shows the expected config and scale for that view;
 - closing the secondary view calls `detachView`.
+
+Use the full checklist in
+[`tool/verification/desktop_multi_view.md`](../tool/verification/desktop_multi_view.md)
+before publishing a release that claims desktop multi-view support.

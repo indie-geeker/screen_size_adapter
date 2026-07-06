@@ -1,5 +1,7 @@
 import 'dart:ui' show Size;
 
+import 'internal/config_validation.dart';
+
 /// Which axis the binding uses to derive the scale factor.
 enum ScaleAxis {
   /// scale = origin.width / design.width, applied unconditionally regardless
@@ -43,10 +45,7 @@ class ScreenSizeAdapterConfig {
     this.enableDesktopScaling = false,
     this.maxScale,
     this.minScale,
-  }) : assert(
-         minScale == null || maxScale == null || minScale <= maxScale,
-         'minScale must be <= maxScale',
-       );
+  });
 
   ScreenSizeAdapterConfig copyWith({
     Size? designSize,
@@ -71,12 +70,16 @@ class ScreenSizeAdapterConfig {
         'cannot be provided when clearMinScale is true',
       );
     }
+    final nextMaxScale = clearMaxScale ? null : maxScale ?? this.maxScale;
+    final nextMinScale = clearMinScale ? null : minScale ?? this.minScale;
+    validateScaleBounds(minScale: nextMinScale, maxScale: nextMaxScale);
+
     return ScreenSizeAdapterConfig(
       designSize: designSize ?? this.designSize,
       scaleAxis: scaleAxis ?? this.scaleAxis,
       enableDesktopScaling: enableDesktopScaling ?? this.enableDesktopScaling,
-      maxScale: clearMaxScale ? null : maxScale ?? this.maxScale,
-      minScale: clearMinScale ? null : minScale ?? this.minScale,
+      maxScale: nextMaxScale,
+      minScale: nextMinScale,
     );
   }
 }

@@ -79,6 +79,24 @@ void main() {
       );
     });
 
+    test('copyWith rejects minScale greater than maxScale', () {
+      const c1 = ScreenSizeAdapterConfig(designSize: Size(360, 690));
+
+      expect(
+        () => c1.copyWith(minScale: 2.0, maxScale: 1.0),
+        throwsArgumentError,
+      );
+    });
+
+    test('copyWith rejects inherited minScale greater than maxScale', () {
+      const c1 = ScreenSizeAdapterConfig(
+        designSize: Size(360, 690),
+        minScale: 2.0,
+      );
+
+      expect(() => c1.copyWith(maxScale: 1.0), throwsArgumentError);
+    });
+
     test('ScaleAxis enum has 4 values', () {
       expect(ScaleAxis.values, [
         ScaleAxis.width,
@@ -221,6 +239,21 @@ void main() {
       );
       // 360/0 = infinity
       expect(s, 1.0);
+    });
+
+    test('rejects minScale greater than maxScale', () {
+      expect(
+        () => ScreenSizeAdapter.computeScale(
+          origin: const Size(360, 690),
+          config: ScreenSizeAdapterConfig(
+            designSize: const Size(360, 690),
+            minScale: 2.0,
+            maxScale: 1.0,
+          ),
+          isDesktop: false,
+        ),
+        throwsArgumentError,
+      );
     });
   });
 }
