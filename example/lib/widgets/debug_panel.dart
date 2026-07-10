@@ -85,10 +85,14 @@ class DebugPanel extends StatelessWidget {
     super.key,
     required this.designSize,
     required this.scaleAxis,
+    required this.minScale,
+    required this.maxScale,
   });
 
   final Size designSize;
   final ScaleAxis scaleAxis;
+  final double? minScale;
+  final double? maxScale;
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +118,10 @@ class DebugPanel extends StatelessWidget {
           InfoRow.dark(label: '当前 scale', value: scale.toStringAsFixed(3)),
           InfoRow.dark(label: '当前 axis', value: scaleAxis.name),
           InfoRow.dark(
+            label: 'scale 限制',
+            value: '${_bound(minScale)} – ${_bound(maxScale)}',
+          ),
+          InfoRow.dark(
             label: '方向',
             value: isLandscape ? '横屏 landscape' : '竖屏 portrait',
           ),
@@ -128,6 +136,8 @@ class DebugPanel extends StatelessWidget {
 
   static String _fmt(Size s) =>
       '${s.width.toStringAsFixed(1)} × ${s.height.toStringAsFixed(1)}';
+
+  static String _bound(double? value) => value?.toStringAsFixed(2) ?? '无限制';
 }
 
 class _PanelHeader extends StatelessWidget {

@@ -7,7 +7,8 @@ This example app demonstrates the package's production integration path:
 - switching `ScaleAxis` at runtime;
 - swapping portrait and landscape design sizes;
 - comparing adapter-on and adapter-off layout behavior;
-- inspecting the per-view registry used for multi-view apps.
+- inspecting the per-view registry used for host-created views;
+- applying/removing scale bounds and resetting the active view to native scale.
 
 ## Run
 
@@ -32,9 +33,10 @@ The widget test uses `ScreenSizeTestEnvironment`, because Flutter's
 
 ## Multi-view check
 
-The package tests cover per-view registry isolation with the real primary
-`FlutterView`. Flutter's test binding does not create a second engine-backed
-view, so fake view objects would not prove framework or engine behavior.
+The on-screen panel is a registry inspector, not a second-view demo. Package
+tests cover per-view registry behavior with the real primary `FlutterView`, but
+Flutter's test binding does not create a second engine-backed view. Fake view
+objects would not prove framework or engine behavior.
 
 For release validation, run the example on a desktop target or an Add-to-App
 host that creates a real secondary `FlutterView`, then confirm:

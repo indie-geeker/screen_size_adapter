@@ -5,8 +5,9 @@ import 'screen_size_widget_flutter_binding.dart';
 
 /// Wraps [child] with a [MediaQuery] that reflects the binding's per-view
 /// scale, so `MediaQuery.sizeOf(context)`, `paddingOf`, `viewInsetsOf`,
-/// `devicePixelRatioOf`, etc., are reported in **design units** rather than
-/// the underlying [FlutterView]'s native logical pixels.
+/// `devicePixelRatioOf`, gesture settings, and display-feature bounds are
+/// reported in **design units** rather than the underlying [FlutterView]'s
+/// native logical pixels.
 ///
 /// Why this exists: the binding only modifies `RenderView.configuration` via
 /// `createViewConfigurationFor` — that drives layout, but

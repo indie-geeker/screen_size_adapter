@@ -11,7 +11,8 @@ import 'section_card.dart';
 /// devicePixelRatio、当前 scale、registered designSize。
 ///
 /// 移动端通常只有一个 implicit view；桌面多窗 / `runWidget` + `View`
-/// 嵌入 / Add-to-App 会出现多条记录。这里如实显示——不伪造。
+/// 嵌入 / Add-to-App 会出现多条记录。这里如实显示，不创建二级 view，也不
+/// 把 registry 观测结果当作真实宿主验证。
 class MultiViewPanel extends StatefulWidget {
   const MultiViewPanel({super.key});
 
@@ -46,8 +47,8 @@ class _MultiViewPanelState extends State<MultiViewPanel>
     final views = PlatformDispatcher.instance.views.toList();
 
     return SectionCard(
-      title: '多视图（per-view registry）',
-      subtitle: '当前进程内的所有 FlutterView 及其在 binding 中的注册状态',
+      title: '多视图 registry（宿主验证）',
+      subtitle: '仅观测当前进程 view；真实二级 view 需由宿主创建并单独验证',
       accent: Colors.blueGrey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,6 +125,7 @@ class _MultiViewHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Text(
+      '此面板不创建二级 FlutterView，也不能替代真实宿主验证。'
       '在桌面多窗、runWidget + View、ViewAnchor、Add-to-App 等场景，'
       '为每个非主 view 调 binding.attachView(view: ..., config: ...) '
       '即可让它们各自独立适配；同时记得在 View 子树外手包 ScreenSizeAdapterScope，'

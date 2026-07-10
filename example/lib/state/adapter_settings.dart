@@ -12,17 +12,25 @@ class AdapterSettings extends ChangeNotifier {
     Size designSize = kPortraitDesign,
     ScaleAxis scaleAxis = ScaleAxis.width,
     bool autoSwapByOrientation = true,
+    double? minScale,
+    double? maxScale,
   }) : _designSize = designSize,
        _scaleAxis = scaleAxis,
-       _autoSwapByOrientation = autoSwapByOrientation;
+       _autoSwapByOrientation = autoSwapByOrientation,
+       _minScale = minScale,
+       _maxScale = maxScale;
 
   Size _designSize;
   ScaleAxis _scaleAxis;
   bool _autoSwapByOrientation;
+  double? _minScale;
+  double? _maxScale;
 
   Size get designSize => _designSize;
   ScaleAxis get scaleAxis => _scaleAxis;
   bool get autoSwapByOrientation => _autoSwapByOrientation;
+  double? get minScale => _minScale;
+  double? get maxScale => _maxScale;
 
   void setDesignSize(Size value) {
     if (value == _designSize) return;
@@ -39,6 +47,13 @@ class AdapterSettings extends ChangeNotifier {
   void setAutoSwap(bool value) {
     if (value == _autoSwapByOrientation) return;
     _autoSwapByOrientation = value;
+    notifyListeners();
+  }
+
+  void setScaleBounds({required double? minScale, required double? maxScale}) {
+    if (minScale == _minScale && maxScale == _maxScale) return;
+    _minScale = minScale;
+    _maxScale = maxScale;
     notifyListeners();
   }
 }

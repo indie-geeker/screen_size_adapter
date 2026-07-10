@@ -220,6 +220,38 @@ void main() {
       expect(binding.configForView(primary)?.designSize, expected);
     });
 
+    test('resetView clears scale bounds and restores native scale', () {
+      final primary = binding.platformDispatcher.views.first;
+      binding.attachView(
+        view: primary,
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(100, 100),
+          enableDesktopScaling: true,
+          minScale: 2,
+          maxScale: 3,
+        ),
+      );
+
+      binding.resetView(view: primary);
+
+      final logical = Size(
+        primary.physicalSize.width / primary.devicePixelRatio,
+        primary.physicalSize.height / primary.devicePixelRatio,
+      );
+      final resetConfig = binding.configForView(primary)!;
+      expect(resetConfig.designSize, logical);
+      expect(resetConfig.minScale, isNull);
+      expect(resetConfig.maxScale, isNull);
+      expect(
+        ScreenSizeAdapter.computeScale(
+          origin: logical,
+          config: resetConfig,
+          isDesktop: true,
+        ),
+        1,
+      );
+    });
+
     test('resetView is a no-op for unregistered view', () {
       final primary = binding.platformDispatcher.views.first;
       binding.detachView(primary);

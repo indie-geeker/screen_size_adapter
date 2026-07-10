@@ -32,9 +32,12 @@ class HomePage extends StatelessWidget {
                     DebugPanel(
                       designSize: settings.designSize,
                       scaleAxis: settings.scaleAxis,
+                      minScale: settings.minScale,
+                      maxScale: settings.maxScale,
                     ),
                     const SizedBox(height: 8),
                     ScaleAxisPicker(settings: settings),
+                    ScaleBoundsControls(settings: settings),
                     AdapterCompareDemo(designSize: settings.designSize),
                     OrientationDesignDemo(settings: settings),
                     DesignSizeButtons(settings: settings),

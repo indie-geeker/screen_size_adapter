@@ -1,3 +1,6 @@
+import 'dart:ui' as ui;
+
+import 'package:flutter/gestures.dart' show DeviceGestureSettings;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/src/internal/scale_media_query.dart';
@@ -48,6 +51,34 @@ void main() {
       final scaled = scaleMediaQueryData(baseData, 2.0);
       expect(scaled.systemGestureInsets.left, 8);
       expect(scaled.systemGestureInsets.right, 8);
+    });
+
+    test('gesture touch slop is divided by scale', () {
+      final data = baseData.copyWith(
+        gestureSettings: const DeviceGestureSettings(touchSlop: 18),
+      );
+
+      final scaled = scaleMediaQueryData(data, 2.0);
+
+      expect(scaled.gestureSettings.touchSlop, 9);
+    });
+
+    test('display feature bounds are divided by scale', () {
+      const feature = ui.DisplayFeature(
+        bounds: ui.Rect.fromLTRB(300, 0, 340, 1380),
+        type: ui.DisplayFeatureType.hinge,
+        state: ui.DisplayFeatureState.postureFlat,
+      );
+      final data = baseData.copyWith(displayFeatures: const [feature]);
+
+      final scaled = scaleMediaQueryData(data, 2.0);
+
+      expect(
+        scaled.displayFeatures.single.bounds,
+        const ui.Rect.fromLTRB(150, 0, 170, 690),
+      );
+      expect(scaled.displayFeatures.single.type, feature.type);
+      expect(scaled.displayFeatures.single.state, feature.state);
     });
 
     test('non-scaled fields are preserved (textScaler)', () {

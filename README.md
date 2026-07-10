@@ -4,7 +4,7 @@
 
 简体中文 | [English](README_EN.md)
 
-Flutter 屏幕适配方案，在 binding 层完成缩放工作。你的应用代码直接使用设计稿单位的纯数字；自定义 binding 会调整每个视图的 `devicePixelRatio`，让 Flutter 把视图当作设计稿尺寸来对待。原生支持多视图。
+Flutter 屏幕适配方案，在 binding 层完成缩放工作。你的应用代码直接使用设计稿单位的纯数字；自定义 binding 会调整每个视图的 `devicePixelRatio`，让 Flutter 把视图当作设计稿尺寸来对待。配置按 view 隔离，宿主创建的额外视图需要显式接入。
 
 ## 为什么要这样设计
 
@@ -74,6 +74,8 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 ## 多视图
 
 对于包含多个 `FlutterView` 的 Flutter 应用（桌面多窗口、通过 `View` widget 嵌入的视图、Add-to-App 等场景），需要为每个非主视图显式注册：
+
+本包管理宿主已经创建的 `FlutterView`，不会自行创建桌面窗口或二级 view。同一 engine 下的真实二级 view 行为必须在对应桌面/Add-to-App 宿主中按 [`tool/verification/desktop_multi_view.md`](tool/verification/desktop_multi_view.md) 验证；registry 单元测试不能替代该验证。
 
 ```dart
 final binding = ScreenSizeWidgetsFlutterBinding.instance;
@@ -175,14 +177,14 @@ if (origin.shortestSide >= 600) {
 // 修改当前视图的设计稿尺寸：
 ScreenSizeAdapter.setDesignSize(context, const Size(414, 896));
 
-// 重置为视图当前的逻辑尺寸：
+// 重置为视图当前的逻辑尺寸，并清空 minScale/maxScale，恢复 scale=1：
 ScreenSizeAdapter.reset(context);
 
 // 读取当前缩放系数（未启用缩放时返回 1.0）：
 final scale = ScreenSizeAdapter.scaleOf(context);
 ```
 
-`setDesignSize` 和 `reset` 通过 `View.of(context)` 解析当前激活的视图，因此能精确作用于调用方所在的 FlutterView——天然支持多视图正确性。
+`setDesignSize` 和 `reset` 通过 `View.of(context)` 解析当前激活的视图，因此能精确作用于调用方所在的 FlutterView。`reset` 会清空该视图的 `minScale` / `maxScale`，保证回到原生 `1.0` 比例。
 
 ## 集成限制
 

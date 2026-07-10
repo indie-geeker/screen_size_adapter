@@ -4,7 +4,7 @@
 
 [简体中文](README.md) | English
 
-Binding-level screen-size adaptation for Flutter. Your app code writes plain numbers in design units; the custom binding scales each view's `devicePixelRatio` so Flutter treats it as the design size. Multi-view aware.
+Binding-level screen-size adaptation for Flutter. Your app code writes plain numbers in design units; the custom binding scales each view's `devicePixelRatio` so Flutter treats it as the design size. Configuration is isolated per view, with explicit wiring for additional host-created views.
 
 ## Why this design
 
@@ -74,6 +74,8 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 ## Multi-view
 
 For Flutter apps with multiple `FlutterView`s (desktop multi-window, embedded views via `View` widgets, Add-to-App scenarios), register each non-primary view explicitly:
+
+This package manages `FlutterView`s created by the host; it does not create desktop windows or secondary views. Validate a real same-engine secondary view in the relevant desktop or Add-to-App host using [`tool/verification/desktop_multi_view.md`](tool/verification/desktop_multi_view.md). Registry unit tests are not a substitute for that host-level check.
 
 ```dart
 final binding = ScreenSizeWidgetsFlutterBinding.instance;
@@ -174,14 +176,14 @@ if (origin.shortestSide >= 600) {
 // Change the design size for the current view:
 ScreenSizeAdapter.setDesignSize(context, const Size(414, 896));
 
-// Reset to the view's current logical size:
+// Reset to the view's current logical size, clear bounds, and restore scale=1:
 ScreenSizeAdapter.reset(context);
 
 // Read the current scale (returns 1.0 when no scaling is active):
 final scale = ScreenSizeAdapter.scaleOf(context);
 ```
 
-`setDesignSize` and `reset` resolve the active view via `View.of(context)`, so they correctly target the FlutterView that owns the calling widget — multi-view-correct by construction.
+`setDesignSize` and `reset` resolve the active view via `View.of(context)`, so they target the FlutterView that owns the calling widget. `reset` clears that view's `minScale` / `maxScale` and guarantees native `1.0` scaling.
 
 ## Integration limits
 

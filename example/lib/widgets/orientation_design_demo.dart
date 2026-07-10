@@ -58,6 +58,7 @@ class _AutoSwapBody extends StatelessWidget {
         final target = isLandscape ? kLandscapeDesign : kPortraitDesign;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!ctx.mounted) return;
+          if (!settings.autoSwapByOrientation) return;
           if (settings.designSize == target) return;
           ScreenSizeAdapter.setDesignSize(ctx, target);
           settings.setDesignSize(target);

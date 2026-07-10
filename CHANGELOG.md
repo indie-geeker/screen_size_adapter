@@ -14,9 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `ScreenSizeAdapterConfig` is the complete, per-view configuration object for
   design size, scale axis, desktop behavior, and scale bounds.
-- Binding-level multi-view support: `attachView`, `updateView`, `detachView`,
-  `resetView`, `scaleForView`, and `configForView` operate on `FlutterView`
-  instances.
+- Per-view registry APIs for host-created views: `attachView`, `updateView`,
+  `detachView`, `resetView`, `scaleForView`, and `configForView` operate on
+  `FlutterView` instances.
 - `ScaleAxis` (`width`, `height`, `shorter`, `longer`) selects the scale
   calculation strategy.
 - `ScreenSizeAdapterScope` supplies corrected `MediaQuery` data for explicit
@@ -57,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MediaQuery` now consistently reports design-unit size, device pixel ratio,
   padding, view padding, view insets, and system gesture insets.
 - Pointer packets use the registered view's effective device pixel ratio.
+- Gesture touch slop and display-feature bounds use the same design-unit
+  coordinate system as pointer events and layout.
+- `ScreenSizeAdapter.reset` clears scale bounds so it always restores native
+  `1.0` scaling.
 - Invalid design sizes and scale bounds, including non-finite values and a
   `minScale` greater than `maxScale`, fail fast before registry updates.
 - README initialization order and API documentation now match the runtime

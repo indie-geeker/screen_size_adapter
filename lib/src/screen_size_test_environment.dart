@@ -14,8 +14,9 @@ import 'screen_size_adapter_controller.dart';
 ///
 /// Scope mirrors `ScreenSizeAdapterScope`'s production behavior: `size`,
 /// `devicePixelRatio`, `padding`, `viewPadding`, `viewInsets`, and
-/// `systemGestureInsets` all reflect the per-view scale, so SafeArea math
-/// and keyboard-inset logic behave the same in tests as in production.
+/// `systemGestureInsets`, gesture touch slop, and display-feature bounds all
+/// reflect the per-view scale, so SafeArea, gesture, foldable-layout, and
+/// keyboard-inset logic behave the same in tests as in production.
 /// `textScaler` and other accessibility-related fields are passed through
 /// unchanged.
 class ScreenSizeTestEnvironment extends StatelessWidget {

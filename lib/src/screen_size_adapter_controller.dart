@@ -63,7 +63,7 @@ class ScreenSizeAdapter {
   }
 
   /// Reset the [FlutterView] that owns [context] to its current logical
-  /// size — clears any in-app design-size override.
+  /// size and clear its scale bounds, restoring native `1.0` scaling.
   ///
   /// Same binding requirements as [setDesignSize].
   static void reset(BuildContext context) {

@@ -131,10 +131,11 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   }
 
   /// Reset [view]'s `designSize` to the view's current logical size
-  /// (physicalSize / devicePixelRatio).
+  /// (physicalSize / devicePixelRatio) and clear both scale bounds, restoring
+  /// an effective scale of `1.0`.
   ///
   /// Does NOT revert to the value passed to [attachView] — the original
-  /// registration is overwritten. To restore a known config, call
+  /// registration is overwritten. To restore a known bounded config, call
   /// [attachView] with the desired values.
   ///
   /// No-op if [view] is not registered.
@@ -145,7 +146,11 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       view.physicalSize.width / view.devicePixelRatio,
       view.physicalSize.height / view.devicePixelRatio,
     );
-    sizing.config = sizing.config.copyWith(designSize: logical);
+    sizing.config = sizing.config.copyWith(
+      designSize: logical,
+      clearMinScale: true,
+      clearMaxScale: true,
+    );
     handleMetricsChanged();
   }
 
