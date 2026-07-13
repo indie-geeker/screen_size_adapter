@@ -39,10 +39,14 @@ import 'screen_size_widget_flutter_binding.dart';
 ///   `AutomatedTestWidgetsFlutterBinding` — use [ScreenSizeTestEnvironment]
 ///   in that case);
 /// - no enclosing [View] resolves via `View.maybeOf(context)`;
-/// - the resolved view has no registration in the binding's per-view
-///   registry, or its computed scale is `1.0`;
 /// - no [MediaQuery] ancestor exists (the scope can't scale what isn't
 ///   there — typically a wiring error).
+///
+/// Under the production binding, a resolved view and parent [MediaQuery]
+/// always keep the same wrapper topology. Unregistered views and an effective
+/// scale of `1.0` receive the parent data unchanged; retaining the wrapper
+/// prevents application state from being recreated when runtime updates cross
+/// the identity-scale boundary.
 class ScreenSizeAdapterScope extends StatefulWidget {
   /// Subtree to which the scaled [MediaQuery] applies.
   final Widget child;
@@ -89,8 +93,6 @@ class _ScreenSizeAdapterScopeState extends State<ScreenSizeAdapterScope>
     if (view == null) return widget.child;
 
     final scale = binding.scaleForView(view) ?? 1.0;
-    if (scale == 1.0) return widget.child;
-
     return MediaQuery(
       data: scaleMediaQueryData(parent, scale),
       child: widget.child,

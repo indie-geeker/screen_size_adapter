@@ -186,6 +186,62 @@ void main() {
     expect(captured!.size, unscaledSize);
     expect(captured!.devicePixelRatio, primary.devicePixelRatio);
   });
+
+  test('transitioning to scale 1 preserves the child state', () async {
+    final primary = binding.platformDispatcher.views.first;
+    final originSize = Size(
+      primary.physicalSize.width / primary.devicePixelRatio,
+      primary.physicalSize.height / primary.devicePixelRatio,
+    );
+    binding.attachView(
+      view: primary,
+      config: ScreenSizeAdapterConfig(
+        designSize: originSize / 2,
+        enableDesktopScaling: true,
+      ),
+    );
+    final creations = _CreationCounter();
+
+    binding.attachRootWidget(
+      View(
+        view: primary,
+        child: ScreenSizeAdapterScope(child: _StateProbe(creations: creations)),
+      ),
+    );
+    binding.scheduleWarmUpFrame();
+    await Future<void>.delayed(Duration.zero);
+    expect(creations.value, 1);
+
+    binding.resetView(view: primary);
+    binding.scheduleWarmUpFrame();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(creations.value, 1);
+  });
+}
+
+class _CreationCounter {
+  int value = 0;
+}
+
+class _StateProbe extends StatefulWidget {
+  const _StateProbe({required this.creations});
+
+  final _CreationCounter creations;
+
+  @override
+  State<_StateProbe> createState() => _StateProbeState();
+}
+
+class _StateProbeState extends State<_StateProbe> {
+  @override
+  void initState() {
+    super.initState();
+    widget.creations.value++;
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 Future<BoxConstraints> captureRootConstraints(
