@@ -39,7 +39,11 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   static ScreenSizeWidgetsFlutterBinding ensureInitialized(
     ScreenSizeAdapterConfig config,
   ) {
-    _validateConfig(config);
+    validateConfigValues(
+      designSize: config.designSize,
+      minScale: config.minScale,
+      maxScale: config.maxScale,
+    );
     final existing = _bindingOrNull();
 
     if (existing == null) {
@@ -106,7 +110,11 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     required FlutterView view,
     required ScreenSizeAdapterConfig config,
   }) {
-    _validateConfig(config);
+    validateConfigValues(
+      designSize: config.designSize,
+      minScale: config.minScale,
+      maxScale: config.maxScale,
+    );
     _views[view.viewId] = ViewSizing(config);
     handleMetricsChanged();
   }
@@ -129,7 +137,11 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
         'Call attachView first.',
       );
     }
-    _validateConfig(config);
+    validateConfigValues(
+      designSize: config.designSize,
+      minScale: config.minScale,
+      maxScale: config.maxScale,
+    );
     sizing.config = config;
     handleMetricsChanged();
   }
@@ -188,40 +200,6 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   void _pruneStaleViews() {
     final liveIds = platformDispatcher.views.map((v) => v.viewId).toSet();
     _views.removeWhere((id, _) => !liveIds.contains(id));
-  }
-
-  static void _validateConfig(ScreenSizeAdapterConfig config) {
-    final size = config.designSize;
-    if (!size.width.isFinite ||
-        !size.height.isFinite ||
-        size.width <= 0 ||
-        size.height <= 0) {
-      throw ArgumentError.value(
-        size,
-        'designSize',
-        'must have finite positive width and height',
-      );
-    }
-
-    final minScale = config.minScale;
-    if (minScale != null && (!minScale.isFinite || minScale <= 0)) {
-      throw ArgumentError.value(
-        minScale,
-        'minScale',
-        'must be finite and greater than zero',
-      );
-    }
-
-    final maxScale = config.maxScale;
-    if (maxScale != null && (!maxScale.isFinite || maxScale <= 0)) {
-      throw ArgumentError.value(
-        maxScale,
-        'maxScale',
-        'must be finite and greater than zero',
-      );
-    }
-
-    validateScaleBounds(minScale: minScale, maxScale: maxScale);
   }
 
   // ── Overrides ───────────────────────────────────────────────────────

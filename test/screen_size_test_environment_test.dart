@@ -113,4 +113,35 @@ void main() {
     expect(captured!.viewInsets.bottom, 160);
     expect(captured!.systemGestureInsets.left, 8);
   });
+
+  testWidgets('rejects invalid design size during widget build', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ScreenSizeTestEnvironment(
+        config: ScreenSizeAdapterConfig(designSize: Size.zero),
+        child: SizedBox.shrink(),
+      ),
+    );
+
+    expect(tester.takeException(), isArgumentError);
+  });
+
+  testWidgets('validates config before desktop scaling short-circuit', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ScreenSizeTestEnvironment(
+        config: ScreenSizeAdapterConfig(
+          designSize: Size(360, 690),
+          enableDesktopScaling: false,
+          minScale: -1,
+        ),
+        isDesktop: true,
+        child: SizedBox.shrink(),
+      ),
+    );
+
+    expect(tester.takeException(), isArgumentError);
+  });
 }

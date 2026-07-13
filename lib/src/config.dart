@@ -70,12 +70,17 @@ class ScreenSizeAdapterConfig {
         'cannot be provided when clearMinScale is true',
       );
     }
+    final nextDesignSize = designSize ?? this.designSize;
     final nextMaxScale = clearMaxScale ? null : maxScale ?? this.maxScale;
     final nextMinScale = clearMinScale ? null : minScale ?? this.minScale;
-    validateScaleBounds(minScale: nextMinScale, maxScale: nextMaxScale);
+    validateConfigValues(
+      designSize: nextDesignSize,
+      minScale: nextMinScale,
+      maxScale: nextMaxScale,
+    );
 
     return ScreenSizeAdapterConfig(
-      designSize: designSize ?? this.designSize,
+      designSize: nextDesignSize,
       scaleAxis: scaleAxis ?? this.scaleAxis,
       enableDesktopScaling: enableDesktopScaling ?? this.enableDesktopScaling,
       maxScale: nextMaxScale,

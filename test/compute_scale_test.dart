@@ -97,6 +97,42 @@ void main() {
       expect(() => c1.copyWith(maxScale: 1.0), throwsArgumentError);
     });
 
+    final invalidDesignSizes = <({String label, Size value})>[
+      (label: 'zero width', value: const Size(0, 690)),
+      (label: 'negative width', value: const Size(-1, 690)),
+      (label: 'NaN width', value: const Size(double.nan, 690)),
+      (label: 'infinite width', value: const Size(double.infinity, 690)),
+      (label: 'zero height', value: const Size(360, 0)),
+      (label: 'negative height', value: const Size(360, -1)),
+      (label: 'NaN height', value: const Size(360, double.nan)),
+      (label: 'infinite height', value: const Size(360, double.infinity)),
+    ];
+
+    for (final invalid in invalidDesignSizes) {
+      test('copyWith rejects ${invalid.label}', () {
+        const config = ScreenSizeAdapterConfig(designSize: Size(360, 690));
+
+        expect(
+          () => config.copyWith(designSize: invalid.value),
+          throwsArgumentError,
+        );
+      });
+    }
+
+    test('copyWith rejects inherited invalid bounds', () {
+      const invalidMin = ScreenSizeAdapterConfig(
+        designSize: Size(360, 690),
+        minScale: -1,
+      );
+      const invalidMax = ScreenSizeAdapterConfig(
+        designSize: Size(360, 690),
+        maxScale: double.infinity,
+      );
+
+      expect(() => invalidMin.copyWith(), throwsArgumentError);
+      expect(() => invalidMax.copyWith(), throwsArgumentError);
+    });
+
     test('ScaleAxis enum has 4 values', () {
       expect(ScaleAxis.values, [
         ScaleAxis.width,
@@ -111,6 +147,81 @@ void main() {
     const portraitOrigin = Size(720, 1280);
     const landscapeOrigin = Size(1280, 720);
     const design = Size(360, 690);
+
+    final invalidDesignSizes = <({String label, Size value})>[
+      (label: 'zero width', value: const Size(0, 690)),
+      (label: 'negative width', value: const Size(-1, 690)),
+      (label: 'NaN width', value: const Size(double.nan, 690)),
+      (label: 'infinite width', value: const Size(double.infinity, 690)),
+      (label: 'zero height', value: const Size(360, 0)),
+      (label: 'negative height', value: const Size(360, -1)),
+      (label: 'NaN height', value: const Size(360, double.nan)),
+      (label: 'infinite height', value: const Size(360, double.infinity)),
+    ];
+
+    for (final invalid in invalidDesignSizes) {
+      test('rejects ${invalid.label} design size', () {
+        expect(
+          () => ScreenSizeAdapter.computeScale(
+            origin: portraitOrigin,
+            config: ScreenSizeAdapterConfig(designSize: invalid.value),
+            isDesktop: false,
+          ),
+          throwsArgumentError,
+        );
+      });
+    }
+
+    final invalidBounds = <({String label, double value})>[
+      (label: 'zero', value: 0),
+      (label: 'negative', value: -1),
+      (label: 'NaN', value: double.nan),
+      (label: 'infinite', value: double.infinity),
+    ];
+
+    for (final invalid in invalidBounds) {
+      test('rejects ${invalid.label} minScale', () {
+        expect(
+          () => ScreenSizeAdapter.computeScale(
+            origin: portraitOrigin,
+            config: ScreenSizeAdapterConfig(
+              designSize: design,
+              minScale: invalid.value,
+            ),
+            isDesktop: false,
+          ),
+          throwsArgumentError,
+        );
+      });
+
+      test('rejects ${invalid.label} maxScale', () {
+        expect(
+          () => ScreenSizeAdapter.computeScale(
+            origin: portraitOrigin,
+            config: ScreenSizeAdapterConfig(
+              designSize: design,
+              maxScale: invalid.value,
+            ),
+            isDesktop: false,
+          ),
+          throwsArgumentError,
+        );
+      });
+    }
+
+    test('rejects invalid config before desktop scaling short-circuit', () {
+      expect(
+        () => ScreenSizeAdapter.computeScale(
+          origin: const Size(1920, 1080),
+          config: const ScreenSizeAdapterConfig(
+            designSize: Size.zero,
+            enableDesktopScaling: false,
+          ),
+          isDesktop: true,
+        ),
+        throwsArgumentError,
+      );
+    });
 
     test('width axis: scale = origin.w / design.w', () {
       final s = ScreenSizeAdapter.computeScale(
@@ -223,21 +334,19 @@ void main() {
 
     test('NaN raw scale falls back to 1.0', () {
       final s = ScreenSizeAdapter.computeScale(
-        origin: const Size(0, 0),
-        config: const ScreenSizeAdapterConfig(designSize: Size(0, 0)),
+        origin: const Size(double.nan, 690),
+        config: const ScreenSizeAdapterConfig(designSize: design),
         isDesktop: false,
       );
-      // 0/0 = NaN
       expect(s, 1.0);
     });
 
     test('infinite raw scale falls back to 1.0', () {
       final s = ScreenSizeAdapter.computeScale(
-        origin: const Size(360, 690),
-        config: const ScreenSizeAdapterConfig(designSize: Size(0, 0)),
+        origin: const Size(double.infinity, 690),
+        config: const ScreenSizeAdapterConfig(designSize: design),
         isDesktop: false,
       );
-      // 360/0 = infinity
       expect(s, 1.0);
     });
 

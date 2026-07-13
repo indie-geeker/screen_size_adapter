@@ -163,6 +163,36 @@ void main() {
       );
     });
 
+    test('rejected attach and update keep the previous config', () {
+      final primary = binding.platformDispatcher.views.first;
+      const original = ScreenSizeAdapterConfig(
+        designSize: Size(414, 896),
+        scaleAxis: ScaleAxis.height,
+      );
+      binding.attachView(view: primary, config: original);
+
+      expect(
+        () => binding.attachView(
+          view: primary,
+          config: const ScreenSizeAdapterConfig(designSize: Size.zero),
+        ),
+        throwsArgumentError,
+      );
+      expect(binding.configForView(primary), same(original));
+
+      expect(
+        () => binding.updateView(
+          view: primary,
+          config: const ScreenSizeAdapterConfig(
+            designSize: Size(360, 690),
+            maxScale: -1,
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(binding.configForView(primary), same(original));
+    });
+
     test('updateView throws if view not registered', () {
       // Build a stand-in: detach to make the primary unregistered, then update.
       final primary = binding.platformDispatcher.views.first;

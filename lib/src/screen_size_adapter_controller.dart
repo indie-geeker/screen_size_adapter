@@ -18,7 +18,11 @@ class ScreenSizeAdapter {
     required ScreenSizeAdapterConfig config,
     required bool isDesktop,
   }) {
-    validateScaleBounds(minScale: config.minScale, maxScale: config.maxScale);
+    validateConfigValues(
+      designSize: config.designSize,
+      minScale: config.minScale,
+      maxScale: config.maxScale,
+    );
 
     final shouldApply = !isDesktop || config.enableDesktopScaling;
     if (!shouldApply) return 1.0;
