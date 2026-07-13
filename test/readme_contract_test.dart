@@ -116,5 +116,25 @@ void main() {
         isNot(contains('always\n  /// reports the design size')),
       );
     });
+
+    test('CI gates both SDK lanes and all checked-in example runners', () {
+      final workflow = File('.github/workflows/ci.yml').readAsStringSync();
+
+      expect(workflow, contains("flutter-version: '3.29.2'"));
+      expect(workflow, contains('flutter-version: latest-stable'));
+      expect(
+        workflow,
+        contains('dart format --output=none --set-exit-if-changed .'),
+      );
+      expect(workflow, contains('dart run tool/verify_readme_snippets.dart'));
+      expect(workflow, contains('flutter build apk --debug'));
+      expect(workflow, contains('runs-on: macos-latest'));
+      expect(workflow, contains('flutter build ios --simulator'));
+      expect(
+        workflow,
+        contains('git diff --exit-code -- example/ios example/.metadata'),
+      );
+      expect(workflow, contains('dart run tool/verify_example_startup.dart'));
+    });
   });
 }

@@ -42,7 +42,7 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting
-        run: dart format --set-exit-if-changed .
+        run: dart format --output=none --set-exit-if-changed .
 
       - name: Analyze (package)
         run: flutter analyze
@@ -65,6 +65,11 @@ jobs:
         working-directory: example
         run: flutter test
 
+      - name: Build Android example
+        if: matrix.release-gates == true
+        working-directory: example
+        run: flutter build apk --debug
+
       - name: Check API docs
         if: matrix.release-gates == true
         run: dart doc --dry-run
@@ -72,3 +77,34 @@ jobs:
       - name: Validate pub package
         if: matrix.release-gates == true
         run: flutter pub publish --dry-run
+
+  macos-runtime:
+    name: iOS migration and packaged macOS startup
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup latest stable Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies (package)
+        run: flutter pub get
+
+      - name: Install dependencies (example)
+        working-directory: example
+        run: flutter pub get
+
+      - name: Build iOS simulator example
+        working-directory: example
+        run: flutter build ios --simulator
+
+      - name: Verify iOS runner migration is idempotent
+        run: git diff --exit-code -- example/ios example/.metadata
+
+      - name: Verify packaged macOS profile and release startup
+        run: dart run tool/verify_example_startup.dart
