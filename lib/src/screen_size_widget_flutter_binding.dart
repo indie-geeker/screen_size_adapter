@@ -22,6 +22,8 @@ import 'screen_size_adapter_scope.dart';
 ///
 /// The implicit-view `runApp` path is stable. Same-engine secondary-view
 /// registration is experimental and must be wired and verified by the host.
+/// Follow `tool/verification/desktop_multi_view.md` before making support
+/// claims for that path.
 class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   /// Per-view sizing state keyed by FlutterView.viewId.
   final Map<int, ViewSizing> _views = {};

@@ -136,5 +136,33 @@ void main() {
       );
       expect(workflow, contains('dart run tool/verify_example_startup.dart'));
     });
+
+    test('secondary-view public surfaces point to the host checklist', () {
+      const checklist = 'tool/verification/desktop_multi_view.md';
+      for (final filename in [
+        'README.md',
+        'README_EN.md',
+        'CHANGELOG.md',
+        'lib/src/screen_size_adapter_controller.dart',
+        'lib/src/screen_size_adapter_scope.dart',
+        'lib/src/screen_size_widget_flutter_binding.dart',
+        'example/README.md',
+        'example/lib/widgets/multi_view_panel.dart',
+      ]) {
+        final surface = File(filename).readAsStringSync();
+        final normalized = surface.toLowerCase();
+
+        expect(
+          normalized.contains('experimental') || surface.contains('实验性'),
+          isTrue,
+          reason: '$filename must mark secondary-view support experimental',
+        );
+        expect(
+          surface,
+          contains(checklist),
+          reason: '$filename must point to $checklist',
+        );
+      }
+    });
   });
 }

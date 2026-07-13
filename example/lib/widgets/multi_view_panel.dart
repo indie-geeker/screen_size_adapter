@@ -129,7 +129,8 @@ class _MultiViewHint extends StatelessWidget {
       '在桌面多窗、runWidget + View、ViewAnchor、Add-to-App 等场景，'
       '为每个非主 view 调 binding.attachView(view: ..., config: ...) '
       '可实验性地为它们配置独立适配；同时记得在 View 子树外手包 ScreenSizeAdapterScope，'
-      '保证 MediaQuery 也按对应的 scale 报告尺寸。',
+      '保证 MediaQuery 也按对应的 scale 报告尺寸。完整宿主验证清单：'
+      'tool/verification/desktop_multi_view.md。',
       style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5),
     );
   }

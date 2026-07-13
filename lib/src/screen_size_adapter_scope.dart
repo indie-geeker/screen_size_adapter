@@ -23,6 +23,8 @@ import 'screen_size_widget_flutter_binding.dart';
 /// apps started via `runApp` need no manual wrapping. For multi-view apps
 /// that mount additional [View] widgets via `runWidget` or nested
 /// `ViewAnchor`s, wrap each `View`'s child manually:
+/// This same-engine secondary-view path is experimental; validate it with
+/// `tool/verification/desktop_multi_view.md` in the real host.
 ///
 /// ```dart
 /// View(

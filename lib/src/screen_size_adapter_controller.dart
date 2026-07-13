@@ -9,7 +9,8 @@ import 'screen_size_widget_flutter_binding.dart';
 /// Resolves the active view from [BuildContext] using [View.of], so each
 /// call operates on the FlutterView that owns the calling widget. The standard
 /// implicit-view `runApp` path is stable; same-engine secondary-view wiring is
-/// experimental and requires explicit host integration.
+/// experimental and requires explicit host integration plus the checks in
+/// `tool/verification/desktop_multi_view.md`.
 class ScreenSizeAdapter {
   /// Pure: compute the scale factor given an origin size, config, and platform flag.
   /// Returns 1.0 when scaling should not apply (desktop without enableDesktopScaling),

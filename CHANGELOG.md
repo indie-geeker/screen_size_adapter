@@ -58,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimum supported Flutter is now `3.29.2`.
 - The stable support boundary is the implicit-view `runApp` path. Same-engine
   secondary-view registration and scoping remain experimental and require
-  host-level verification.
+  host-level verification with `tool/verification/desktop_multi_view.md`.
 - Automatic registration now targets only `PlatformDispatcher.implicitView`.
   When no implicit view exists, every host-created view requires explicit
   `attachView` registration.
