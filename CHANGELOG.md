@@ -76,6 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `1.0` scaling.
 - Runtime updates that cross `scale == 1.0` preserve the wrapped application
   subtree instead of recreating its state.
+- The example's automatic design-size swap now follows viewport orientation
+  even when its controls are inside a vertical scroller.
 - Invalid design sizes and scale bounds, including non-finite values and a
   `minScale` greater than `maxScale`, fail fast before registry updates.
 - README initialization order, coordinate wording, and strictly verified Dart

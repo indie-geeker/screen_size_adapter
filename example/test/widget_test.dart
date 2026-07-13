@@ -1,4 +1,6 @@
 import 'package:example/main.dart';
+import 'package:example/state/adapter_settings.dart';
+import 'package:example/widgets/orientation_design_demo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
@@ -44,5 +46,34 @@ void main() {
       find.widgetWithText(SwitchListTile, '随方向切换 designSize'),
     );
     expect(orientationToggle.value, isFalse);
+  });
+
+  testWidgets('orientation auto swap follows MediaQuery inside a scroller', (
+    tester,
+  ) async {
+    final settings = AdapterSettings();
+    addTearDown(settings.dispose);
+
+    await tester.pumpWidget(
+      ScreenSizeTestEnvironment(
+        config: const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
+        simulatedDeviceSize: const Size(1280, 720),
+        child: MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: OrientationDesignDemo(settings: settings),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.textContaining('当前 MediaQuery 报告：landscape → 目标设计稿 640×360'),
+      findsOneWidget,
+    );
+    expect(settings.designSize, kLandscapeDesign);
+    expect(tester.takeException(), isNull);
   });
 }

@@ -5,9 +5,11 @@ import '../state/adapter_settings.dart';
 import 'section_card.dart';
 
 /// 横竖屏自动切换设计稿的 demo：开启 `autoSwapByOrientation` 后，
-/// 用 [OrientationBuilder] 监听方向，每次方向变化在
+/// 用 [MediaQuery.orientationOf] 读取视口方向，每次方向变化在
 /// `addPostFrameCallback` 里调 [ScreenSizeAdapter.setDesignSize]。
-/// 不在 build 中同步调用，避免 build-during-build 异常。
+/// 不能依赖纵向滚动容器里的 [OrientationBuilder]，因为它拿到的高度
+/// 约束是无限的。配置更新不在 build 中同步调用，避免
+/// build-during-build 异常。
 class OrientationDesignDemo extends StatelessWidget {
   const OrientationDesignDemo({super.key, required this.settings});
 
@@ -52,27 +54,26 @@ class _AutoSwapBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (ctx, orientation) {
-        final isLandscape = orientation == Orientation.landscape;
-        final target = isLandscape ? kLandscapeDesign : kPortraitDesign;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!ctx.mounted) return;
-          if (!settings.autoSwapByOrientation) return;
-          if (settings.designSize == target) return;
-          ScreenSizeAdapter.setDesignSize(ctx, target);
-          settings.setDesignSize(target);
-        });
-        return Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            '当前 OrientationBuilder 报告：'
-            '${isLandscape ? "landscape" : "portrait"} → 目标设计稿 '
-            '${target.width.toInt()}×${target.height.toInt()}',
-            style: const TextStyle(fontSize: 12, color: Colors.black87),
-          ),
-        );
-      },
+    final orientation = MediaQuery.orientationOf(context);
+    final isLandscape = orientation == Orientation.landscape;
+    final target = isLandscape ? kLandscapeDesign : kPortraitDesign;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      if (!settings.autoSwapByOrientation) return;
+      if (settings.designSize == target) return;
+      if (WidgetsBinding.instance is ScreenSizeWidgetsFlutterBinding) {
+        ScreenSizeAdapter.setDesignSize(context, target);
+      }
+      settings.setDesignSize(target);
+    });
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        '当前 MediaQuery 报告：'
+        '${isLandscape ? "landscape" : "portrait"} → 目标设计稿 '
+        '${target.width.toInt()}×${target.height.toInt()}',
+        style: const TextStyle(fontSize: 12, color: Colors.black87),
+      ),
     );
   }
 }
