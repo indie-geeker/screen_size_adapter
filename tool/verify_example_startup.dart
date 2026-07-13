@@ -40,6 +40,23 @@ List<String> _parseModes(List<String> arguments) {
 }
 
 Future<void> _verifyMode(String mode) async {
+  stdout.writeln('Cleaning cached example build before macOS $mode smoke...');
+  final clean = await Process.start(
+    'flutter',
+    const ['clean'],
+    workingDirectory: 'example',
+    mode: ProcessStartMode.inheritStdio,
+  );
+  final cleanExitCode = await clean.exitCode;
+  if (cleanExitCode != 0) {
+    throw ProcessException(
+      'flutter',
+      const ['clean'],
+      'Example clean failed before macOS $mode startup smoke',
+      cleanExitCode,
+    );
+  }
+
   stdout.writeln('Building macOS $mode startup smoke...');
   final build = await Process.start(
     'flutter',
