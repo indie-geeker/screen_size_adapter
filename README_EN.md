@@ -227,7 +227,7 @@ test('scale on a 2x device', () {
 
 ## Requirements
 
-- Flutter `>=3.29.0`
+- Flutter `>=3.29.2`
 - Dart `^3.7.2`
 
 ## Security

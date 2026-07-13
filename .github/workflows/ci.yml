@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - flutter-version: '3.29.0'
+          - flutter-version: '3.29.2'
             release-gates: false
           - flutter-version: latest-stable
             release-gates: true

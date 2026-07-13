@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2026-07-09
+## [0.3.0] - Unreleased
 
 > **BREAKING:** This is the single public upgrade from pub.dev `0.2.0` to the
 > config-first, binding-level API. All unreleased work since `0.2.0` is
@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with `clearMinScale` and `clearMaxScale`.
 - `ScaleAxis.width` no longer swaps axes implicitly in landscape; choose
   `ScaleAxis.shorter` when aspect-safe scaling is required.
-- Minimum supported Flutter is now `3.29.0`.
+- Minimum supported Flutter is now `3.29.2`.
 
 ### Fixed
 - `MediaQuery` now consistently reports design-unit size, device pixel ratio,
