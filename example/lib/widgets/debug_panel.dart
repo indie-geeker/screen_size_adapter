@@ -3,80 +3,60 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 import 'info_row.dart';
 
-/// 校验当前 [ScaleAxis] 对应的契约是否成立。
+/// 校验 adapter 的核心坐标契约：`MediaQuery.size * scale ≈ originSize`。
 ///
-/// 各 axis 含义：
-/// - `width`：MQ.width ≈ design.width
-/// - `height`：MQ.height ≈ design.height
-/// - `shorter`：design 完整内嵌于 MQ（mq.w ≥ design.w 且 mq.h ≥ design.h，
-///   驱动轴上有一边精确等于 design）
-/// - `longer`：驱动轴上至少有一边精确等于 design（非驱动轴 mq < design 是
-///   预期，不算违约）
-///
-/// ε = 0.5px。仅在 minScale/maxScale 钳位起作用时才会判负。
+/// [ScaleAxis] 只决定未钳位时哪一轴与设计稿对齐，不是坐标契约本身。
+/// 当 [minScale] 或 [maxScale] 生效时，两轴都可以不与设计稿对齐。
 @visibleForTesting
-({bool matched, String message}) checkContract({
+({bool matched, String message, String fitMessage}) checkContract({
   required ScaleAxis axis,
   required Size mq,
+  required Size origin,
+  required double scale,
   required Size design,
+  required double? minScale,
+  required double? maxScale,
 }) {
   const eps = 0.5;
-  switch (axis) {
-    case ScaleAxis.width:
-      final diff = (mq.width - design.width).abs();
-      final ok = diff < eps;
-      return (
-        matched: ok,
-        message:
-            ok
-                ? '✅ MQ.width ≈ design.width — width 轴契约成立'
-                : '⚠️ width 轴：MQ.width=${mq.width.toStringAsFixed(1)} '
-                    '与 design.width=${design.width.toStringAsFixed(1)} '
-                    '差 ${diff.toStringAsFixed(1)}px（检查 minScale/maxScale）',
-      );
-    case ScaleAxis.height:
-      final diff = (mq.height - design.height).abs();
-      final ok = diff < eps;
-      return (
-        matched: ok,
-        message:
-            ok
-                ? '✅ MQ.height ≈ design.height — height 轴契约成立'
-                : '⚠️ height 轴：MQ.height=${mq.height.toStringAsFixed(1)} '
-                    '与 design.height=${design.height.toStringAsFixed(1)} '
-                    '差 ${diff.toStringAsFixed(1)}px（检查 minScale/maxScale）',
-      );
-    case ScaleAxis.shorter:
-      final ok =
-          mq.width >= design.width - eps && mq.height >= design.height - eps;
-      return (
-        matched: ok,
-        message:
-            ok
-                ? '✅ design 完整内嵌于 MQ — shorter 轴契约成立（不裁切）'
-                : '⚠️ shorter 轴：design '
-                    '${design.width.toStringAsFixed(0)}×${design.height.toStringAsFixed(0)} '
-                    '部分超出 MQ '
-                    '${mq.width.toStringAsFixed(0)}×${mq.height.toStringAsFixed(0)}'
-                    '（检查 minScale/maxScale）',
-      );
-    case ScaleAxis.longer:
-      final wAligned = (mq.width - design.width).abs() < eps;
-      final hAligned = (mq.height - design.height).abs() < eps;
-      final ok = wAligned || hAligned;
-      return (
-        matched: ok,
-        message:
-            ok
-                ? '✅ design 至少有一边精确等于 MQ — longer 轴契约成立（贴边）'
-                : '⚠️ longer 轴：MQ '
-                    '${mq.width.toStringAsFixed(0)}×${mq.height.toStringAsFixed(0)} '
-                    '与 design '
-                    '${design.width.toStringAsFixed(0)}×${design.height.toStringAsFixed(0)} '
-                    '无对齐边（检查 minScale/maxScale）',
-      );
-  }
+  final reconstructed = Size(mq.width * scale, mq.height * scale);
+  final delta = Size(
+    (reconstructed.width - origin.width).abs(),
+    (reconstructed.height - origin.height).abs(),
+  );
+  final matched = delta.width < eps && delta.height < eps;
+  final message =
+      matched
+          ? '✅ MQ × scale ≈ origin — 核心坐标契约成立'
+          : '⚠️ MQ × scale = ${_fmt(reconstructed)}；'
+              'origin = ${_fmt(origin)}；偏差 ${_fmt(delta)}';
+
+  final widthScale = origin.width / design.width;
+  final heightScale = origin.height / design.height;
+  final rawScale = switch (axis) {
+    ScaleAxis.width => widthScale,
+    ScaleAxis.height => heightScale,
+    ScaleAxis.shorter => widthScale < heightScale ? widthScale : heightScale,
+    ScaleAxis.longer => widthScale > heightScale ? widthScale : heightScale,
+  };
+  final boundActive =
+      (minScale != null && rawScale < minScale) ||
+      (maxScale != null && rawScale > maxScale);
+  final fitMessage =
+      boundActive
+          ? 'ℹ scale 限制生效（原始 ${rawScale.toStringAsFixed(3)} → '
+              '${scale.toStringAsFixed(3)}），MediaQuery 两轴不要求与设计稿对齐。'
+          : switch (axis) {
+            ScaleAxis.width => 'ℹ width 轴与设计稿贴合；height 不要求对齐。',
+            ScaleAxis.height => 'ℹ height 轴与设计稿贴合；width 不要求对齐。',
+            ScaleAxis.shorter => 'ℹ shorter 选择较小比例，设计稿完整落入视口。',
+            ScaleAxis.longer => 'ℹ longer 选择较大比例，至少一轴与设计稿贴合。',
+          };
+
+  return (matched: matched, message: message, fitMessage: fitMessage);
 }
+
+String _fmt(Size size) =>
+    '${size.width.toStringAsFixed(1)} × ${size.height.toStringAsFixed(1)}';
 
 /// 顶部深色调试面板：实时显示当前 design / origin / MQ / scale / axis
 /// 等运行时数据，并根据当前 [ScaleAxis] 校验对应的契约（见 [checkContract]）。
@@ -101,7 +81,15 @@ class DebugPanel extends StatelessWidget {
     final scale = ScreenSizeAdapter.scaleOf(context);
     final isLandscape = origin.width > origin.height;
 
-    final contract = checkContract(axis: scaleAxis, mq: mq, design: designSize);
+    final contract = checkContract(
+      axis: scaleAxis,
+      mq: mq,
+      origin: origin,
+      scale: scale,
+      design: designSize,
+      minScale: minScale,
+      maxScale: maxScale,
+    );
 
     return Container(
       width: double.infinity,
@@ -129,13 +117,15 @@ class DebugPanel extends StatelessWidget {
           const Divider(color: Colors.white24, height: 1),
           const SizedBox(height: 6),
           _ContractCheck(matched: contract.matched, message: contract.message),
+          const SizedBox(height: 4),
+          Text(
+            contract.fitMessage,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
         ],
       ),
     );
   }
-
-  static String _fmt(Size s) =>
-      '${s.width.toStringAsFixed(1)} × ${s.height.toStringAsFixed(1)}';
 
   static String _bound(double? value) => value?.toStringAsFixed(2) ?? '无限制';
 }

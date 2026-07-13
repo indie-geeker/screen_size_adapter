@@ -3,12 +3,20 @@
 This example app demonstrates the package's production integration path:
 
 - installing `ScreenSizeWidgetsFlutterBinding` before `runApp`;
-- reading scaled design-unit values from `MediaQuery`;
+- inspecting the core `MediaQuery.size * scale ~= originSize` invariant;
+- reading adapted design-unit values from `MediaQuery` while keeping the
+  unscaled origin size available for device classification;
 - switching `ScaleAxis` at runtime;
 - swapping portrait and landscape design sizes;
 - comparing adapter-on and adapter-off layout behavior;
 - inspecting the experimental registry used for host-created views;
 - applying/removing scale bounds and resetting the active view to native scale.
+
+The debug panel shows the design size, origin size, adapted `MediaQuery` size,
+effective scale, selected axis, and scale bounds together. Axis alignment is a
+fit-mode consequence, not the core invariant: when a min/max bound is active,
+neither adapted dimension has to equal the design size as long as
+`MediaQuery.size * scale ~= originSize` remains true.
 
 ## Run
 
@@ -17,8 +25,11 @@ cd example
 flutter run
 ```
 
-The example enables desktop scaling so the behavior is visible on macOS,
-Windows, and Linux windows as well as on mobile devices.
+This checkout includes Android, iOS, and macOS runners. Desktop scaling is
+enabled so the behavior is visible in the checked-in macOS runner as well as on
+mobile devices. Windows and Linux runners are not included, so this example is
+not directly runnable on those platforms from this checkout. The package API
+itself remains platform-neutral.
 
 ## Test
 
@@ -28,8 +39,10 @@ flutter analyze
 flutter test
 ```
 
-The widget test uses `ScreenSizeTestEnvironment`, because Flutter's
-`testWidgets` binding cannot install the production binding.
+The widget test uses the MediaQuery-only `ScreenSizeTestEnvironment`, because
+Flutter's `testWidgets` binding cannot install the production binding. Package
+tests separately use `ScreenSizeTestViewport` when tight adapted layout
+constraints are required; neither helper proves engine pointer conversion.
 
 ## Experimental secondary-view check
 

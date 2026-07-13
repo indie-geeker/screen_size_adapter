@@ -6,84 +6,71 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
   group('checkContract', () {
-    test('width axis matched when mq.width ≈ design.width', () {
-      final r = checkContract(
+    test('same-aspect width scaling satisfies the coordinate formula', () {
+      final result = checkContract(
         axis: ScaleAxis.width,
         mq: const Size(360, 690),
+        origin: const Size(720, 1380),
+        scale: 2,
         design: const Size(360, 690),
+        minScale: null,
+        maxScale: null,
       );
-      expect(r.matched, isTrue);
-      expect(r.message, contains('width'));
+
+      expect(result.matched, isTrue);
+      expect(result.message, contains('MQ × scale ≈ origin'));
+      expect(result.fitMessage, contains('width'));
     });
 
-    test('width axis violated when mq.width differs from design.width', () {
-      final r = checkContract(
+    test('aspect mismatch keeps the formula while only width aligns', () {
+      final result = checkContract(
         axis: ScaleAxis.width,
-        mq: const Size(309.2, 690),
+        mq: const Size(360, 576),
+        origin: const Size(800, 1280),
+        scale: 800 / 360,
         design: const Size(360, 690),
+        minScale: null,
+        maxScale: null,
       );
-      expect(r.matched, isFalse);
-      expect(r.message, contains('width'));
+
+      expect(result.matched, isTrue);
+      expect(result.fitMessage, contains('width 轴'));
+      expect(result.fitMessage, contains('height 不要求'));
     });
 
-    test('height axis matched when mq.height ≈ design.height', () {
-      final r = checkContract(
+    test(
+      'a scale bound may disable both alignments without breaking formula',
+      () {
+        final result = checkContract(
+          axis: ScaleAxis.width,
+          mq: const Size(540, 960),
+          origin: const Size(1080, 1920),
+          scale: 2,
+          design: const Size(360, 690),
+          minScale: null,
+          maxScale: 2,
+        );
+
+        expect(result.matched, isTrue);
+        expect(result.fitMessage, contains('scale 限制生效'));
+        expect(result.fitMessage, contains('不要求与设计稿对齐'));
+      },
+    );
+
+    test('a broken formula reports reconstructed origin and delta', () {
+      final result = checkContract(
         axis: ScaleAxis.height,
-        mq: const Size(309.2, 690),
+        mq: const Size(540, 950),
+        origin: const Size(1080, 1920),
+        scale: 2,
         design: const Size(360, 690),
+        minScale: null,
+        maxScale: null,
       );
-      expect(r.matched, isTrue);
-      expect(r.message, contains('height'));
-    });
 
-    test('height axis violated when mq.height differs from design.height', () {
-      final r = checkContract(
-        axis: ScaleAxis.height,
-        mq: const Size(360, 600),
-        design: const Size(360, 690),
-      );
-      expect(r.matched, isFalse);
-      expect(r.message, contains('height'));
-    });
-
-    test('shorter axis matched when design fully inside mq', () {
-      final r = checkContract(
-        axis: ScaleAxis.shorter,
-        mq: const Size(360, 800),
-        design: const Size(360, 690),
-      );
-      expect(r.matched, isTrue);
-      expect(r.message, contains('shorter'));
-    });
-
-    test('shorter axis violated when design exceeds mq on some axis', () {
-      final r = checkContract(
-        axis: ScaleAxis.shorter,
-        mq: const Size(309, 690),
-        design: const Size(360, 690),
-      );
-      expect(r.matched, isFalse);
-      expect(r.message, contains('shorter'));
-    });
-
-    test('longer axis matched when at least one side ≈ design', () {
-      final r = checkContract(
-        axis: ScaleAxis.longer,
-        mq: const Size(360, 600),
-        design: const Size(360, 690),
-      );
-      expect(r.matched, isTrue);
-      expect(r.message, contains('longer'));
-    });
-
-    test('longer axis violated when no axis aligns', () {
-      final r = checkContract(
-        axis: ScaleAxis.longer,
-        mq: const Size(300, 600),
-        design: const Size(360, 690),
-      );
-      expect(r.matched, isFalse);
-      expect(r.message, contains('longer'));
+      expect(result.matched, isFalse);
+      expect(result.message, contains('MQ × scale = 1080.0 × 1900.0'));
+      expect(result.message, contains('偏差 0.0 × 20.0'));
     });
   });
 }
