@@ -28,7 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ScreenSizeAdapter.setDesignSize`, `reset`, `scaleOf`, and `computeScale`
   provide context-based runtime controls and testable scale math.
 - `ScreenSizeTestEnvironment` supports widget tests that cannot install the
-  production binding.
+  production binding at the MediaQuery-only fidelity level.
+- `ScreenSizeTestViewport` additionally gives a wrapped test subtree tight
+  adapted layout constraints without claiming `RenderView`, root hit-testing,
+  or production pointer-converter fidelity.
 - `ScreenSizeWidgetsFlutterBinding.instance` is the typed binding accessor for
   integration code.
 
@@ -61,8 +64,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `attachView` registration.
 
 ### Fixed
-- `MediaQuery` now consistently reports design-unit size, device pixel ratio,
-  padding, view padding, view insets, and system gesture insets.
+- `MediaQuery` now consistently follows
+  `MediaQuery.size = originSize / scale` and scales device pixel ratio,
+  padding, view padding, view insets, and system gesture insets. Without
+  clamping only the selected axis aligns with the design size; scale bounds can
+  make neither dimension align.
 - Pointer packets use the registered view's effective device pixel ratio.
 - Gesture touch slop and display-feature bounds use the same design-unit
   coordinate system as pointer events and layout.
@@ -70,8 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `1.0` scaling.
 - Invalid design sizes and scale bounds, including non-finite values and a
   `minScale` greater than `maxScale`, fail fast before registry updates.
-- README initialization order and API documentation now match the runtime
-  contract.
+- README initialization order, coordinate wording, and strictly verified Dart
+  snippets now match the runtime contract.
 
 ### Migration
 - Replace `ensureInitialized(size, config: ...)` with
@@ -86,8 +92,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MediaQuery.sizeOf(context).width * 0.5`.
 - Use `ScreenSizeAdapter.scaleOf(context)` for scale reads. Use
   `ScreenSizeAdapterScope` around manually mounted non-primary views.
-- In `testWidgets`, wrap content with `ScreenSizeTestEnvironment` instead of
-  installing the production binding.
+- In `testWidgets`, use `ScreenSizeTestEnvironment` for MediaQuery-only checks
+  or `ScreenSizeTestViewport` when assertions also depend on adapted layout
+  constraints; neither installs the production binding.
 
 ## [0.2.0] - 2026-04-15
 

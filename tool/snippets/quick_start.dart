@@ -1,3 +1,4 @@
+// snippet:quick-start:start
 import 'package:flutter/material.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
@@ -31,3 +32,5 @@ class HomePage extends StatelessWidget {
     ),
   );
 }
+
+// snippet:quick-start:end

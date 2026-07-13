@@ -44,6 +44,27 @@ void main() {
         expect(readme, isNot(contains('多视图能力稳定可用')));
         expect(readme, isNot(contains('已经完整验证全部多视图场景')));
       });
+
+      test('$filename states the exact coordinate and helper contracts', () {
+        final readme = File(filename).readAsStringSync();
+
+        expect(readme, contains('MediaQuery.size = originSize / scale'));
+        expect(readme, contains('minScale'));
+        expect(readme, contains('maxScale'));
+        expect(readme, contains('MediaQuery-only'));
+        expect(readme, contains('ScreenSizeTestViewport'));
+        expect(readme, contains('RenderView'));
+        expect(readme, contains('pointer converter'));
+        expect(readme, isNot(contains('在所有设备上都返回设计尺寸')));
+        expect(
+          readme,
+          isNot(
+            contains(
+              'MediaQuery.sizeOf(context) reports the design size on every device',
+            ),
+          ),
+        );
+      });
     }
   });
 
@@ -79,6 +100,21 @@ void main() {
       final pubspec = File('pubspec.yaml').readAsStringSync();
 
       expect(pubspec, isNot(contains('  - multi-view')));
+    });
+
+    test('controller docs and changelog use the exact coordinate formula', () {
+      final controller =
+          File(
+            'lib/src/screen_size_adapter_controller.dart',
+          ).readAsStringSync();
+      final changelog = File('CHANGELOG.md').readAsStringSync();
+
+      expect(controller, contains('MediaQuery.size = originSize / scale'));
+      expect(changelog, contains('MediaQuery.size = originSize / scale'));
+      expect(
+        controller,
+        isNot(contains('always\n  /// reports the design size')),
+      );
     });
   });
 }

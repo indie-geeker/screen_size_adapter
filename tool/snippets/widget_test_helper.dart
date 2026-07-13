@@ -1,3 +1,4 @@
+// snippet:widget-test-helper:start
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
@@ -18,3 +19,5 @@ void main() {
     expect(find.text('Hello'), findsOneWidget);
   });
 }
+
+// snippet:widget-test-helper:end

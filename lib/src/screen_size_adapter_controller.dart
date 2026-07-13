@@ -95,10 +95,11 @@ class ScreenSizeAdapter {
   /// binding's per-view scaling is applied.
   ///
   /// Use this for responsive breakpoints (`width >= 600` for tablet
-  /// layouts, etc.). Once the adapter is active, `MediaQuery.sizeOf` always
-  /// reports the design size, so it can't distinguish a phone from a
-  /// tablet — that comparison must happen against the device's native
-  /// logical size, which is what this method returns.
+  /// layouts, etc.). Once the adapter is active, the exact adapted coordinate
+  /// contract is `MediaQuery.size = originSize / scale`. Without clamping only
+  /// the selected scale axis aligns with the design size; scale bounds can
+  /// make neither dimension align. Native device classification must therefore
+  /// use the unscaled logical size returned by this method.
   ///
   /// Read-only — safe in any binding, including `testWidgets`.
   static Size originSizeOf(BuildContext context) {
@@ -116,7 +117,8 @@ class ScreenSizeAdapter {
         'ScreenSizeAdapter.setDesignSize/reset require '
         'ScreenSizeWidgetsFlutterBinding to be installed. '
         'Call ScreenSizeWidgetsFlutterBinding.ensureInitialized(...) before '
-        'runApp, or in widget tests use ScreenSizeTestEnvironment instead.',
+        'runApp, or in widget tests use ScreenSizeTestEnvironment or '
+        'ScreenSizeTestViewport instead.',
       );
     }
     return binding;
