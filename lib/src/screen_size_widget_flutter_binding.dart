@@ -39,14 +39,8 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   static ScreenSizeWidgetsFlutterBinding ensureInitialized(
     ScreenSizeAdapterConfig config,
   ) {
-    WidgetsBinding? existing;
-    try {
-      existing = WidgetsBinding.instance;
-    } on FlutterError {
-      existing = null;
-    }
-
     _validateConfig(config);
+    final existing = _bindingOrNull();
 
     if (existing == null) {
       final created = ScreenSizeWidgetsFlutterBinding._();
@@ -65,6 +59,16 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
       'ScreenSizeWidgetsFlutterBinding.ensureInitialized must be called before '
       'any other binding initialization.',
     );
+  }
+
+  static WidgetsBinding? _bindingOrNull() {
+    try {
+      return WidgetsBinding.instance;
+    } on FlutterError {
+      return null;
+    } on TypeError {
+      return null;
+    }
   }
 
   /// The installed adapter binding.

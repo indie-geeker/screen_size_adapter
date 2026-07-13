@@ -1,16 +1,29 @@
+import 'dart:async' show Timer;
+import 'dart:io' show exit, stdout;
+
 import 'package:flutter/material.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 import 'pages/home_page.dart';
 import 'state/adapter_settings.dart';
 
+const _startupSmoke = bool.fromEnvironment('SCREEN_SIZE_ADAPTER_STARTUP_SMOKE');
+
 void main() {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
+  final binding = ScreenSizeWidgetsFlutterBinding.ensureInitialized(
     const ScreenSizeAdapterConfig(
       designSize: kPortraitDesign,
       enableDesktopScaling: true,
     ),
   );
+
+  if (_startupSmoke) {
+    binding.addPostFrameCallback((_) {
+      stdout.writeln('SCREEN_SIZE_ADAPTER_STARTUP_READY');
+      Timer(const Duration(seconds: 1), () => exit(0));
+    });
+  }
+
   runApp(const MyApp());
 }
 
