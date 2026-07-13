@@ -7,7 +7,7 @@ This example app demonstrates the package's production integration path:
 - switching `ScaleAxis` at runtime;
 - swapping portrait and landscape design sizes;
 - comparing adapter-on and adapter-off layout behavior;
-- inspecting the per-view registry used for host-created views;
+- inspecting the experimental registry used for host-created views;
 - applying/removing scale bounds and resetting the active view to native scale.
 
 ## Run
@@ -31,9 +31,10 @@ flutter test
 The widget test uses `ScreenSizeTestEnvironment`, because Flutter's
 `testWidgets` binding cannot install the production binding.
 
-## Multi-view check
+## Experimental secondary-view check
 
-The on-screen panel is a registry inspector, not a second-view demo. Package
+The on-screen panel is an experimental registry inspector, not a second-view
+demo. Package
 tests cover per-view registry behavior with the real primary `FlutterView`, but
 Flutter's test binding does not create a second engine-backed view. Fake view
 objects would not prove framework or engine behavior.
@@ -48,4 +49,4 @@ host that creates a real secondary `FlutterView`, then confirm:
 
 Use the full checklist in
 [`tool/verification/desktop_multi_view.md`](../tool/verification/desktop_multi_view.md)
-before publishing a release that claims desktop multi-view support.
+before making any experimental same-engine secondary-view claim.

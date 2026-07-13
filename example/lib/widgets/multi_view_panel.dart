@@ -47,8 +47,8 @@ class _MultiViewPanelState extends State<MultiViewPanel>
     final views = PlatformDispatcher.instance.views.toList();
 
     return SectionCard(
-      title: '多视图 registry（宿主验证）',
-      subtitle: '仅观测当前进程 view；真实二级 view 需由宿主创建并单独验证',
+      title: '实验性 view registry 检查器',
+      subtitle: '仅检查 registry；二级 view 接入需由真实宿主单独验证',
       accent: Colors.blueGrey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,10 +125,10 @@ class _MultiViewHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Text(
-      '此面板不创建二级 FlutterView，也不能替代真实宿主验证。'
+      '此面板只检查实验性 registry，不创建二级 FlutterView，也不能替代真实宿主验证。'
       '在桌面多窗、runWidget + View、ViewAnchor、Add-to-App 等场景，'
       '为每个非主 view 调 binding.attachView(view: ..., config: ...) '
-      '即可让它们各自独立适配；同时记得在 View 子树外手包 ScreenSizeAdapterScope，'
+      '可实验性地为它们配置独立适配；同时记得在 View 子树外手包 ScreenSizeAdapterScope，'
       '保证 MediaQuery 也按对应的 scale 报告尺寸。',
       style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5),
     );

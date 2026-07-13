@@ -4,7 +4,7 @@
 
 [简体中文](README.md) | English
 
-Binding-level screen-size adaptation for Flutter. Your app code writes plain numbers in design units; the custom binding scales each view's `devicePixelRatio` so Flutter treats it as the design size. Configuration is isolated per view, with explicit wiring for additional host-created views.
+Binding-level screen-size adaptation for Flutter. Your app code writes plain numbers in design units and the custom binding adjusts the view's `devicePixelRatio`. The standard single-view `runApp` path is stable; same-engine secondary-view integration is experimental.
 
 ## Why this design
 
@@ -71,9 +71,9 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 - `shorter` — uses the smaller of the two ratios. The design canvas is always fully visible (no overflow), but the width is no longer pinned, **and the scale differs across orientations**. Suitable when "design must be fully visible" trumps "width consistency" (full-screen illustrations, modal dialogs). Not suitable for the "two 180s fill the width" contract.
 - `longer` — uses the larger ratio. At least one design edge fills the screen; the other overflows. Pairs with `maxScale` for crop-style layouts.
 
-## Multi-view
+## Experimental secondary-view integration
 
-For Flutter apps with multiple `FlutterView`s (desktop multi-window, embedded views via `View` widgets, Add-to-App scenarios), register each non-primary view explicitly:
+The standard implicit view used by `runApp` is the stable support boundary. Desktop multi-window, embedded `View` widgets, and Add-to-App scenarios with same-engine secondary `FlutterView`s require explicit registration. That path is experimental; it is not fully verified or advertised as stable multi-view support.
 
 This package manages `FlutterView`s created by the host; it does not create desktop windows or secondary views. Validate a real same-engine secondary view in the relevant desktop or Add-to-App host using [`tool/verification/desktop_multi_view.md`](tool/verification/desktop_multi_view.md). Registry unit tests are not a substitute for that host-level check.
 
@@ -100,7 +100,7 @@ binding.updateView(
 binding.detachView(secondaryView);
 ```
 
-The primary view is registered automatically by `ensureInitialized`. Unregistered views fall through to stock Flutter behavior — no scaling.
+`ensureInitialized` automatically registers only `PlatformDispatcher.implicitView`. If the host has no implicit view, the package does not guess `views.first`; every host-created view must call `attachView` explicitly. Unregistered views fall through to stock Flutter behavior — no scaling.
 
 Non-primary views (those mounted via `runWidget` or `ViewAnchor`) do not get the auto-injected `MediaQuery` scaling. Wrap each subtree manually with `ScreenSizeAdapterScope`:
 

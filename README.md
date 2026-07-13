@@ -4,7 +4,7 @@
 
 简体中文 | [English](README_EN.md)
 
-Flutter 屏幕适配方案，在 binding 层完成缩放工作。你的应用代码直接使用设计稿单位的纯数字；自定义 binding 会调整每个视图的 `devicePixelRatio`，让 Flutter 把视图当作设计稿尺寸来对待。配置按 view 隔离，宿主创建的额外视图需要显式接入。
+Flutter 屏幕适配方案，在 binding 层完成缩放工作。你的应用代码直接使用设计稿单位的纯数字；自定义 binding 会调整视图的 `devicePixelRatio`。标准 `runApp` 单视图链路稳定可用；宿主创建的同 engine 二级视图接入属于实验性（experimental）能力。
 
 ## 为什么要这样设计
 
@@ -71,9 +71,9 @@ ScreenSizeWidgetsFlutterBinding.ensureInitialized(
 - `shorter` — 取两个比值中的较小者。设计画布永远完整地塞进屏幕（不会有内容因 scale 过大而溢出），代价是宽度不再固定，**横竖屏下的 scale 不一致**。适合"必须保证设计稿全部可见"的场景（弹窗、全屏插画）。不适合"两个 180 永远充满宽度"。
 - `longer` — 取较大者。设计画布至少有一条边贴满屏幕，另一条边会溢出。配合 `maxScale` 用于裁切式布局。
 
-## 多视图
+## 实验性二级视图接入（experimental）
 
-对于包含多个 `FlutterView` 的 Flutter 应用（桌面多窗口、通过 `View` widget 嵌入的视图、Add-to-App 等场景），需要为每个非主视图显式注册：
+标准 `runApp` 的 implicit view 属于稳定支持范围。对于桌面多窗口、通过 `View` widget 嵌入的视图、Add-to-App 等同 engine 二级 `FlutterView` 场景，需要为每个宿主视图显式注册；这条接入路径目前是 experimental，不代表已完整验证或稳定支持多视图。
 
 本包管理宿主已经创建的 `FlutterView`，不会自行创建桌面窗口或二级 view。同一 engine 下的真实二级 view 行为必须在对应桌面/Add-to-App 宿主中按 [`tool/verification/desktop_multi_view.md`](tool/verification/desktop_multi_view.md) 验证；registry 单元测试不能替代该验证。
 
@@ -100,7 +100,7 @@ binding.updateView(
 binding.detachView(secondaryView);
 ```
 
-主视图由 `ensureInitialized` 自动注册。未注册的视图保持 Flutter 的原生行为，不做任何缩放。
+`ensureInitialized` 只自动注册 `PlatformDispatcher.implicitView`。如果宿主没有 implicit view，则不会猜测 `views.first`，每个宿主视图都必须显式调用 `attachView`。未注册的视图保持 Flutter 的原生行为，不做任何缩放。
 
 非主视图（`runWidget` 或 `ViewAnchor` 自行挂载的 `View(...)`）不会自动得到正确的 `MediaQuery` 缩放，需要手动包一层 `ScreenSizeAdapterScope`：
 

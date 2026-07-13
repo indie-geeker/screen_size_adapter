@@ -1,6 +1,8 @@
 # Desktop multi-view verification
 
-Use this checklist before publishing a release that claims multi-view support.
+Use this checklist before making an experimental same-engine secondary-view
+support claim. The standard implicit-view `runApp` path is the stable support
+boundary.
 The package unit tests cover registry behavior with the real primary
 `FlutterView`, but `flutter_test` does not create a second engine-backed view.
 Do not treat fake `FlutterView` objects or raw view IDs as proof of desktop
@@ -27,8 +29,10 @@ that specific view:
 
 ```dart
 final binding = ScreenSizeWidgetsFlutterBinding.instance;
+// ignore: deprecated_member_use
+final implicitView = PlatformDispatcher.instance.implicitView;
 final secondaryView = PlatformDispatcher.instance.views
-    .firstWhere((view) => view.viewId != binding.platformDispatcher.views.first.viewId);
+    .firstWhere((view) => !identical(view, implicitView));
 
 binding.attachView(
   view: secondaryView,
@@ -48,6 +52,10 @@ runWidget(
   ),
 );
 ```
+
+If `implicitView` is `null`, there is no automatically registered primary
+view. The host must explicitly call `attachView` for every view it creates;
+never infer a primary view from `PlatformDispatcher.views.first`.
 
 ## Pass criteria
 

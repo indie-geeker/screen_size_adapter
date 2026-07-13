@@ -19,6 +19,9 @@ import 'screen_size_adapter_scope.dart';
 /// view scales its [ViewConfiguration.devicePixelRatio] to make the
 /// framework treat the view as if it were the registered design size.
 /// Unregistered views fall through to stock Flutter behavior.
+///
+/// The implicit-view `runApp` path is stable. Same-engine secondary-view
+/// registration is experimental and must be wired and verified by the host.
 class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   /// Per-view sizing state keyed by FlutterView.viewId.
   final Map<int, ViewSizing> _views = {};
@@ -33,9 +36,11 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
     };
   }
 
-  /// Initialize the screen-size adapter and register the primary view.
+  /// Initialize the screen-size adapter and register the implicit view.
   ///
-  /// Must be called before [runApp]. Returns the binding instance.
+  /// Must be called before [runApp]. Returns the binding instance. If the
+  /// dispatcher has no implicit view, automatic registration is skipped and
+  /// host-created views must call [attachView] explicitly.
   static ScreenSizeWidgetsFlutterBinding ensureInitialized(
     ScreenSizeAdapterConfig config,
   ) {
@@ -103,9 +108,9 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   /// entirely. Triggers `handleMetricsChanged()` so Flutter's layout
   /// pipeline applies the new configuration on the next frame.
   ///
-  /// Use this for any non-primary [FlutterView] (embedded views,
-  /// secondary windows, multi-display). The primary view is registered
-  /// automatically by [ensureInitialized].
+  /// Use this experimental API for host-created [FlutterView]s (embedded
+  /// views, secondary windows, multi-display). Only the dispatcher's implicit
+  /// view is registered automatically by [ensureInitialized].
   void attachView({
     required FlutterView view,
     required ScreenSizeAdapterConfig config,
@@ -211,9 +216,9 @@ class ScreenSizeWidgetsFlutterBinding extends WidgetsFlutterBinding {
   /// `MediaQuery.fromView` does not consult — without this wrap,
   /// `MediaQuery.sizeOf(context)` would return the unscaled native size.
   ///
-  /// For non-implicit views attached via the multi-view APIs
-  /// (`runWidget` + an explicit [View] widget), wrap the [View]'s child
-  /// with [ScreenSizeAdapterScope] manually.
+  /// For experimental non-implicit views attached by a host (`runWidget` + an
+  /// explicit [View] widget), wrap the [View]'s child with
+  /// [ScreenSizeAdapterScope] manually.
   @override
   Widget wrapWithDefaultView(Widget rootWidget) {
     return super.wrapWithDefaultView(ScreenSizeAdapterScope(child: rootWidget));

@@ -1,22 +1,14 @@
 import 'dart:ui';
 
-import 'package:flutter/widgets.dart';
-
-/// Returns the primary [FlutterView], preferring the modern multi-view API.
-/// Falls back to the deprecated `implicitView` for older Flutter versions.
+/// Returns the dispatcher [FlutterView] used by the standard `runApp` path.
 ///
 /// Internal helper — not exported from the public API. Used by
-/// `ScreenSizeWidgetsFlutterBinding` to register the primary view.
+/// `ScreenSizeWidgetsFlutterBinding` to register only the implicit view.
 ///
-/// Safe to call before `WidgetsBinding` initializes — returns `null` only if
-/// neither the multi-view API nor `implicitView` is available.
+/// Returns `null` when the embedder has no implicit view. Host-created views
+/// are never guessed from [PlatformDispatcher.views]; they must be registered
+/// explicitly with `attachView`.
 FlutterView? primaryView() {
-  try {
-    final views = WidgetsBinding.instance.platformDispatcher.views;
-    if (views.isNotEmpty) return views.first;
-  } catch (_) {
-    // Binding not yet initialized; use the platform fallback.
-  }
   // ignore: deprecated_member_use
   return PlatformDispatcher.instance.implicitView;
 }

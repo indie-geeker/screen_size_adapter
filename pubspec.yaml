@@ -6,7 +6,6 @@ repository: https://github.com/indie-geeker/screen_size_adapter
 issue_tracker: https://github.com/indie-geeker/screen_size_adapter/issues
 topics:
   - screen-size
-  - multi-view
   - layout
   - design-size
   - responsive

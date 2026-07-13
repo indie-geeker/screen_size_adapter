@@ -29,6 +29,21 @@ void main() {
           expect(readme, contains('ScreenSizeWidgetsFlutterBinding.instance'));
         },
       );
+
+      test('$filename marks secondary-view support experimental', () {
+        final readme = File(filename).readAsStringSync();
+        final normalized = readme.toLowerCase();
+
+        expect(normalized, contains('experimental'));
+        expect(
+          normalized,
+          isNot(contains('provides stable multi-view support')),
+        );
+        expect(normalized, isNot(contains('multi-view support is stable')));
+        expect(normalized, isNot(contains('is fully verified')));
+        expect(readme, isNot(contains('多视图能力稳定可用')));
+        expect(readme, isNot(contains('已经完整验证全部多视图场景')));
+      });
     }
   });
 
@@ -58,6 +73,12 @@ void main() {
 
       expect(changelog, contains('## [0.3.0] - Unreleased'));
       expect(changelog, isNot(contains('## [0.3.0] - 2026-07-09')));
+    });
+
+    test('pubspec does not advertise stable multi-view support', () {
+      final pubspec = File('pubspec.yaml').readAsStringSync();
+
+      expect(pubspec, isNot(contains('  - multi-view')));
     });
   });
 }

@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `ScreenSizeAdapterConfig` is the complete, per-view configuration object for
   design size, scale axis, desktop behavior, and scale bounds.
-- Per-view registry APIs for host-created views: `attachView`, `updateView`,
+- Experimental per-view registry APIs for host-created secondary views:
+  `attachView`, `updateView`,
   `detachView`, `resetView`, `scaleForView`, and `configForView` operate on
   `FlutterView` instances.
 - `ScaleAxis` (`width`, `height`, `shorter`, `longer`) selects the scale
@@ -52,6 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ScaleAxis.width` no longer swaps axes implicitly in landscape; choose
   `ScaleAxis.shorter` when aspect-safe scaling is required.
 - Minimum supported Flutter is now `3.29.2`.
+- The stable support boundary is the implicit-view `runApp` path. Same-engine
+  secondary-view registration and scoping remain experimental and require
+  host-level verification.
+- Automatic registration now targets only `PlatformDispatcher.implicitView`.
+  When no implicit view exists, every host-created view requires explicit
+  `attachView` registration.
 
 ### Fixed
 - `MediaQuery` now consistently reports design-unit size, device pixel ratio,
