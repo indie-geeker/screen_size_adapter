@@ -5,7 +5,7 @@ import 'package:screen_size_adapter/screen_size_adapter.dart';
 void main() {
   testWidgets('layout in design units', (tester) async {
     await tester.pumpWidget(
-      const ScreenSizeTestEnvironment(
+      const ScreenSizeTestViewport(
         config: ScreenSizeAdapterConfig(designSize: Size(360, 690)),
         simulatedDeviceSize: Size(720, 1380),
         child: Directionality(
