@@ -72,7 +72,7 @@ void configureAdapter() {
 
 `scaleAxis` 决定按哪个轴计算缩放系数：
 
-- `width` — `scale = origin.width / design.width`。默认值。**横竖屏行为**：竖屏时 origin.width 是设备短边，横屏时是长边，scale 跟着变大；好处是 `MediaQuery.width` 在两个方向都等于 `designSize.width`（"两个 180 的矩形永远充满宽度"）。代价是横屏下纵向内容会按同一 scale 放大，超出屏幕高度的部分需要靠 `SingleChildScrollView` 等手段处理 —— 见 [横竖屏](#横竖屏) 章节。如果你需要"长边对长边"的语义，监听 `OrientationBuilder` 调用 `ScreenSizeAdapter.setDesignSize` 显式切换设计稿即可。
+- `width` — `scale = origin.width / design.width`。默认值。**横竖屏行为**：竖屏时 origin.width 是设备短边，横屏时是长边，scale 跟着变大；好处是 `MediaQuery.width` 在两个方向都等于 `designSize.width`（"两个 180 的矩形永远充满宽度"）。代价是横屏下纵向内容会按同一 scale 放大，超出屏幕高度的部分需要靠 `SingleChildScrollView` 等手段处理 —— 见 [横竖屏](#横竖屏) 章节。如果你需要"长边对长边"的语义，请用 `MediaQuery.orientationOf(context)` 选择设计稿，并在帧后确认 context 仍 mounted、方向仍是最新值且当前配置确实不同，再调用 `ScreenSizeAdapter.setDesignSize`。
 - `height` — `scale = origin.height / design.height`。镜像 `width`：让 `MediaQuery.height == designSize.height`，但 `width` 方向不再固定。
 - `shorter` — 取两个比值中的较小者。设计画布永远完整地塞进屏幕（不会有内容因 scale 过大而溢出），代价是宽度不再固定，**横竖屏下的 scale 不一致**。适合"必须保证设计稿全部可见"的场景（弹窗、全屏插画）。不适合"两个 180 永远充满宽度"。
 - `longer` — 取较大者。设计画布至少有一条边贴满屏幕，另一条边会溢出。配合 `maxScale` 用于裁切式布局。
@@ -153,18 +153,33 @@ Widget buildScrollableContent() => const SingleChildScrollView(
   child: Column(children: [Text('Scrollable content')]),
 );
 
-Widget buildOrientationAwareHome() => OrientationBuilder(
-  builder: (context, orientation) {
+Widget buildOrientationAwareHome() => const OrientationAwareHome();
+
+class OrientationAwareHome extends StatelessWidget {
+  const OrientationAwareHome({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final orientation = MediaQuery.orientationOf(context);
     final design =
         orientation == Orientation.landscape
             ? const Size(640, 360)
             : const Size(360, 640);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      final liveOrientation = MediaQuery.orientationOf(context);
+      if (liveOrientation != orientation) return;
+
+      final binding = ScreenSizeWidgetsFlutterBinding.instance;
+      final view = View.of(context);
+      if (binding.configForView(view)?.designSize == design) return;
       ScreenSizeAdapter.setDesignSize(context, design);
     });
+
     return const ExampleHome();
-  },
-);
+  }
+}
 ```
 <!-- /snippet:orientation -->
 

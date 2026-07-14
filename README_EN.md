@@ -72,7 +72,7 @@ void configureAdapter() {
 
 `scaleAxis` controls which axis derives the scale factor:
 
-- `width` — `scale = origin.width / design.width`. Default. **Orientation behavior:** in portrait `origin.width` is the device's short side; in landscape it's the long side, so the scale grows. The benefit is `MediaQuery.width == designSize.width` in both orientations ("two 180-wide rectangles always fill the width"). The cost is that vertical content scales by the same factor in landscape, so it can overflow the now-compressed view height — see [Orientation](#orientation). If you need "long-side-to-long-side" semantics, swap the design size on rotation via `OrientationBuilder` + `ScreenSizeAdapter.setDesignSize`.
+- `width` — `scale = origin.width / design.width`. Default. **Orientation behavior:** in portrait `origin.width` is the device's short side; in landscape it's the long side, so the scale grows. The benefit is `MediaQuery.width == designSize.width` in both orientations ("two 180-wide rectangles always fill the width"). The cost is that vertical content scales by the same factor in landscape, so it can overflow the now-compressed view height — see [Orientation](#orientation). If you need "long-side-to-long-side" semantics, choose the design size with `MediaQuery.orientationOf(context)`, then update after the frame only when the context is still mounted, the orientation is still current, and the active config actually differs.
 - `height` — `scale = origin.height / design.height`. Mirror of `width`: pins `MediaQuery.height` to `designSize.height` instead.
 - `shorter` — uses the smaller of the two ratios. The design canvas is always fully visible (no overflow), but the width is no longer pinned, **and the scale differs across orientations**. Suitable when "design must be fully visible" trumps "width consistency" (full-screen illustrations, modal dialogs). Not suitable for the "two 180s fill the width" contract.
 - `longer` — uses the larger ratio. At least one design edge fills the screen; the other overflows. Pairs with `maxScale` for crop-style layouts.
@@ -153,18 +153,33 @@ Widget buildScrollableContent() => const SingleChildScrollView(
   child: Column(children: [Text('Scrollable content')]),
 );
 
-Widget buildOrientationAwareHome() => OrientationBuilder(
-  builder: (context, orientation) {
+Widget buildOrientationAwareHome() => const OrientationAwareHome();
+
+class OrientationAwareHome extends StatelessWidget {
+  const OrientationAwareHome({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final orientation = MediaQuery.orientationOf(context);
     final design =
         orientation == Orientation.landscape
             ? const Size(640, 360)
             : const Size(360, 640);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      final liveOrientation = MediaQuery.orientationOf(context);
+      if (liveOrientation != orientation) return;
+
+      final binding = ScreenSizeWidgetsFlutterBinding.instance;
+      final view = View.of(context);
+      if (binding.configForView(view)?.designSize == design) return;
       ScreenSizeAdapter.setDesignSize(context, design);
     });
+
     return const ExampleHome();
-  },
-);
+  }
+}
 ```
 <!-- /snippet:orientation -->
 

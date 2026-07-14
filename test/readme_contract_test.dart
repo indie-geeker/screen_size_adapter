@@ -66,6 +66,25 @@ void main() {
         );
       });
     }
+
+    test('orientation snippet guards queued and equivalent updates', () {
+      final orientationFixture =
+          File('tool/snippets/orientation.dart').readAsStringSync();
+
+      expect(orientationFixture, contains('MediaQuery.orientationOf(context)'));
+      expect(orientationFixture, contains('if (!context.mounted) return;'));
+      expect(
+        orientationFixture,
+        contains('if (liveOrientation != orientation)'),
+      );
+      expect(orientationFixture, contains('configForView(view)?.designSize'));
+      expect(orientationFixture, isNot(contains('OrientationBuilder(')));
+
+      final readme = File('README.md').readAsStringSync();
+      final readmeEn = File('README_EN.md').readAsStringSync();
+      expect(readme, isNot(contains('监听 `OrientationBuilder`')));
+      expect(readmeEn, isNot(contains('via `OrientationBuilder`')));
+    });
   });
 
   group('release metadata', () {
