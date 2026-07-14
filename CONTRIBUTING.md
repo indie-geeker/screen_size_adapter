@@ -10,7 +10,8 @@ Run these before opening a PR:
 ```bash
 flutter pub get
 flutter analyze
-flutter test
+flutter test --coverage
+dart run tool/check_coverage.dart --minimum=85
 (cd example && flutter analyze)
 (cd example && flutter test)
 dart doc --dry-run
@@ -28,7 +29,8 @@ flutter pub publish --dry-run
 ## Release Checklist
 
 - `flutter analyze` reports no issues.
-- `flutter test` passes.
+- `flutter test --coverage` passes and package line coverage remains at least
+  85% according to `tool/check_coverage.dart`.
 - Example analyze and tests pass.
 - `dart doc --dry-run` reports no warnings.
 - `flutter pub publish --dry-run` reports no warnings and the package contents

@@ -50,8 +50,10 @@ jobs:
       - name: Verify README snippet fixtures
         run: dart run tool/verify_readme_snippets.dart
 
-      - name: Test (package)
-        run: flutter test
+      - name: Test and enforce package coverage
+        run: |
+          flutter test --coverage
+          dart run tool/check_coverage.dart --minimum=85
 
       - name: Install dependencies (example)
         working-directory: example
