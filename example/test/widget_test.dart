@@ -25,6 +25,18 @@ void main() {
     expect(find.text('限制为 0.8–1.2'), findsOneWidget);
     expect(find.text('移除 scale 限制'), findsOneWidget);
     expect(find.text('重置为原生 scale=1'), findsOneWidget);
+    expect(
+      find.byTooltip('未触发 min/max 限制时：MQ.width = design.width'),
+      findsOneWidget,
+    );
+    expect(
+      find.byTooltip('未触发 min/max 限制时：MQ.height = design.height'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('原生逻辑像素'), findsWidgets);
+    expect(find.textContaining('raw px'), findsNothing);
+    expect(find.textContaining('设备真实像素'), findsNothing);
+    expect(find.textContaining('旋转设备或调整窗口会同时改变两侧视口'), findsOneWidget);
   });
 
   testWidgets('native reset disables orientation auto swap', (tester) async {

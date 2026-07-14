@@ -79,8 +79,8 @@ class _AxisChip extends StatelessWidget {
   };
 
   static String _tooltip(ScaleAxis axis) => switch (axis) {
-    ScaleAxis.width => 'scale = origin.w / design.w；MQ.width 永远等于设计宽度',
-    ScaleAxis.height => 'scale = origin.h / design.h；MQ.height 永远等于设计高度',
+    ScaleAxis.width => '未触发 min/max 限制时：MQ.width = design.width',
+    ScaleAxis.height => '未触发 min/max 限制时：MQ.height = design.height',
     ScaleAxis.shorter => '取较小比；圆永远是圆，但宽度不再固定',
     ScaleAxis.longer => '取较大比；至少一边贴满，另一边可能溢出',
   };

@@ -18,6 +18,12 @@ fit-mode consequence, not the core invariant: when a min/max bound is active,
 neither adapted dimension has to equal the design size as long as
 `MediaQuery.size * scale ~= originSize` remains true.
 
+The adapter-on/off comparison isolates adapted design coordinates from native
+logical coordinates. Changing `ScaleAxis` or `designSize` changes only the
+adapted side. Rotating the device or resizing the host window changes both
+viewports; the adapter-off side continues to report the native logical size
+rather than freezing the old viewport.
+
 ## Run
 
 ```bash

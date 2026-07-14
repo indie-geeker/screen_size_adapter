@@ -44,9 +44,9 @@ import 'section_card.dart';
 ///
 /// 左 bezel 按 [MediaQuery.sizeOf]（adapter 注入的 scaled 视口）
 /// 等比缩略；右 bezel 按 [FlutterView.physicalSize] / dpr（绕过
-/// adapter 的 raw 逻辑像素视口）等比缩略。两 bezel 内画**字面
-/// 相同的 mini-UI**——切 axis 时左侧变形、右侧不动，可视化
-/// adapter 在做什么。
+/// adapter 的原生逻辑像素视口）等比缩略。两 bezel 内画**字面
+/// 相同的 mini-UI**——切 axis/designSize 时只有左侧适配坐标变化；
+/// 设备旋转或窗口变化时两侧视口都会变化。
 class AdapterCompareDemo extends StatefulWidget {
   const AdapterCompareDemo({super.key, required this.designSize});
 
@@ -89,7 +89,7 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
 
     return SectionCard(
       title: 'Adapter 开/关 孪生（同代码、对照实验）',
-      subtitle: '左：adapter 接管缩放。右：模拟没装 adapter，按设备 raw px 渲染。',
+      subtitle: '左：adapter 接管缩放。右：模拟没装 adapter，使用原生逻辑像素。',
       accent: Colors.indigo,
       child: LayoutBuilder(
         builder: (ctx, constraints) {
@@ -124,7 +124,7 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                     label:
                         'adapter off · viewport '
                         '${rawSize.width.toStringAsFixed(0)}×'
-                        '${rawSize.height.toStringAsFixed(0)} raw px',
+                        '${rawSize.height.toStringAsFixed(0)} 原生逻辑像素',
                     bezelSize: geom.right,
                     canvasSize: rawSize,
                     accent: Colors.orange,
@@ -143,9 +143,10 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
               const Text(
                 '同一份代码 width: 280, height: 56——'
                 '左侧（adapter 接管缩放）保持作者预期占比；'
-                '右侧（无 adapter 模拟）按设备真实像素渲染。'
-                '切换 ScaleAxis / 旋转设备时，左侧随之变形、右侧纹丝不动，'
-                '这就是 adapter 的全部工作。',
+                '右侧（无 adapter 模拟）按原生逻辑尺寸渲染。'
+                '切换 ScaleAxis 或 designSize 只改变左侧适配坐标；'
+                '旋转设备或调整窗口会同时改变两侧视口，'
+                '右侧始终使用原生逻辑尺寸。',
                 style: TextStyle(
                   fontSize: 11,
                   color: Colors.black54,
