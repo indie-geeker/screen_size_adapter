@@ -12,6 +12,21 @@ Most adapter packages add `100.dp` / `14.sp` extensions on `num` that read a glo
 
 `screen_size_adapter` performs scaling at the binding level by overriding `WidgetsFlutterBinding.createViewConfigurationFor` and multiplying the view's effective `devicePixelRatio` by the computed scale. The exact coordinate contract is `MediaQuery.size = originSize / scale`. Without clamping, only the axis selected by `scaleAxis` aligns with `designSize`; when `minScale` or `maxScale` applies, neither dimension may equal `designSize`. App code can still use plain design-unit values such as `Container(width: 100)` without extension methods.
 
+## Platform and verification boundary
+
+“Stable” describes the integration contract; it does not mean every platform already has runtime evidence. The `0.3.0` boundary is below. Pre-publication evidence must come from the exact release-candidate commit, not an earlier build.
+
+| Target/path | Contract maturity | Current `0.3.0` evidence/status |
+| --- | --- | --- |
+| Standard implicit-view `runApp` | Stable integration boundary | Package and contract tests; see the platform rows for runtime evidence |
+| Android | Stable path, release-gated | A debug build is build evidence only; manual interaction smoke on the exact release-candidate commit is required before publication |
+| iOS | Stable path, release-gated | A remote CI simulator build plus a manual pre-publication smoke; a build does not replace interaction testing |
+| macOS | Stable path, locally verified | packaged profile/release first-frame checks for the checked-in runner |
+| Windows / Linux / Web | Platform-neutral API; runtime unverified for `0.3.0` | No checked-in runner or runtime evidence, so `0.3.0` makes no runtime claim |
+| Same-engine secondary views | Experimental | A real two-view host is required for future graduation to stable, but is not a `0.3.0` release gate |
+
+The application must have one global `WidgetsBinding`; a second custom global binding cannot be installed alongside this package's binding. Host-created same-engine secondary views must also follow the experimental registration and scope contract below.
+
 ## Quick start
 
 <!-- snippet:quick-start -->

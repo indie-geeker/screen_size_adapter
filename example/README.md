@@ -35,7 +35,8 @@ This checkout includes Android, iOS, and macOS runners. Desktop scaling is
 enabled so the behavior is visible in the checked-in macOS runner as well as on
 mobile devices. Windows and Linux runners are not included, so this example is
 not directly runnable on those platforms from this checkout. The package API
-itself remains platform-neutral.
+itself remains platform-neutral, but that does not mean every platform has
+runtime evidence; the public README support table is authoritative.
 
 ## Test
 
@@ -58,8 +59,8 @@ tests cover per-view registry behavior with the real primary `FlutterView`, but
 Flutter's test binding does not create a second engine-backed view. Fake view
 objects would not prove framework or engine behavior.
 
-For release validation, run the example on a desktop target or an Add-to-App
-host that creates a real secondary `FlutterView`, then confirm:
+Before graduating this experimental path, run the example on a desktop target
+or an Add-to-App host that creates a real secondary `FlutterView`, then confirm:
 
 - the secondary view is registered with `attachView(view: ..., config: ...)`;
 - `ScreenSizeAdapterScope` wraps the secondary `View` subtree;

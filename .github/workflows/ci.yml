@@ -8,6 +8,9 @@ on:
       - 'codex/**'
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   package:
     name: Package (Flutter ${{ matrix.flutter-version }})

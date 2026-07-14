@@ -85,6 +85,34 @@ void main() {
       expect(readme, isNot(contains('监听 `OrientationBuilder`')));
       expect(readmeEn, isNot(contains('via `OrientationBuilder`')));
     });
+
+    test(
+      'public READMEs separate contract maturity from platform evidence',
+      () {
+        final readme = File('README.md').readAsStringSync();
+        final readmeEn = File('README_EN.md').readAsStringSync();
+
+        expect(readme, contains('## 平台与验证边界'));
+        expect(readme, contains('| Android | 稳定路径，发布门禁 |'));
+        expect(readme, contains('debug 构建只是构建证据'));
+        expect(readme, contains('远程 CI simulator 构建'));
+        expect(readme, contains('packaged profile/release'));
+        expect(readme, contains('| Windows / Linux / Web |'));
+        expect(readme, contains('`0.3.0` 运行未验证'));
+        expect(readme, contains('不是 `0.3.0` 发布门禁'));
+        expect(readme, contains('第二个自定义全局 binding'));
+
+        expect(readmeEn, contains('## Platform and verification boundary'));
+        expect(readmeEn, contains('| Android | Stable path, release-gated |'));
+        expect(readmeEn, contains('A debug build is build evidence only'));
+        expect(readmeEn, contains('remote CI simulator build'));
+        expect(readmeEn, contains('packaged profile/release'));
+        expect(readmeEn, contains('| Windows / Linux / Web |'));
+        expect(readmeEn, contains('runtime unverified for `0.3.0`'));
+        expect(readmeEn, contains('not a `0.3.0` release gate'));
+        expect(readmeEn, contains('second custom global binding'));
+      },
+    );
   });
 
   group('release metadata', () {
@@ -139,6 +167,7 @@ void main() {
     test('CI gates both SDK lanes and all checked-in example runners', () {
       final workflow = File('.github/workflows/ci.yml').readAsStringSync();
 
+      expect(workflow, contains('permissions:\n  contents: read'));
       expect(workflow, contains("flutter-version: '3.29.2'"));
       expect(workflow, contains('flutter-version: latest-stable'));
       expect(
