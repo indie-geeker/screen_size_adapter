@@ -22,7 +22,7 @@ flutter pub publish --dry-run
 
 - Explain the user-visible behavior change.
 - Add or update tests for behavior changes.
-- Update `README.md`, `README_EN.md`, or `CHANGELOG.md` when public APIs,
+- Update `README.md`, `README_ZH.md`, or `CHANGELOG.md` when public APIs,
   integration steps, defaults, or migration notes change.
 - Keep generated or local-tooling files out of the pub package.
 

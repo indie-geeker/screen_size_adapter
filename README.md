@@ -2,32 +2,32 @@
 
 [![pub package](https://img.shields.io/pub/v/screen_size_adapter.svg)](https://pub.dev/packages/screen_size_adapter)
 
-简体中文 | [English](README_EN.md)
+[简体中文](README_ZH.md) | English
 
-Flutter 屏幕适配方案，在 binding 层完成缩放工作。你的应用代码直接使用设计稿单位的纯数字；自定义 binding 会调整视图的 `devicePixelRatio`。标准 `runApp` 单视图链路稳定可用；宿主创建的同 engine 二级视图接入属于实验性（experimental）能力。
+Binding-level screen-size adaptation for Flutter. Your app code writes plain numbers in design units and the custom binding adjusts the view's `devicePixelRatio`. The standard single-view `runApp` path is stable; same-engine secondary-view integration is experimental.
 
-## 为什么要这样设计
+## Why this design
 
-大部分适配方案在 `num` 上添加 `100.dp` / `14.sp` 类的扩展方法，读取全局单例。这让代码中每个数字字面量都耦合到全局可变状态，无法独立做单元测试，也无法根据调用方所在的 `BuildContext` 选择 view。
+Most adapter packages add `100.dp` / `14.sp` extensions on `num` that read a global singleton. That couples every numeric literal to mutable global state, cannot be unit-tested in isolation, and cannot select a view from the caller's `BuildContext`.
 
-`screen_size_adapter` 把缩放放到 binding 层。它通过重写 `WidgetsFlutterBinding.createViewConfigurationFor`，把 view 的有效 `devicePixelRatio` 乘以计算后的 scale。适配后的精确坐标契约是 `MediaQuery.size = originSize / scale`。未触发 clamp 时只有 `scaleAxis` 选中的轴与 `designSize` 对齐；`minScale` / `maxScale` 生效后，两个维度都可能不等于 `designSize`。代码仍可直接写 `Container(width: 100)` 这样的设计单位纯数字，无需扩展方法。
+`screen_size_adapter` performs scaling at the binding level by overriding `WidgetsFlutterBinding.createViewConfigurationFor` and multiplying the view's effective `devicePixelRatio` by the computed scale. The exact coordinate contract is `MediaQuery.size = originSize / scale`. Without clamping, only the axis selected by `scaleAxis` aligns with `designSize`; when `minScale` or `maxScale` applies, neither dimension may equal `designSize`. App code can still use plain design-unit values such as `Container(width: 100)` without extension methods.
 
-## 平台与验证边界
+## Platform and verification boundary
 
-“稳定”描述的是集成契约，不等于每个平台都已有运行证据。`0.3.0` 的平台边界如下；发布前证据必须来自准备发布的准确 commit，不能由较早构建替代。
+“Stable” describes the integration contract; it does not mean every platform already has runtime evidence. The `0.3.0` boundary is below. Pre-publication evidence must come from the exact release-candidate commit, not an earlier build.
 
-| 目标/路径 | 契约成熟度 | 当前 `0.3.0` 证据/状态 |
+| Target/path | Contract maturity | Current `0.3.0` evidence/status |
 | --- | --- | --- |
-| 标准 implicit-view `runApp` | 稳定集成边界 | package/contract 测试覆盖；具体运行证据见下列平台行 |
-| Android | 稳定路径，发布门禁 | debug 构建只是构建证据；发布前必须对准确的 release-candidate commit 做人工交互 smoke |
-| iOS | 稳定路径，发布门禁 | 远程 CI simulator 构建加发布前人工 smoke；构建不能替代交互验证 |
-| macOS | 稳定路径，本地已验证 | checked-in runner 的 packaged profile/release 首帧验证 |
-| Windows / Linux / Web | API 平台中立；`0.3.0` 运行未验证 | 没有 checked-in runner 或运行证据，因此不做 `0.3.0` 运行承诺 |
-| 同 engine 二级视图 | 实验性（experimental） | 真实 two-view host 是未来升级为 stable 的必要证据，不是 `0.3.0` 发布门禁 |
+| Standard implicit-view `runApp` | Stable integration boundary | Package and contract tests; see the platform rows for runtime evidence |
+| Android | Stable path, release-gated | A debug build is build evidence only; manual interaction smoke on the exact release-candidate commit is required before publication |
+| iOS | Stable path, release-gated | A remote CI simulator build plus a manual pre-publication smoke; a build does not replace interaction testing |
+| macOS | Stable path, locally verified | packaged profile/release first-frame checks for the checked-in runner |
+| Windows / Linux / Web | Platform-neutral API; runtime unverified for `0.3.0` | No checked-in runner or runtime evidence, so `0.3.0` makes no runtime claim |
+| Same-engine secondary views | Experimental | A real two-view host is required for future graduation to stable, but is not a `0.3.0` release gate |
 
-主应用必须独占全局 `WidgetsBinding`：不能同时安装第二个自定义全局 binding。宿主创建的同 engine 二级视图还必须遵循后文的 experimental 注册与 scope 契约。
+The application must have one global `WidgetsBinding`; a second custom global binding cannot be installed alongside this package's binding. Host-created same-engine secondary views must also follow the experimental registration and scope contract below.
 
-## 快速开始
+## Quick start
 
 <!-- snippet:quick-start -->
 ```dart
@@ -67,7 +67,7 @@ class HomePage extends StatelessWidget {
 ```
 <!-- /snippet:quick-start -->
 
-## 配置
+## Configuration
 
 <!-- snippet:configuration -->
 ```dart
@@ -85,20 +85,20 @@ void configureAdapter() {
 ```
 <!-- /snippet:configuration -->
 
-`scaleAxis` 决定按哪个轴计算缩放系数：
+`scaleAxis` controls which axis derives the scale factor:
 
-- `width` — `scale = origin.width / design.width`。默认值。**横竖屏行为**：竖屏时 origin.width 是设备短边，横屏时是长边，scale 跟着变大；好处是 `MediaQuery.width` 在两个方向都等于 `designSize.width`（"两个 180 的矩形永远充满宽度"）。代价是横屏下纵向内容会按同一 scale 放大，超出屏幕高度的部分需要靠 `SingleChildScrollView` 等手段处理 —— 见 [横竖屏](#横竖屏) 章节。如果你需要"长边对长边"的语义，请用 `MediaQuery.orientationOf(context)` 选择设计稿，并在帧后确认 context 仍 mounted、方向仍是最新值且当前配置确实不同，再调用 `ScreenSizeAdapter.setDesignSize`。
-- `height` — `scale = origin.height / design.height`。镜像 `width`：让 `MediaQuery.height == designSize.height`，但 `width` 方向不再固定。
-- `shorter` — 取两个比值中的较小者。设计画布永远完整地塞进屏幕（不会有内容因 scale 过大而溢出），代价是宽度不再固定，**横竖屏下的 scale 不一致**。适合"必须保证设计稿全部可见"的场景（弹窗、全屏插画）。不适合"两个 180 永远充满宽度"。
-- `longer` — 取较大者。设计画布至少有一条边贴满屏幕，另一条边会溢出。配合 `maxScale` 用于裁切式布局。
+- `width` — `scale = origin.width / design.width`. Default. **Orientation behavior:** in portrait `origin.width` is the device's short side; in landscape it's the long side, so the scale grows. The benefit is `MediaQuery.width == designSize.width` in both orientations ("two 180-wide rectangles always fill the width"). The cost is that vertical content scales by the same factor in landscape, so it can overflow the now-compressed view height — see [Orientation](#orientation). If you need "long-side-to-long-side" semantics, choose the design size with `MediaQuery.orientationOf(context)`, then update after the frame only when the context is still mounted, the orientation is still current, and the active config actually differs.
+- `height` — `scale = origin.height / design.height`. Mirror of `width`: pins `MediaQuery.height` to `designSize.height` instead.
+- `shorter` — uses the smaller of the two ratios. The design canvas is always fully visible (no overflow), but the width is no longer pinned, **and the scale differs across orientations**. Suitable when "design must be fully visible" trumps "width consistency" (full-screen illustrations, modal dialogs). Not suitable for the "two 180s fill the width" contract.
+- `longer` — uses the larger ratio. At least one design edge fills the screen; the other overflows. Pairs with `maxScale` for crop-style layouts.
 
-无论选择哪个轴，最终都遵循 `MediaQuery.size = originSize / scale`。未 clamp 时，`width` 只保证宽度对齐，`height` 只保证高度对齐，`shorter` / `longer` 只保证各自选中的比例关系。设置 `minScale` 或 `maxScale` 后，最终 scale 可能被截断，因此宽高都可能不等于 `designSize`。
+Every axis follows `MediaQuery.size = originSize / scale`. Without clamping, `width` aligns only the width, `height` aligns only the height, and `shorter` / `longer` preserve their selected ratio relationship. When `minScale` or `maxScale` clamps the result, both dimensions may differ from `designSize`.
 
-## 实验性二级视图接入（experimental）
+## Experimental secondary-view integration
 
-标准 `runApp` 的 implicit view 属于稳定支持范围。对于桌面多窗口、通过 `View` widget 嵌入的视图、Add-to-App 等同 engine 二级 `FlutterView` 场景，需要为每个宿主视图显式注册；这条接入路径目前是 experimental，不代表已完整验证或稳定支持多视图。
+The standard implicit view used by `runApp` is the stable support boundary. Desktop multi-window, embedded `View` widgets, and Add-to-App scenarios with same-engine secondary `FlutterView`s require explicit registration. That path is experimental; it is not fully verified or advertised as stable multi-view support.
 
-本包管理宿主已经创建的 `FlutterView`，不会自行创建桌面窗口或二级 view。同一 engine 下的真实二级 view 行为必须在对应桌面/Add-to-App 宿主中按 [`tool/verification/desktop_multi_view.md`](tool/verification/desktop_multi_view.md) 验证；registry 单元测试不能替代该验证。
+This package manages `FlutterView`s created by the host; it does not create desktop windows or secondary views. Validate a real same-engine secondary view in the relevant desktop or Add-to-App host using [`tool/verification/desktop_multi_view.md`](tool/verification/desktop_multi_view.md). Registry unit tests are not a substitute for that host-level check.
 
 <!-- snippet:multi-view-registry -->
 ```dart
@@ -125,9 +125,9 @@ void registerSecondaryView(FlutterView secondaryView) {
 ```
 <!-- /snippet:multi-view-registry -->
 
-`ensureInitialized` 只自动注册 `PlatformDispatcher.implicitView`。如果宿主没有 implicit view，则不会猜测 `views.first`，每个宿主视图都必须显式调用 `attachView`。未注册的视图保持 Flutter 的原生行为，不做任何缩放。
+`ensureInitialized` automatically registers only `PlatformDispatcher.implicitView`. If the host has no implicit view, the package does not guess `views.first`; every host-created view must call `attachView` explicitly. Unregistered views fall through to stock Flutter behavior — no scaling.
 
-非主视图（`runWidget` 或 `ViewAnchor` 自行挂载的 `View(...)`）不会自动得到正确的 `MediaQuery` 缩放，需要手动包一层 `ScreenSizeAdapterScope`：
+Non-primary views (those mounted via `runWidget` or `ViewAnchor`) do not get the auto-injected `MediaQuery` scaling. Wrap each subtree manually with `ScreenSizeAdapterScope`:
 
 <!-- snippet:multi-view-scope -->
 ```dart
@@ -145,11 +145,11 @@ Widget buildSecondaryView(FlutterView secondaryView) {
 ```
 <!-- /snippet:multi-view-scope -->
 
-`runApp` 链路下的主视图由 binding 的 `wrapWithDefaultView` 自动注入，应用代码无需任何包装。
+The implicit (primary) view used by `runApp` is wrapped automatically by the binding's `wrapWithDefaultView`, so app code needs no manual wrapping.
 
-## 横竖屏
+## Orientation
 
-未触发 scale bounds 时，默认 `ScaleAxis.width` 让 `MediaQuery.width` 在横竖屏下都等于 `designSize.width`。设计稿写的 `Container(width: 180)` 在 360 设计宽度下占半屏。**代价**是横竖屏 scale 不一致，纵向内容可能溢出；可按产品需求选择以下方式：
+Without scale-bound clamping, the default `ScaleAxis.width` makes `MediaQuery.width` equal `designSize.width` in portrait and landscape. A `Container(width: 180)` on a 360-wide design then occupies half the width. The trade-off is a different scale across orientations and possible vertical overflow. Choose the product-appropriate mitigation:
 
 <!-- snippet:orientation -->
 ```dart
@@ -198,11 +198,11 @@ class OrientationAwareHome extends StatelessWidget {
 ```
 <!-- /snippet:orientation -->
 
-如果你想要"设计画布永远完整可见"（不溢出，但宽度可能不到屏宽）而非"宽度永远等于 designSize.width"，改用 `ScaleAxis.shorter` —— 这两种是不同的 trade-off，根据应用类型选。
+If your goal is "the entire design canvas must be visible" (no overflow, possibly with empty space) rather than "width always matches `designSize.width`", switch to `ScaleAxis.shorter` — these are different trade-offs, choose by app type.
 
-## 响应式断点
+## Responsive breakpoints
 
-适配生效后，`MediaQuery.sizeOf(context)` 返回 `originSize / scale`，它描述的是适配坐标而不是设备原生逻辑尺寸，因此不能作为手机/平板断点。响应式判断请读取 `originSizeOf`：
+Once adaptation is active, `MediaQuery.sizeOf(context)` reports `originSize / scale`. It describes the adapted coordinate space, not the native logical device size, so breakpoint logic should read `originSizeOf` instead:
 
 <!-- snippet:responsive-breakpoint -->
 ```dart
@@ -216,9 +216,9 @@ Widget responsiveLayout(BuildContext context) {
 ```
 <!-- /snippet:responsive-breakpoint -->
 
-`originSizeOf` 等价于 `view.physicalSize / view.devicePixelRatio`，**不**经过 binding 缩放。
+`originSizeOf` is equivalent to `view.physicalSize / view.devicePixelRatio` and is **not** scaled by the binding.
 
-## 运行时更新
+## Runtime updates
 
 <!-- snippet:runtime-updates -->
 ```dart
@@ -231,18 +231,18 @@ void updateAdapter(BuildContext context) {
 ```
 <!-- /snippet:runtime-updates -->
 
-`setDesignSize` 和 `reset` 通过 `View.of(context)` 解析当前激活的视图，因此能精确作用于调用方所在的 FlutterView。`reset` 会清空该视图的 `minScale` / `maxScale`，保证回到原生 `1.0` 比例。
+`setDesignSize` and `reset` resolve the active view via `View.of(context)`, so they target the FlutterView that owns the calling widget. `reset` clears that view's `minScale` / `maxScale` and guarantees native `1.0` scaling.
 
-## 集成限制
+## Integration limits
 
-- `ScreenSizeWidgetsFlutterBinding.ensureInitialized(...)` 必须在 `runApp` 前调用，并且要早于其它会初始化 `WidgetsBinding` 的代码。这个包通过自定义 binding 接管视图配置，不能在另一个 binding 已安装后再切换。
-- 如果你的应用或测试框架已经使用其它自定义 `WidgetsBinding`，需要先评估谁负责 `createViewConfigurationFor` 和 pointer event 的处理；两个 binding 不能同时成为全局 binding。
-- `testWidgets` 使用 Flutter 自带测试 binding，不能安装生产 binding。`ScreenSizeTestEnvironment` 只模拟适配后的 `MediaQuery`；布局断言请显式使用 `ScreenSizeTestViewport`。
-- 非主 `FlutterView` 需要同时做两件事：调用 `ScreenSizeWidgetsFlutterBinding.instance.attachView(...)` 注册视图，并在该 `View` 子树外包 `ScreenSizeAdapterScope`。
+- `ScreenSizeWidgetsFlutterBinding.ensureInitialized(...)` must run before `runApp` and before any code that initializes `WidgetsBinding`. This package works by installing a custom binding, so it cannot replace another binding after one is already active.
+- If your app or test harness already uses another custom `WidgetsBinding`, decide which binding owns `createViewConfigurationFor` and pointer-event handling. Two bindings cannot both be the global binding.
+- `testWidgets` uses Flutter's test binding, so it cannot install the production binding. `ScreenSizeTestEnvironment` simulates only the adapted `MediaQuery`; use `ScreenSizeTestViewport` explicitly for layout assertions.
+- Non-primary `FlutterView`s need both steps: register the view with `ScreenSizeWidgetsFlutterBinding.instance.attachView(...)`, and wrap that `View` subtree with `ScreenSizeAdapterScope`.
 
-## 测试
+## Testing
 
-`ScreenSizeTestEnvironment` 是 MediaQuery-only 模拟，不会替换测试 binding 的根约束。`ScreenSizeTestViewport` 在其基础上为被包装子树提供与 `MediaQuery.size` 相同的紧约束，适合布局和 overlay 断言。两者都不会安装 `RenderView`、创建 engine-backed `FlutterView`、证明根 hit testing，也不会执行生产 pointer converter。
+`ScreenSizeTestEnvironment` is MediaQuery-only and does not replace the test binding's root constraints. `ScreenSizeTestViewport` additionally gives its wrapped subtree tight constraints equal to `MediaQuery.size`, which is useful for layout and overlay assertions. Neither helper installs a `RenderView`, creates an engine-backed `FlutterView`, proves root hit testing, or executes the production pointer converter.
 
 <!-- snippet:widget-test-helper -->
 ```dart
@@ -269,7 +269,7 @@ void main() {
 ```
 <!-- /snippet:widget-test-helper -->
 
-如需对缩放计算做纯单元测试，可直接调用 `ScreenSizeAdapter.computeScale(...)`：
+For pure unit tests of the math, call `ScreenSizeAdapter.computeScale(...)` directly:
 
 <!-- snippet:compute-scale-test -->
 ```dart
@@ -291,7 +291,7 @@ void main() {
 ```
 <!-- /snippet:compute-scale-test -->
 
-## 环境要求
+## Requirements
 
 - Flutter `>=3.29.2`
 - Dart `^3.7.2`
@@ -302,4 +302,4 @@ This package does not process network data or secrets. For security-sensitive re
 
 ## License
 
-参见 `LICENSE`。
+See `LICENSE`.

@@ -19,7 +19,7 @@ Future<void> main() async {
     verifyReadmeSnippets(
       documents: {
         'README.md': File('README.md').readAsStringSync(),
-        'README_EN.md': File('README_EN.md').readAsStringSync(),
+        'README_ZH.md': File('README_ZH.md').readAsStringSync(),
       },
       fixtureFiles: fixtureFiles,
     );

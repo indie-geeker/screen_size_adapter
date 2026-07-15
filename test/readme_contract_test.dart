@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('README integration snippets', () {
-    for (final filename in ['README.md', 'README_EN.md']) {
+    for (final filename in ['README.md', 'README_ZH.md']) {
       test('$filename does not show stale compatibility APIs', () {
         final readme = File(filename).readAsStringSync();
 
@@ -80,37 +80,37 @@ void main() {
       expect(orientationFixture, contains('configForView(view)?.designSize'));
       expect(orientationFixture, isNot(contains('OrientationBuilder(')));
 
+      final readmeZh = File('README_ZH.md').readAsStringSync();
       final readme = File('README.md').readAsStringSync();
-      final readmeEn = File('README_EN.md').readAsStringSync();
-      expect(readme, isNot(contains('监听 `OrientationBuilder`')));
-      expect(readmeEn, isNot(contains('via `OrientationBuilder`')));
+      expect(readmeZh, isNot(contains('监听 `OrientationBuilder`')));
+      expect(readme, isNot(contains('via `OrientationBuilder`')));
     });
 
     test(
       'public READMEs separate contract maturity from platform evidence',
       () {
+        final readmeZh = File('README_ZH.md').readAsStringSync();
         final readme = File('README.md').readAsStringSync();
-        final readmeEn = File('README_EN.md').readAsStringSync();
 
-        expect(readme, contains('## 平台与验证边界'));
-        expect(readme, contains('| Android | 稳定路径，发布门禁 |'));
-        expect(readme, contains('debug 构建只是构建证据'));
-        expect(readme, contains('远程 CI simulator 构建'));
+        expect(readmeZh, contains('## 平台与验证边界'));
+        expect(readmeZh, contains('| Android | 稳定路径，发布门禁 |'));
+        expect(readmeZh, contains('debug 构建只是构建证据'));
+        expect(readmeZh, contains('远程 CI simulator 构建'));
+        expect(readmeZh, contains('packaged profile/release'));
+        expect(readmeZh, contains('| Windows / Linux / Web |'));
+        expect(readmeZh, contains('`0.3.0` 运行未验证'));
+        expect(readmeZh, contains('不是 `0.3.0` 发布门禁'));
+        expect(readmeZh, contains('第二个自定义全局 binding'));
+
+        expect(readme, contains('## Platform and verification boundary'));
+        expect(readme, contains('| Android | Stable path, release-gated |'));
+        expect(readme, contains('A debug build is build evidence only'));
+        expect(readme, contains('remote CI simulator build'));
         expect(readme, contains('packaged profile/release'));
         expect(readme, contains('| Windows / Linux / Web |'));
-        expect(readme, contains('`0.3.0` 运行未验证'));
-        expect(readme, contains('不是 `0.3.0` 发布门禁'));
-        expect(readme, contains('第二个自定义全局 binding'));
-
-        expect(readmeEn, contains('## Platform and verification boundary'));
-        expect(readmeEn, contains('| Android | Stable path, release-gated |'));
-        expect(readmeEn, contains('A debug build is build evidence only'));
-        expect(readmeEn, contains('remote CI simulator build'));
-        expect(readmeEn, contains('packaged profile/release'));
-        expect(readmeEn, contains('| Windows / Linux / Web |'));
-        expect(readmeEn, contains('runtime unverified for `0.3.0`'));
-        expect(readmeEn, contains('not a `0.3.0` release gate'));
-        expect(readmeEn, contains('second custom global binding'));
+        expect(readme, contains('runtime unverified for `0.3.0`'));
+        expect(readme, contains('not a `0.3.0` release gate'));
+        expect(readme, contains('second custom global binding'));
       },
     );
   });
@@ -128,7 +128,7 @@ void main() {
       expect(workflow, contains("flutter-version: '3.29.2'"));
       expect(workflow, isNot(contains("flutter-version: '3.29.0'")));
 
-      for (final filename in ['README.md', 'README_EN.md']) {
+      for (final filename in ['README.md', 'README_ZH.md']) {
         final readme = File(filename).readAsStringSync();
         expect(readme, contains('Flutter `>=3.29.2`'));
         expect(readme, contains('Dart `^3.7.2`'));
@@ -189,7 +189,7 @@ void main() {
       const checklist = 'tool/verification/desktop_multi_view.md';
       for (final filename in [
         'README.md',
-        'README_EN.md',
+        'README_ZH.md',
         'CHANGELOG.md',
         'lib/src/screen_size_adapter_controller.dart',
         'lib/src/screen_size_adapter_scope.dart',

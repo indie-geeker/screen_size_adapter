@@ -37,14 +37,14 @@ void main() { }
 
     expect(
       () => verifyReadmeSnippets(
-        documents: const {'README_EN.md': drifted},
+        documents: const {'README_ZH.md': drifted},
         fixtureFiles: const {'quick_start.dart': fixture},
       ),
       throwsA(
         predicate(
           (error) =>
               '$error'.contains('quick-start') &&
-              '$error'.contains('README_EN.md'),
+              '$error'.contains('README_ZH.md'),
         ),
       ),
     );
@@ -108,14 +108,14 @@ void main() {}
   test('missing IDs between documents are rejected', () {
     expect(
       () => verifyReadmeSnippets(
-        documents: const {'README.md': readme, 'README_EN.md': ''},
+        documents: const {'README.md': readme, 'README_ZH.md': ''},
         fixtureFiles: const {'quick_start.dart': fixture},
       ),
       throwsA(
         predicate(
           (error) =>
               '$error'.contains('quick-start') &&
-              '$error'.contains('README_EN.md'),
+              '$error'.contains('README_ZH.md'),
         ),
       ),
     );
