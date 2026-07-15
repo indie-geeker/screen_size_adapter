@@ -14,7 +14,7 @@ Most adapter packages add `100.dp` / `14.sp` extensions on `num` that read a glo
 
 ## Platform and verification boundary
 
-“Stable” describes the integration contract; it does not mean every platform already has runtime evidence. The `1.0.0` boundary is below. Pre-publication evidence must come from the exact release-candidate commit, not an earlier build.
+“Stable” describes the integration contract; it does not mean every platform already has runtime evidence. The `1.0.0` boundary is below. 
 
 | Target/path | Contract maturity | Current `1.0.0` evidence/status |
 | --- | --- | --- |
