@@ -18,8 +18,9 @@ class OrientationDesignDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SectionCard(
-      title: '横竖屏自动切换设计稿',
-      subtitle: '竖屏 → ${_fmt(kPortraitDesign)}；横屏 → ${_fmt(kLandscapeDesign)}',
+      title: 'Auto-swap Design Size by Orientation',
+      subtitle:
+          'Portrait → ${_fmt(kPortraitDesign)}; Landscape → ${_fmt(kLandscapeDesign)}',
       accent: Colors.teal,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,11 +31,11 @@ class OrientationDesignDemo extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             dense: true,
             title: const Text(
-              '随方向切换 designSize',
+              'Auto-swap designSize',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
             subtitle: const Text(
-              '关闭时由 "运行时切换设计稿" 区块手动控制',
+              'When disabled, manually control via the "Runtime Design Size Preset" section',
               style: TextStyle(fontSize: 11),
             ),
           ),
@@ -60,17 +61,23 @@ class _AutoSwapBody extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
       if (!settings.autoSwapByOrientation) return;
-      if (settings.designSize == target) return;
-      if (WidgetsBinding.instance is ScreenSizeWidgetsFlutterBinding) {
-        ScreenSizeAdapter.setDesignSize(context, target);
+      if (MediaQuery.orientationOf(context) != orientation) return;
+      final binding = WidgetsBinding.instance;
+      if (binding is ScreenSizeWidgetsFlutterBinding) {
+        final view = View.of(context);
+        if (binding.configForView(view)?.designSize != target) {
+          ScreenSizeAdapter.setDesignSize(context, target);
+        }
       }
-      settings.setDesignSize(target);
+      if (settings.designSize != target) {
+        settings.setDesignSize(target);
+      }
     });
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Text(
-        '当前 MediaQuery 报告：'
-        '${isLandscape ? "landscape" : "portrait"} → 目标设计稿 '
+        'Current MediaQuery reports: '
+        '${isLandscape ? "landscape" : "portrait"} → Target design size '
         '${target.width.toInt()}×${target.height.toInt()}',
         style: const TextStyle(fontSize: 12, color: Colors.black87),
       ),

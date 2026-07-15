@@ -21,9 +21,9 @@ class ScaleBoundsControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SectionCard(
-      title: '缩放边界与重置',
+      title: 'Scale Bounds & Reset',
       subtitle:
-          '当前：${_bound(settings.minScale)} – ${_bound(settings.maxScale)}',
+          'Current: ${_bound(settings.minScale)} – ${_bound(settings.maxScale)}',
       accent: Colors.indigo,
       child: Wrap(
         spacing: 8,
@@ -31,15 +31,15 @@ class ScaleBoundsControls extends StatelessWidget {
         children: [
           OutlinedButton(
             onPressed: () => _setBounds(context, minScale: 0.8, maxScale: 1.2),
-            child: const Text('限制为 0.8–1.2'),
+            child: const Text('Limit to 0.8–1.2'),
           ),
           OutlinedButton(
             onPressed: () => _setBounds(context),
-            child: const Text('移除 scale 限制'),
+            child: const Text('Clear scale limits'),
           ),
           FilledButton.tonal(
             onPressed: () => _reset(context),
-            child: const Text('重置为原生 scale=1'),
+            child: const Text('Reset to native (scale=1)'),
           ),
         ],
       ),
@@ -74,7 +74,7 @@ class ScaleBoundsControls extends StatelessWidget {
     settings.setScaleBounds(minScale: null, maxScale: null);
   }
 
-  static String _bound(double? value) => value?.toStringAsFixed(2) ?? '无限制';
+  static String _bound(double? value) => value?.toStringAsFixed(2) ?? 'Unlimited';
 }
 
 /// 一组按钮，运行时调 [ScreenSizeAdapter.setDesignSize] 切设计稿。
@@ -90,8 +90,8 @@ class DesignSizeButtons extends StatelessWidget {
       return const SizedBox.shrink();
     }
     return SectionCard(
-      title: '运行时切换设计稿',
-      subtitle: '当前：${_fmt(settings.designSize)} — 切换后立即重算 scale',
+      title: 'Runtime Design Size Preset',
+      subtitle: 'Current: ${_fmt(settings.designSize)} — recalculates scale immediately',
       accent: Colors.amber,
       child: Wrap(
         spacing: 8,

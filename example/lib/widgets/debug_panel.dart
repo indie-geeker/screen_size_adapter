@@ -26,9 +26,9 @@ import 'info_row.dart';
   final matched = delta.width < eps && delta.height < eps;
   final message =
       matched
-          ? '✅ MQ × scale ≈ origin — 核心坐标契约成立'
-          : '⚠️ MQ × scale = ${_fmt(reconstructed)}；'
-              'origin = ${_fmt(origin)}；偏差 ${_fmt(delta)}';
+          ? '✅ MQ × scale ≈ origin — Core coordinate contract holds'
+          : '⚠️ MQ × scale = ${_fmt(reconstructed)}; '
+              'origin = ${_fmt(origin)}; delta = ${_fmt(delta)}';
 
   final widthScale = origin.width / design.width;
   final heightScale = origin.height / design.height;
@@ -43,14 +43,14 @@ import 'info_row.dart';
       (maxScale != null && rawScale > maxScale);
   final fitMessage =
       boundActive
-          ? 'ℹ scale 限制生效（原始 ${rawScale.toStringAsFixed(3)} → '
-              '${scale.toStringAsFixed(3)}），MediaQuery 两轴不要求与设计稿对齐。'
+          ? 'ℹ scale limit active (raw ${rawScale.toStringAsFixed(3)} → '
+              '${scale.toStringAsFixed(3)}), MQ axes not required to align with design size.'
           : switch (axis) {
-            ScaleAxis.width => 'ℹ width 轴与设计稿贴合；height 不要求对齐。',
-            ScaleAxis.height => 'ℹ height 轴与设计稿贴合；width 不要求对齐。',
-            ScaleAxis.shorter => 'ℹ shorter 选择较小比例，设计稿完整落入视口。',
-            ScaleAxis.longer => 'ℹ longer 选择较大比例，至少一轴与设计稿贴合。',
-          };
+              ScaleAxis.width => 'ℹ width axis fits design size; height not required to align.',
+              ScaleAxis.height => 'ℹ height axis fits design size; width not required to align.',
+              ScaleAxis.shorter => 'ℹ shorter selects min scale; entire design fits viewport.',
+              ScaleAxis.longer => 'ℹ longer selects max scale; at least one axis fits.',
+            };
 
   return (matched: matched, message: message, fitMessage: fitMessage);
 }
@@ -100,18 +100,18 @@ class DebugPanel extends StatelessWidget {
         children: [
           const _PanelHeader(),
           const SizedBox(height: 8),
-          InfoRow.dark(label: '设计稿尺寸', value: _fmt(designSize)),
-          InfoRow.dark(label: '物理逻辑尺寸（origin）', value: _fmt(origin)),
-          InfoRow.dark(label: 'MediaQuery 尺寸', value: _fmt(mq)),
-          InfoRow.dark(label: '当前 scale', value: scale.toStringAsFixed(3)),
-          InfoRow.dark(label: '当前 axis', value: scaleAxis.name),
+          InfoRow.dark(label: 'Design size', value: _fmt(designSize)),
+          InfoRow.dark(label: 'Physical size (origin)', value: _fmt(origin)),
+          InfoRow.dark(label: 'MediaQuery size', value: _fmt(mq)),
+          InfoRow.dark(label: 'Current scale', value: scale.toStringAsFixed(3)),
+          InfoRow.dark(label: 'Current axis', value: scaleAxis.name),
           InfoRow.dark(
-            label: 'scale 限制',
+            label: 'scale bounds',
             value: '${_bound(minScale)} – ${_bound(maxScale)}',
           ),
           InfoRow.dark(
-            label: '方向',
-            value: isLandscape ? '横屏 landscape' : '竖屏 portrait',
+            label: 'Orientation',
+            value: isLandscape ? 'landscape' : 'portrait',
           ),
           const SizedBox(height: 8),
           const Divider(color: Colors.white24, height: 1),
@@ -127,7 +127,7 @@ class DebugPanel extends StatelessWidget {
     );
   }
 
-  static String _bound(double? value) => value?.toStringAsFixed(2) ?? '无限制';
+  static String _bound(double? value) => value?.toStringAsFixed(2) ?? 'Unlimited';
 }
 
 class _PanelHeader extends StatelessWidget {
@@ -141,7 +141,7 @@ class _PanelHeader extends StatelessWidget {
         SizedBox(width: 6),
         Expanded(
           child: Text(
-            'screen_size_adapter · 实时调试',
+            'screen_size_adapter · Live Debugging',
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: Colors.white,

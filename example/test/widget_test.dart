@@ -21,22 +21,22 @@ void main() {
     );
     await tester.pump();
     expect(find.byType(MyApp), findsOneWidget);
-    expect(find.text('screen_size_adapter · 实时调试'), findsOneWidget);
-    expect(find.text('限制为 0.8–1.2'), findsOneWidget);
-    expect(find.text('移除 scale 限制'), findsOneWidget);
-    expect(find.text('重置为原生 scale=1'), findsOneWidget);
+    expect(find.text('screen_size_adapter · Live Debugging'), findsOneWidget);
+    expect(find.text('Limit to 0.8–1.2'), findsOneWidget);
+    expect(find.text('Clear scale limits'), findsOneWidget);
+    expect(find.text('Reset to native (scale=1)'), findsOneWidget);
     expect(
-      find.byTooltip('未触发 min/max 限制时：MQ.width = design.width'),
+      find.byTooltip('Without min/max limits: MQ.width = design.width'),
       findsOneWidget,
     );
     expect(
-      find.byTooltip('未触发 min/max 限制时：MQ.height = design.height'),
+      find.byTooltip('Without min/max limits: MQ.height = design.height'),
       findsOneWidget,
     );
-    expect(find.textContaining('原生逻辑像素'), findsWidgets);
+    expect(find.textContaining('native logic px'), findsWidgets);
     expect(find.textContaining('raw px'), findsNothing);
     expect(find.textContaining('设备真实像素'), findsNothing);
-    expect(find.textContaining('旋转设备或调整窗口会同时改变两侧视口'), findsOneWidget);
+    expect(find.textContaining('rotating or resizing affects both'), findsOneWidget);
   });
 
   testWidgets('native reset disables orientation auto swap', (tester) async {
@@ -49,13 +49,13 @@ void main() {
     );
     await tester.pump();
 
-    final reset = find.text('重置为原生 scale=1');
+    final reset = find.text('Reset to native (scale=1)');
     await tester.ensureVisible(reset);
     await tester.tap(reset);
     await tester.pumpAndSettle();
 
     final orientationToggle = tester.widget<SwitchListTile>(
-      find.widgetWithText(SwitchListTile, '随方向切换 designSize'),
+      find.widgetWithText(SwitchListTile, 'Auto-swap designSize'),
     );
     expect(orientationToggle.value, isFalse);
   });
@@ -82,7 +82,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.textContaining('当前 MediaQuery 报告：landscape → 目标设计稿 640×360'),
+      find.textContaining('Current MediaQuery reports: landscape → Target design size 640×360'),
       findsOneWidget,
     );
     expect(settings.designSize, kLandscapeDesign);

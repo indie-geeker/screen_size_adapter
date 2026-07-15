@@ -15,8 +15,8 @@ class ScaleAxisPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SectionCard(
-      title: 'ScaleAxis（横竖屏的核心选择）',
-      subtitle: '不同 axis 在横竖屏下的 trade-off 不同 — 见下面充满宽度验证',
+      title: 'ScaleAxis (Core choice)',
+      subtitle: 'Different axes have different trade-offs — see width validation below',
       accent: Colors.deepPurple,
       child: Wrap(
         spacing: 8,
@@ -72,16 +72,16 @@ class _AxisChip extends StatelessWidget {
   }
 
   static String _label(ScaleAxis axis) => switch (axis) {
-    ScaleAxis.width => 'width（默认）',
+    ScaleAxis.width => 'width (default)',
     ScaleAxis.height => 'height',
-    ScaleAxis.shorter => 'shorter（画布完整）',
-    ScaleAxis.longer => 'longer（贴边裁切）',
+    ScaleAxis.shorter => 'shorter (entire design fits)',
+    ScaleAxis.longer => 'longer (cropped to edges)',
   };
 
   static String _tooltip(ScaleAxis axis) => switch (axis) {
-    ScaleAxis.width => '未触发 min/max 限制时：MQ.width = design.width',
-    ScaleAxis.height => '未触发 min/max 限制时：MQ.height = design.height',
-    ScaleAxis.shorter => '取较小比；圆永远是圆，但宽度不再固定',
-    ScaleAxis.longer => '取较大比；至少一边贴满，另一边可能溢出',
+    ScaleAxis.width => 'Without min/max limits: MQ.width = design.width',
+    ScaleAxis.height => 'Without min/max limits: MQ.height = design.height',
+    ScaleAxis.shorter => 'Takes min scale; design always fits, but dimensions vary',
+    ScaleAxis.longer => 'Takes max scale; fills viewport, but edges may crop',
   };
 }

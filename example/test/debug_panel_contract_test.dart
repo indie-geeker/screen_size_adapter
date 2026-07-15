@@ -34,8 +34,8 @@ void main() {
       );
 
       expect(result.matched, isTrue);
-      expect(result.fitMessage, contains('width 轴'));
-      expect(result.fitMessage, contains('height 不要求'));
+      expect(result.fitMessage, contains('width axis'));
+      expect(result.fitMessage, contains('height not required'));
     });
 
     test(
@@ -52,8 +52,8 @@ void main() {
         );
 
         expect(result.matched, isTrue);
-        expect(result.fitMessage, contains('scale 限制生效'));
-        expect(result.fitMessage, contains('不要求与设计稿对齐'));
+        expect(result.fitMessage, contains('scale limit active'));
+        expect(result.fitMessage, contains('not required to align'));
       },
     );
 
@@ -70,7 +70,7 @@ void main() {
 
       expect(result.matched, isFalse);
       expect(result.message, contains('MQ × scale = 1080.0 × 1900.0'));
-      expect(result.message, contains('偏差 0.0 × 20.0'));
+      expect(result.message, contains('delta = 0.0 × 20.0'));
     });
   });
 }

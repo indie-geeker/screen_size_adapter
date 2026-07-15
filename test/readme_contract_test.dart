@@ -98,8 +98,8 @@ void main() {
         expect(readmeZh, contains('远程 CI simulator 构建'));
         expect(readmeZh, contains('packaged profile/release'));
         expect(readmeZh, contains('| Windows / Linux / Web |'));
-        expect(readmeZh, contains('`0.3.0` 运行未验证'));
-        expect(readmeZh, contains('不是 `0.3.0` 发布门禁'));
+        expect(readmeZh, contains('`1.0.0` 运行未验证'));
+        expect(readmeZh, contains('不是 `1.0.0` 发布门禁'));
         expect(readmeZh, contains('第二个自定义全局 binding'));
 
         expect(readme, contains('## Platform and verification boundary'));
@@ -108,8 +108,8 @@ void main() {
         expect(readme, contains('remote CI simulator build'));
         expect(readme, contains('packaged profile/release'));
         expect(readme, contains('| Windows / Linux / Web |'));
-        expect(readme, contains('runtime unverified for `0.3.0`'));
-        expect(readme, contains('not a `0.3.0` release gate'));
+        expect(readme, contains('runtime unverified for `1.0.0`'));
+        expect(readme, contains('not a `1.0.0` release gate'));
         expect(readme, contains('second custom global binding'));
       },
     );
@@ -136,11 +136,10 @@ void main() {
       }
     });
 
-    test('unpublished 0.3.0 changelog is not pre-dated', () {
+    test('published 1.0.0 changelog is dated', () {
       final changelog = File('CHANGELOG.md').readAsStringSync();
 
-      expect(changelog, contains('## [0.3.0] - Unreleased'));
-      expect(changelog, isNot(contains('## [0.3.0] - 2026-07-09')));
+      expect(changelog, contains('## [1.0.0] - 2026-07-15'));
     });
 
     test('pubspec does not advertise stable multi-view support', () {

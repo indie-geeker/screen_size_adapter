@@ -14,16 +14,16 @@ Most adapter packages add `100.dp` / `14.sp` extensions on `num` that read a glo
 
 ## Platform and verification boundary
 
-“Stable” describes the integration contract; it does not mean every platform already has runtime evidence. The `0.3.0` boundary is below. Pre-publication evidence must come from the exact release-candidate commit, not an earlier build.
+“Stable” describes the integration contract; it does not mean every platform already has runtime evidence. The `1.0.0` boundary is below. Pre-publication evidence must come from the exact release-candidate commit, not an earlier build.
 
-| Target/path | Contract maturity | Current `0.3.0` evidence/status |
+| Target/path | Contract maturity | Current `1.0.0` evidence/status |
 | --- | --- | --- |
 | Standard implicit-view `runApp` | Stable integration boundary | Package and contract tests; see the platform rows for runtime evidence |
 | Android | Stable path, release-gated | A debug build is build evidence only; manual interaction smoke on the exact release-candidate commit is required before publication |
 | iOS | Stable path, release-gated | A remote CI simulator build plus a manual pre-publication smoke; a build does not replace interaction testing |
 | macOS | Stable path, locally verified | packaged profile/release first-frame checks for the checked-in runner |
-| Windows / Linux / Web | Platform-neutral API; runtime unverified for `0.3.0` | No checked-in runner or runtime evidence, so `0.3.0` makes no runtime claim |
-| Same-engine secondary views | Experimental | A real two-view host is required for future graduation to stable, but is not a `0.3.0` release gate |
+| Windows / Linux / Web | Platform-neutral API; runtime unverified for `1.0.0` | No checked-in runner or runtime evidence, so `1.0.0` makes no runtime claim |
+| Same-engine secondary views | Experimental | A real two-view host is required for future graduation to stable, but is not a `1.0.0` release gate |
 
 The application must have one global `WidgetsBinding`; a second custom global binding cannot be installed alongside this package's binding. Host-created same-engine secondary views must also follow the experimental registration and scope contract below.
 

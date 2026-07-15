@@ -88,8 +88,8 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
         (mqSize.height - rawSize.height).abs() < 0.5;
 
     return SectionCard(
-      title: 'Adapter 开/关 孪生（同代码、对照实验）',
-      subtitle: '左：adapter 接管缩放。右：模拟没装 adapter，使用原生逻辑像素。',
+      title: 'Adapter On/Off Twin (Same code, A/B test)',
+      subtitle: 'Left: Adapter scales viewport. Right: Mocking no adapter, native logical pixels.',
       accent: Colors.indigo,
       child: LayoutBuilder(
         builder: (ctx, constraints) {
@@ -100,7 +100,7 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
           );
           if (geom.scale <= 0) {
             return const Text(
-              '⚠ 视口尺寸异常，无法渲染对照',
+              '⚠ Viewport size abnormal, cannot render contrast',
               style: TextStyle(fontSize: 12, color: Colors.black54),
             );
           }
@@ -114,7 +114,7 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                     label:
                         'adapter on · viewport '
                         '${mqSize.width.toStringAsFixed(0)}×'
-                        '${mqSize.height.toStringAsFixed(0)} 设计单位',
+                        '${mqSize.height.toStringAsFixed(0)} design units',
                     bezelSize: geom.left,
                     canvasSize: mqSize,
                     accent: Colors.indigo,
@@ -124,7 +124,7 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                     label:
                         'adapter off · viewport '
                         '${rawSize.width.toStringAsFixed(0)}×'
-                        '${rawSize.height.toStringAsFixed(0)} 原生逻辑像素',
+                        '${rawSize.height.toStringAsFixed(0)} native logic px',
                     bezelSize: geom.right,
                     canvasSize: rawSize,
                     accent: Colors.orange,
@@ -134,19 +134,18 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '设计稿 ${widget.designSize.width.toInt()}×${widget.designSize.height.toInt()}'
-                  ' — Picker 改这个值会让左 bezel 变形（mq 跟着变），右 bezel 不变。',
+                  'Design size ${widget.designSize.width.toInt()}×${widget.designSize.height.toInt()}'
+                  ' — Changing this preset modifies the left viewport (MQ changes) while the right remains unchanged.',
                   style: const TextStyle(fontSize: 11, color: Colors.black54),
                 ),
               ),
               const SizedBox(height: 12),
               const Text(
-                '同一份代码 width: 280, height: 56——'
-                '左侧（adapter 接管缩放）保持作者预期占比；'
-                '右侧（无 adapter 模拟）按原生逻辑尺寸渲染。'
-                '切换 ScaleAxis 或 designSize 只改变左侧适配坐标；'
-                '旋转设备或调整窗口会同时改变两侧视口，'
-                '右侧始终使用原生逻辑尺寸。',
+                'Same code (width: 280, height: 56) is rendered. '
+              'Left (adapted) preserves author design ratios; '
+              'Right (native mock) is sized by native logical pixels. '
+              'Changing ScaleAxis or designSize only shifts the left adapted viewport; '
+              'rotating or resizing affects both, but the right remains strictly native.',
                 style: TextStyle(
                   fontSize: 11,
                   color: Colors.black54,
@@ -157,8 +156,8 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                 const Padding(
                   padding: EdgeInsets.only(top: 4),
                   child: Text(
-                    'ℹ 当前 scale=1.0（adapter 未在该 view 缩放），'
-                    '两侧本就一致是预期。',
+                    'ℹ Currently scale=1.0 (no scaling on this view), '
+                    'both sides matching is expected.',
                     style: TextStyle(fontSize: 11, color: Colors.black45),
                   ),
                 ),
@@ -166,7 +165,7 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
                 const Padding(
                   padding: EdgeInsets.only(top: 4),
                   child: Text(
-                    'ℹ 窗口/视口太大，缩略图细节弱化。',
+                    'ℹ Viewport too large, thumbnail details scaled down.',
                     style: TextStyle(fontSize: 11, color: Colors.black45),
                   ),
                 ),

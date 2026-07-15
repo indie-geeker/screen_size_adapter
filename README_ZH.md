@@ -14,16 +14,16 @@ Flutter 屏幕适配方案，在 binding 层完成缩放工作。你的应用代
 
 ## 平台与验证边界
 
-“稳定”描述的是集成契约，不等于每个平台都已有运行证据。`0.3.0` 的平台边界如下；发布前证据必须来自准备发布的准确 commit，不能由较早构建替代。
+“稳定”描述的是集成契约，不等于每个平台都已有运行证据。`1.0.0` 的平台边界如下；发布前证据必须来自准备发布的准确 commit，不能由较早构建替代。
 
-| 目标/路径 | 契约成熟度 | 当前 `0.3.0` 证据/状态 |
+| 目标/路径 | 契约成熟度 | 当前 `1.0.0` 证据/状态 |
 | --- | --- | --- |
 | 标准 implicit-view `runApp` | 稳定集成边界 | package/contract 测试覆盖；具体运行证据见下列平台行 |
 | Android | 稳定路径，发布门禁 | debug 构建只是构建证据；发布前必须对准确的 release-candidate commit 做人工交互 smoke |
 | iOS | 稳定路径，发布门禁 | 远程 CI simulator 构建加发布前人工 smoke；构建不能替代交互验证 |
 | macOS | 稳定路径，本地已验证 | checked-in runner 的 packaged profile/release 首帧验证 |
-| Windows / Linux / Web | API 平台中立；`0.3.0` 运行未验证 | 没有 checked-in runner 或运行证据，因此不做 `0.3.0` 运行承诺 |
-| 同 engine 二级视图 | 实验性（experimental） | 真实 two-view host 是未来升级为 stable 的必要证据，不是 `0.3.0` 发布门禁 |
+| Windows / Linux / Web | API 平台中立；`1.0.0` 运行未验证 | 没有 checked-in runner 或运行证据，因此不做 `1.0.0` 运行承诺 |
+| 同 engine 二级视图 | 实验性（experimental） | 真实 two-view host 是未来升级为 stable 的必要证据，不是 `1.0.0` 发布门禁 |
 
 主应用必须独占全局 `WidgetsBinding`：不能同时安装第二个自定义全局 binding。宿主创建的同 engine 二级视图还必须遵循后文的 experimental 注册与 scope 契约。
 

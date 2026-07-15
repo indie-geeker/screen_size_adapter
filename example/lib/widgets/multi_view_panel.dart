@@ -47,15 +47,15 @@ class _MultiViewPanelState extends State<MultiViewPanel>
     final views = PlatformDispatcher.instance.views.toList();
 
     return SectionCard(
-      title: '实验性 view registry 检查器',
-      subtitle: '仅检查 registry；二级 view 接入需由真实宿主单独验证',
+      title: 'Experimental View Registry Checker',
+      subtitle: 'Checks registry only; secondary view integration must be verified on a real host',
       accent: Colors.blueGrey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '共 ${views.length} 个 FlutterView'
-            '${views.length == 1 ? "（移动端默认值；桌面多窗会出现多个）" : ""}',
+            'Total ${views.length} FlutterView(s)'
+            '${views.length == 1 ? " (default on mobile; multiple on desktop multi-window)" : ""}',
             style: const TextStyle(fontSize: 12, color: Colors.black87),
           ),
           const SizedBox(height: 6),
@@ -94,7 +94,7 @@ class _ViewRow extends StatelessWidget {
         children: [
           Text(
             'viewId = ${view.viewId}'
-            '${config == null ? "（未注册 — 走 Flutter 原生行为）" : "（已注册）"}',
+            '${config == null ? " (unregistered — native Flutter behavior)" : " (registered)"}',
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
@@ -104,14 +104,14 @@ class _ViewRow extends StatelessWidget {
           ),
           InfoRow(label: 'devicePixelRatio', value: dpr.toStringAsFixed(2)),
           InfoRow(
-            label: '注册的 designSize',
+            label: 'Registered designSize',
             value:
                 config == null
                     ? '—'
                     : '${config.designSize.width.toInt()}×'
                         '${config.designSize.height.toInt()}',
           ),
-          InfoRow(label: '当前 scale', value: scale?.toStringAsFixed(3) ?? '—'),
+          InfoRow(label: 'Current scale', value: scale?.toStringAsFixed(3) ?? '—'),
           InfoRow(label: 'scaleAxis', value: config?.scaleAxis.name ?? '—'),
         ],
       ),
@@ -125,12 +125,12 @@ class _MultiViewHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Text(
-      '此面板只检查实验性 registry，不创建二级 FlutterView，也不能替代真实宿主验证。'
-      '在桌面多窗、runWidget + View、ViewAnchor、Add-to-App 等场景，'
-      '为每个非主 view 调 binding.attachView(view: ..., config: ...) '
-      '可实验性地为它们配置独立适配；同时记得在 View 子树外手包 ScreenSizeAdapterScope，'
-      '保证 MediaQuery 也按对应的 scale 报告尺寸。完整宿主验证清单：'
-      'tool/verification/desktop_multi_view.md。',
+      'This panel only checks the experimental registry, does not create secondary FlutterViews, and is not a substitute for real host verification. '
+      'In scenarios like desktop multi-window, runWidget + View, ViewAnchor, Add-to-App, etc., '
+      'calling binding.attachView(view: ..., config: ...) for each non-primary view '
+      'can experimentally configure independent scaling; also remember to wrap a ScreenSizeAdapterScope outside the View subtree '
+      'to ensure MediaQuery reports dimensions using the corresponding scale. Full host verification checklist: '
+      'tool/verification/desktop_multi_view.md.',
       style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5),
     );
   }
