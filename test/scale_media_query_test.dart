@@ -20,6 +20,18 @@ void main() {
       expect(identical(scaleMediaQueryData(baseData, 1.0), baseData), isTrue);
     });
 
+    test('native context menus are only supported at identity scale', () {
+      final native = baseData.copyWith(supportsShowingSystemContextMenu: true);
+      for (final scale in [0.75, 1.5]) {
+        expect(
+          scaleMediaQueryData(native, scale).supportsShowingSystemContextMenu,
+          isFalse,
+        );
+      }
+      expect(scaleMediaQueryData(native, 1.0), same(native));
+      expect(native.supportsShowingSystemContextMenu, isTrue);
+    });
+
     test('size is divided by scale', () {
       final scaled = scaleMediaQueryData(baseData, 2.0);
       expect(scaled.size, const Size(360, 690));

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'config.dart';
+import 'internal/adapter_metrics.dart';
 import 'internal/config_validation.dart';
 import 'screen_size_widget_flutter_binding.dart';
 
@@ -84,11 +85,15 @@ class ScreenSizeAdapter {
   /// or if the active [WidgetsBinding] is not a
   /// [ScreenSizeWidgetsFlutterBinding] (e.g. inside `testWidgets`, which
   /// uses `AutomatedTestWidgetsFlutterBinding`). Read-only — safe in any
-  /// binding.
+  /// binding. Inside ScreenSizeAdapterScope, subscribes to scale changes.
   static double scaleOf(BuildContext context) {
     final binding = WidgetsBinding.instance;
     if (binding is! ScreenSizeWidgetsFlutterBinding) return 1.0;
-    return binding.scaleForView(View.of(context)) ?? 1.0;
+    final view = View.of(context);
+    // Subscribe to rebuilds without reading a snapshot from the previous
+    // frame: runtime configuration updates recompute the binding immediately.
+    AdapterMetrics.maybeOf(context, view.viewId);
+    return binding.scaleForView(view) ?? 1.0;
   }
 
   /// Returns the [FlutterView]'s **unscaled** logical size — i.e.
@@ -102,9 +107,15 @@ class ScreenSizeAdapter {
   /// make neither dimension align. Native device classification must therefore
   /// use the unscaled logical size returned by this method.
   ///
+  /// Subscribes to the production scope's native metrics. Outside that scope,
+  /// subscribes to the enclosing MediaQuery as the view-change signal while
+  /// reading the actual FlutterView size (not its adapted MediaQuery size).
   /// Read-only — safe in any binding, including `testWidgets`.
   static Size originSizeOf(BuildContext context) {
     final view = View.of(context);
+    if (AdapterMetrics.maybeOf(context, view.viewId) == null) {
+      MediaQuery.maybeOf(context);
+    }
     return Size(
       view.physicalSize.width / view.devicePixelRatio,
       view.physicalSize.height / view.devicePixelRatio,

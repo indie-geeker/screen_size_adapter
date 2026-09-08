@@ -74,7 +74,8 @@ class ScaleBoundsControls extends StatelessWidget {
     settings.setScaleBounds(minScale: null, maxScale: null);
   }
 
-  static String _bound(double? value) => value?.toStringAsFixed(2) ?? 'Unlimited';
+  static String _bound(double? value) =>
+      value?.toStringAsFixed(2) ?? 'Unlimited';
 }
 
 /// 一组按钮，运行时调 [ScreenSizeAdapter.setDesignSize] 切设计稿。
@@ -91,7 +92,8 @@ class DesignSizeButtons extends StatelessWidget {
     }
     return SectionCard(
       title: 'Runtime Design Size Preset',
-      subtitle: 'Current: ${_fmt(settings.designSize)} — recalculates scale immediately',
+      subtitle:
+          'Current: ${_fmt(settings.designSize)} — recalculates scale immediately',
       accent: Colors.amber,
       child: Wrap(
         spacing: 8,

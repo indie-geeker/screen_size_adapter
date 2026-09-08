@@ -46,11 +46,15 @@ import 'info_row.dart';
           ? 'ℹ scale limit active (raw ${rawScale.toStringAsFixed(3)} → '
               '${scale.toStringAsFixed(3)}), MQ axes not required to align with design size.'
           : switch (axis) {
-              ScaleAxis.width => 'ℹ width axis fits design size; height not required to align.',
-              ScaleAxis.height => 'ℹ height axis fits design size; width not required to align.',
-              ScaleAxis.shorter => 'ℹ shorter selects min scale; entire design fits viewport.',
-              ScaleAxis.longer => 'ℹ longer selects max scale; at least one axis fits.',
-            };
+            ScaleAxis.width =>
+              'ℹ width axis fits design size; height not required to align.',
+            ScaleAxis.height =>
+              'ℹ height axis fits design size; width not required to align.',
+            ScaleAxis.shorter =>
+              'ℹ shorter selects min scale; entire design fits viewport.',
+            ScaleAxis.longer =>
+              'ℹ longer selects max scale; at least one axis fits.',
+          };
 
   return (matched: matched, message: message, fitMessage: fitMessage);
 }
@@ -127,7 +131,8 @@ class DebugPanel extends StatelessWidget {
     );
   }
 
-  static String _bound(double? value) => value?.toStringAsFixed(2) ?? 'Unlimited';
+  static String _bound(double? value) =>
+      value?.toStringAsFixed(2) ?? 'Unlimited';
 }
 
 class _PanelHeader extends StatelessWidget {

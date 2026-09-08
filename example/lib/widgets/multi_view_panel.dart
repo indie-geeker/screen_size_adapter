@@ -48,7 +48,8 @@ class _MultiViewPanelState extends State<MultiViewPanel>
 
     return SectionCard(
       title: 'Experimental View Registry Checker',
-      subtitle: 'Checks registry only; secondary view integration must be verified on a real host',
+      subtitle:
+          'Checks registry only; secondary view integration must be verified on a real host',
       accent: Colors.blueGrey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +112,10 @@ class _ViewRow extends StatelessWidget {
                     : '${config.designSize.width.toInt()}×'
                         '${config.designSize.height.toInt()}',
           ),
-          InfoRow(label: 'Current scale', value: scale?.toStringAsFixed(3) ?? '—'),
+          InfoRow(
+            label: 'Current scale',
+            value: scale?.toStringAsFixed(3) ?? '—',
+          ),
           InfoRow(label: 'scaleAxis', value: config?.scaleAxis.name ?? '—'),
         ],
       ),

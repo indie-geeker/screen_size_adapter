@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import 'internal/adapter_metrics.dart';
 import 'internal/scale_media_query.dart';
 import 'screen_size_widget_flutter_binding.dart';
 
@@ -49,6 +50,9 @@ import 'screen_size_widget_flutter_binding.dart';
 /// scale of `1.0` receive the parent data unchanged; retaining the wrapper
 /// prevents application state from being recreated when runtime updates cross
 /// the identity-scale boundary.
+/// Repeating this scope inside the same view is idempotent. A nested scope
+/// preserves intervening MediaQuery overrides instead of scaling them again.
+/// A different FlutterView still owns its own independent adaptation.
 class ScreenSizeAdapterScope extends StatefulWidget {
   /// Subtree to which the scaled [MediaQuery] applies.
   final Widget child;
@@ -61,6 +65,37 @@ class ScreenSizeAdapterScope extends StatefulWidget {
 
 class _ScreenSizeAdapterScopeState extends State<ScreenSizeAdapterScope>
     with WidgetsBindingObserver {
+  (int, Size, double)? _lastMetrics;
+  bool _selectionRefreshScheduled = false;
+
+  void _refreshSelectionAfterLayout() {
+    if (_selectionRefreshScheduled) return;
+    _selectionRefreshScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _selectionRefreshScheduled = false;
+      if (!mounted) return;
+      final focusContext = FocusManager.instance.primaryFocus?.context;
+      if (focusContext == null || !focusContext.mounted) return;
+
+      // The binding can serve several views. Only touch a focused editor
+      // owned by this scope; nested same-view scopes remain pass-through.
+      if (View.maybeOf(focusContext) != View.maybeOf(context)) return;
+      var ownsFocus = false;
+      focusContext.visitAncestorElements((element) {
+        ownsFocus = identical(element, context);
+        return !ownsFocus;
+      });
+      if (!ownsFocus) return;
+      final editable =
+          focusContext.findAncestorStateOfType<EditableTextState>();
+      // Flutter can retain stale toolbar anchors when TextEditingValue stays
+      // unchanged. Its geometry refresh is only exposed through a testing
+      // getter, so dismiss the stale toolbar through the supported API.
+      // Keep the handles, selection and focus; reopening computes new anchors.
+      editable?.hideToolbar(false);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -94,10 +129,25 @@ class _ScreenSizeAdapterScopeState extends State<ScreenSizeAdapterScope>
     final view = View.maybeOf(context);
     if (view == null) return widget.child;
 
+    if (AdapterMetrics.maybeOf(context, view.viewId) != null) {
+      return widget.child;
+    }
+
     final scale = binding.scaleForView(view) ?? 1.0;
-    return MediaQuery(
-      data: scaleMediaQueryData(parent, scale),
-      child: widget.child,
+    final originSize = view.physicalSize / view.devicePixelRatio;
+    final metrics = (view.viewId, originSize, scale);
+    if (_lastMetrics != metrics) {
+      if (_lastMetrics != null) _refreshSelectionAfterLayout();
+      _lastMetrics = metrics;
+    }
+    return AdapterMetrics(
+      viewId: view.viewId,
+      originSize: originSize,
+      scale: scale,
+      child: MediaQuery(
+        data: scaleMediaQueryData(parent, scale),
+        child: widget.child,
+      ),
     );
   }
 }

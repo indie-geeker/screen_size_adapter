@@ -187,6 +187,131 @@ void main() {
     expect(captured!.devicePixelRatio, primary.devicePixelRatio);
   });
 
+  test('runtime metric reads see updates before the next frame', () async {
+    final primary = binding.platformDispatcher.views.first;
+    final origin = primary.physicalSize / primary.devicePixelRatio;
+    binding.attachView(
+      view: primary,
+      config: ScreenSizeAdapterConfig(
+        designSize: origin / 2,
+        enableDesktopScaling: true,
+      ),
+    );
+    late BuildContext context;
+    binding.attachRootWidget(
+      View(
+        view: primary,
+        child: ScreenSizeAdapterScope(
+          child: Builder(
+            builder: (ctx) {
+              context = ctx;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ),
+    );
+    binding.scheduleWarmUpFrame();
+    await Future<void>.delayed(Duration.zero);
+    expect(ScreenSizeAdapter.scaleOf(context), 2);
+
+    ScreenSizeAdapter.setDesignSize(context, origin / 3);
+    expect(binding.scaleForView(primary), 3);
+    expect(ScreenSizeAdapter.scaleOf(context), 3);
+    ScreenSizeAdapter.reset(context);
+    expect(ScreenSizeAdapter.scaleOf(context), 1);
+    binding.detachView(primary);
+    expect(ScreenSizeAdapter.scaleOf(context), 1);
+  });
+
+  test('scale-only reader reacts without a MediaQuery dependency', () async {
+    final primary = binding.platformDispatcher.views.first;
+    final origin = primary.physicalSize / primary.devicePixelRatio;
+    double? observed;
+    var builds = 0;
+    final reader = Builder(
+      builder: (context) {
+        builds++;
+        observed = ScreenSizeAdapter.scaleOf(context);
+        return const SizedBox.shrink();
+      },
+    );
+    binding.attachView(
+      view: primary,
+      config: ScreenSizeAdapterConfig(
+        designSize: origin / 2,
+        enableDesktopScaling: true,
+      ),
+    );
+    binding.attachRootWidget(
+      View(view: primary, child: ScreenSizeAdapterScope(child: reader)),
+    );
+    binding.scheduleWarmUpFrame();
+    await Future<void>.delayed(Duration.zero);
+    expect(observed, 2);
+    final before = builds;
+    binding.updateView(
+      view: primary,
+      config: ScreenSizeAdapterConfig(
+        designSize: origin / 3,
+        enableDesktopScaling: true,
+      ),
+    );
+    binding.scheduleWarmUpFrame();
+    await Future<void>.delayed(Duration.zero);
+    expect(observed, 3);
+    expect(builds, greaterThan(before));
+    binding.detachView(primary);
+    binding.scheduleWarmUpFrame();
+    await Future<void>.delayed(Duration.zero);
+    expect(observed, 1);
+  });
+
+  test(
+    'same-view nested scope scales once and preserves local MediaQuery overrides',
+    () async {
+      final primary = binding.platformDispatcher.views.first;
+      final origin = primary.physicalSize / primary.devicePixelRatio;
+      binding.attachView(
+        view: primary,
+        config: ScreenSizeAdapterConfig(
+          designSize: origin / 2,
+          enableDesktopScaling: true,
+        ),
+      );
+      MediaQueryData? captured;
+      binding.attachRootWidget(
+        View(
+          view: primary,
+          child: ScreenSizeAdapterScope(
+            child: Builder(
+              builder: (context) {
+                return MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(padding: const EdgeInsets.only(top: 7)),
+                  child: ScreenSizeAdapterScope(
+                    child: Builder(
+                      builder: (inner) {
+                        captured = MediaQuery.of(inner);
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      binding.scheduleWarmUpFrame();
+      await Future<void>.delayed(Duration.zero);
+      expect(captured!.size, origin / 2);
+      expect(captured!.devicePixelRatio, primary.devicePixelRatio * 2);
+      expect(captured!.padding.top, 7);
+    },
+  );
+
   test('transitioning to scale 1 preserves the child state', () async {
     final primary = binding.platformDispatcher.views.first;
     final originSize = Size(

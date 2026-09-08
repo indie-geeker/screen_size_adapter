@@ -89,7 +89,8 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
 
     return SectionCard(
       title: 'Adapter On/Off Twin (Same code, A/B test)',
-      subtitle: 'Left: Adapter scales viewport. Right: Mocking no adapter, native logical pixels.',
+      subtitle:
+          'Left: Adapter scales viewport. Right: Mocking no adapter, native logical pixels.',
       accent: Colors.indigo,
       child: LayoutBuilder(
         builder: (ctx, constraints) {
@@ -142,10 +143,10 @@ class _AdapterCompareDemoState extends State<AdapterCompareDemo>
               const SizedBox(height: 12),
               const Text(
                 'Same code (width: 280, height: 56) is rendered. '
-              'Left (adapted) preserves author design ratios; '
-              'Right (native mock) is sized by native logical pixels. '
-              'Changing ScaleAxis or designSize only shifts the left adapted viewport; '
-              'rotating or resizing affects both, but the right remains strictly native.',
+                'Left (adapted) preserves author design ratios; '
+                'Right (native mock) is sized by native logical pixels. '
+                'Changing ScaleAxis or designSize only shifts the left adapted viewport; '
+                'rotating or resizing affects both, but the right remains strictly native.',
                 style: TextStyle(
                   fontSize: 11,
                   color: Colors.black54,

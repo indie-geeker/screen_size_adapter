@@ -16,7 +16,8 @@ class ScaleAxisPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return SectionCard(
       title: 'ScaleAxis (Core choice)',
-      subtitle: 'Different axes have different trade-offs — see width validation below',
+      subtitle:
+          'Different axes have different trade-offs — see width validation below',
       accent: Colors.deepPurple,
       child: Wrap(
         spacing: 8,
@@ -81,7 +82,8 @@ class _AxisChip extends StatelessWidget {
   static String _tooltip(ScaleAxis axis) => switch (axis) {
     ScaleAxis.width => 'Without min/max limits: MQ.width = design.width',
     ScaleAxis.height => 'Without min/max limits: MQ.height = design.height',
-    ScaleAxis.shorter => 'Takes min scale; design always fits, but dimensions vary',
+    ScaleAxis.shorter =>
+      'Takes min scale; design always fits, but dimensions vary',
     ScaleAxis.longer => 'Takes max scale; fills viewport, but edges may crop',
   };
 }

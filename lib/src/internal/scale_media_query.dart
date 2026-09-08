@@ -19,6 +19,10 @@ MediaQueryData scaleMediaQueryData(MediaQueryData data, double scale) {
   return data.copyWith(
     size: data.size / scale,
     devicePixelRatio: data.devicePixelRatio * scale,
+    // Native menus consume FlutterView logical pixels, while EditableText
+    // supplies coordinates from the adapted RenderView. Use Flutter's menu
+    // in scaled views until that native coordinate boundary is supported.
+    supportsShowingSystemContextMenu: false,
     padding: data.padding / scale,
     viewPadding: data.viewPadding / scale,
     viewInsets: data.viewInsets / scale,

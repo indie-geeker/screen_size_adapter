@@ -233,6 +233,14 @@ void updateAdapter(BuildContext context) {
 
 `setDesignSize` and `reset` resolve the active view via `View.of(context)`, so they target the FlutterView that owns the calling widget. `reset` clears that view's `minScale` / `maxScale` and guarantees native `1.0` scaling.
 
+## Reactive metrics and repeated scopes
+
+Inside the production `ScreenSizeAdapterScope`, `scaleOf` and `originSizeOf` subscribe to per-view metric changes. `originSizeOf` continues to return native logical size even when the adapted MediaQuery size is unchanged. Outside that scope it uses the enclosing MediaQuery as the change signal; deliberately frozen MediaQuery data is not a live view subscription.
+
+When the view size or effective scale changes, the scope dismisses the focused editor's existing selection toolbar while preserving focus, text, and selection. Reopening the toolbar computes fresh anchors. At non-identity scales, the adapted MediaQuery disables `supportsShowingSystemContextMenu`, so standard iOS text fields use Flutter's adaptive menu; native-only actions can differ. At scale `1.0`, the parent's native-menu capability is preserved. Custom menus that bypass this capability check and other native input coordinate boundaries require separate validation.
+
+Repeating `ScreenSizeAdapterScope` within the same FlutterView is idempotent and preserves intervening MediaQuery overrides. A different FlutterView needs its own scope. This does not change the experimental secondary-view verification requirements.
+
 ## Integration limits
 
 - `ScreenSizeWidgetsFlutterBinding.ensureInitialized(...)` must run before `runApp` and before any code that initializes `WidgetsBinding`. This package works by installing a custom binding, so it cannot replace another binding after one is already active.

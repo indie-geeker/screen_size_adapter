@@ -36,7 +36,10 @@ void main() {
     expect(find.textContaining('native logic px'), findsWidgets);
     expect(find.textContaining('raw px'), findsNothing);
     expect(find.textContaining('设备真实像素'), findsNothing);
-    expect(find.textContaining('rotating or resizing affects both'), findsOneWidget);
+    expect(
+      find.textContaining('rotating or resizing affects both'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('native reset disables orientation auto swap', (tester) async {
@@ -82,7 +85,9 @@ void main() {
     await tester.pump();
 
     expect(
-      find.textContaining('Current MediaQuery reports: landscape → Target design size 640×360'),
+      find.textContaining(
+        'Current MediaQuery reports: landscape → Target design size 640×360',
+      ),
       findsOneWidget,
     );
     expect(settings.designSize, kLandscapeDesign);

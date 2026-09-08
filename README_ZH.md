@@ -233,6 +233,14 @@ void updateAdapter(BuildContext context) {
 
 `setDesignSize` 和 `reset` 通过 `View.of(context)` 解析当前激活的视图，因此能精确作用于调用方所在的 FlutterView。`reset` 会清空该视图的 `minScale` / `maxScale`，保证回到原生 `1.0` 比例。
 
+## 指标订阅与重复 Scope
+
+在生产 `ScreenSizeAdapterScope` 内，`scaleOf` 和 `originSizeOf` 会订阅所属视图的指标变化；即使适配后的 MediaQuery 尺寸不变，`originSizeOf` 仍能更新原生逻辑尺寸。Scope 外以父级 MediaQuery 作为变化信号；主动冻结 MediaQuery 的子树不能据此获得实时视图订阅。
+
+视口尺寸或有效缩放比例变化时，Scope 会收起当前焦点输入框已打开的选区菜单，保留焦点、文本和选区；重新打开菜单时使用新的位置。非 `1.0` 缩放下，适配后的 MediaQuery 将 `supportsShowingSystemContextMenu` 设为 `false`，使标准 iOS 输入框使用 Flutter 自带的适配菜单，部分原生专属操作可能有所不同。缩放为 `1.0` 时保留父级的原生菜单能力。绕过此能力判断的自定义菜单，以及其他原生输入坐标边界，仍需单独验证。
+
+同一 FlutterView 中重复挂载 `ScreenSizeAdapterScope` 不会重复缩放，并保留中间层的 MediaQuery 覆盖。不同 FlutterView 仍需要各自的 Scope；次视图的实验性验证边界不变。
+
 ## 集成限制
 
 - `ScreenSizeWidgetsFlutterBinding.ensureInitialized(...)` 必须在 `runApp` 前调用，并且要早于其它会初始化 `WidgetsBinding` 的代码。这个包通过自定义 binding 接管视图配置，不能在另一个 binding 已安装后再切换。

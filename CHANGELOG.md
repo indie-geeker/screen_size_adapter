@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- Dismiss stale focused-editor toolbars after view-size or scale changes, preserving focus and selection.
+- Use Flutter context menus in scaled views to avoid iOS native-menu coordinate mismatches; preserve native capability at identity scale.
+- Subscribe context metric reads to per-view snapshots and native MediaQuery updates.
+- Preserve immediate metric reads after runtime configuration or native size changes; snapshots only provide rebuild notifications.
+- Make repeated scopes within one FlutterView idempotent while preserving local MediaQuery overrides.
+- Give example section cards a Material surface so ListTile ink is not hidden by a decorated ancestor.
+
 ## [1.0.0] - 2026-07-15
 
 > **BREAKING:** This is the single public upgrade from pub.dev `0.2.0` to the
