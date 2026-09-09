@@ -6,7 +6,14 @@ Author Flutter pages in design units and scale the complete viewport uniformly f
 
 **2.0 is a development release with breaking API changes.** It uses a root rendering transform and the standard Flutter binding, native DPR and pointer dispatcher. Native text geometry and wheel-distance compatibility remain limited by the Flutter SDK; this refactor does not claim to fix them.
 
-This branch is not published yet. The example uses a local path dependency; external trials must also point to this source checkout.
+For prerelease testing, explicitly select the version you intend to evaluate. Once `2.0.0-dev.1` is available on pub.dev, add:
+
+```yaml
+dependencies:
+  screen_size_adapter: 2.0.0-dev.1
+```
+
+Before publication, use a local source checkout. The repository example uses a local path dependency. Version 1.0.0 uses the previous binding API; its setup differs from the 2.0 examples below.
 
 ## Quick start
 
@@ -101,7 +108,8 @@ class MetricsLabel extends StatelessWidget {
 ```
 <!-- /snippet:read-metrics -->
 
-- `ScreenSizeAdapter.of` / `ScreenSizeMetrics.of` subscribe to this View's metrics and throw outside an adapter; `maybeOf` returns null there.
+- `ScreenSizeAdapter.of` / `ScreenSizeMetrics.of` subscribe to this View's metrics and throw outside an adapter; `ScreenSizeMetrics.maybeOf` returns null there.
+- `config.designSize` is the reference design. `metrics.designSize` is the available layout size (`originSize / scale`), which can differ from that reference.
 - `scaleOf` and `originSizeOf` subscribe to changes; outside an adapter they return 1 and the native logical View size.
 - Layout constraints, MediaQuery size, safe areas, keyboard insets and display features use design units. Asset DPR is native DPR × scale. User text scaling and accessibility preferences are preserved.
 - View and RenderView DPR remain native. `localToGlobal` returns native logical coordinates. Verify each plugin / platform-view coordinate contract independently.
@@ -126,8 +134,11 @@ Toggle adapted / native mode on the same page. Open Settings to choose width, he
 | Mouse wheel | Stock ListView / NestedScrollView scroll, but their visible distance varies with scale and fails native-distance acceptance |
 | Windows multi-window | Configure one adapter per host-created View, with no global registry. Actual windows, cross-monitor DPI and IME still require host testing |
 | Other native behavior | Device IME, autofill, accessibility, platform views, performance and release builds need device acceptance; widget tests are insufficient |
+| Extreme scale bounds | Finite positive bounds can still overflow the derived layout or asset DPR. Use practical bounds; this prerelease does not yet reject every unrepresentable result |
 
-Package regression checks and SDK acceptance checks are separate. Acceptance retains the correct expected behavior rather than treating a reproduced failure as a pass:
+The wheel behavior is a compatibility gap in default scrolling widgets: raw pointer deltas do not automatically follow rendering transforms. Explicit menu builders and custom scroll positions can address some local cases, but this package does not provide a complete replacement for default text or scrolling widgets.
+
+Run the following commands from a source checkout. Package regression checks and SDK acceptance checks are separate; SDK test fixtures are excluded from the published package. Acceptance retains the correct expected behavior rather than treating a reproduced failure as a pass:
 
 ```sh
 flutter test
@@ -136,11 +147,11 @@ flutter test tool/verification/sdk_coordinate_acceptance_test.dart tool/verifica
 
 The second command still fails on the verified official 3.47.2 SDK. Green package CI alone is **not native release certification**. See [SDK acceptance](tool/verification/README.md) and [Windows multi-view verification](tool/verification/desktop_multi_view.md).
 
-## Migrate from the binding API
+## Migrate from 1.0.0
 
 | Previous usage | 2.0 replacement |
 | --- | --- |
-| `ScreenSizeWidgetsFlutterBinding.ensureInitialized(config: ...)` | Standard binding, with ScreenSizeAdapter outside the entire app |
+| `ScreenSizeWidgetsFlutterBinding.ensureInitialized(config)` | Standard binding, with ScreenSizeAdapter outside the entire app |
 | `ScreenSizeAdapterScope` | Remove; the root adapter owns metrics; same-View nesting is rejected |
 | `setDesignSize` / `reset` | Rebuild parent-owned config / enabled state |
 | `attachView` / `updateView` / `detachView` and registry APIs | Host owns View lifecycle; each View mounts its own configured adapter |

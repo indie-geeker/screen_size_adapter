@@ -13,12 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace the example with a single adapted/native comparison page: fixed geometry, text, counter, input and dialog, with draft/apply settings for four scale bases, three reference designs and fixed/follow-window design orientation.
 - Replace binding-specific tests with production-widget layout, hit-test, lifecycle, overlay and example tests. Retain separate failing SDK acceptance gates.
 - Native iOS text geometry, forced system-menu anchors and scale-independent wheel distance remain unresolved SDK compatibility gates. This development version is not a native-input fix or a Windows multi-window certification.
+- Clarify installation of the explicit prerelease, migration from the published 1.0.0 positional-config API, and the difference between reference design size and available layout metrics.
+- Known package limitation: extreme finite scale bounds can overflow derived layout dimensions or image DPR; result validation remains incomplete.
 
 ## [1.0.0] - 2026-07-15
 
-> **BREAKING:** This is the single public upgrade from pub.dev `0.2.0` to the
-> config-first, binding-level API. All unreleased work since `0.2.0` is
-> consolidated into this one public version.
+> **BREAKING:** This release uses the config-first, binding-level API.
+> The preceding version listed on pub.dev is `0.3.0`; older development notes
+> are retained below as historical context.
 
 ### Added
 - `ScreenSizeAdapterConfig` is the complete, per-view configuration object for
@@ -111,14 +113,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or `ScreenSizeTestViewport` when assertions also depend on adapted layout
   constraints; neither installs the production binding.
 
-## [0.2.0] - 2026-04-15
+## [0.3.0] - 2026-07-15
+
+- Published config-first, binding-level adaptation with per-view configuration
+  and design-unit layout.
+
+## 0.2.0 - 2026-04-15
 
 ### Changed
 - Improved the example app with runtime design-size controls and scale-bound
   information.
 - Raised the minimum Flutter requirement to `3.16.0` for `textScaler` support.
 
-## [0.1.0] - 2026-02-09
+## 0.1.0 - 2026-02-09
 
 ### Added
 - Added `ScreenSizeAdapterConfig` and `ScreenSizeTextScaleMode` for `.sp`
@@ -141,13 +148,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed test documentation that recommended an initialization path which throws
   at runtime.
 
-## [0.0.1] - 2025-11-13
+## 0.0.1 - 2025-11-13
 
 ### Added
 - Initial release with design-size screen adaptation, responsive extension
   methods, cross-platform support, and Chinese and English documentation.
 
-[1.0.0]: https://github.com/indie-geeker/screen_size_adapter/releases/tag/v1.0.0
-[0.2.0]: https://github.com/indie-geeker/screen_size_adapter/releases/tag/v0.2.0
-[0.1.0]: https://github.com/indie-geeker/screen_size_adapter/releases/tag/v0.1.0
-[0.0.1]: https://github.com/indie-geeker/screen_size_adapter/releases/tag/v0.0.1
+[1.0.0]: https://pub.dev/packages/screen_size_adapter/versions/1.0.0
+[0.3.0]: https://pub.dev/packages/screen_size_adapter/versions/0.3.0

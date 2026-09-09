@@ -6,7 +6,14 @@
 
 **2.0 开发版采用根视口方案，包含破坏性 API 变更。** 使用标准 Flutter binding，不修改原生 DPR、不替换指针分发。当前官方 SDK 在原生输入选区和滚轮距离上仍有兼容问题，见下方限制；本分支不是原生输入已经修复的发布承诺。
 
-当前分支尚未发布；example 已使用本地 path 依赖，外部试用也需指向这份源码。
+试用预发布版本时，请显式固定需要评估的版本。`2.0.0-dev.1` 发布到 pub.dev 后，可添加：
+
+```yaml
+dependencies:
+  screen_size_adapter: 2.0.0-dev.1
+```
+
+发布前可使用本地源码；仓库 example 使用本地 path 依赖。1.0.0 使用上一代 binding API，接入方式与下方 2.0 示例不同。
 
 ## 快速开始
 
@@ -101,7 +108,8 @@ class MetricsLabel extends StatelessWidget {
 ```
 <!-- /snippet:read-metrics -->
 
-- `ScreenSizeAdapter.of` / `ScreenSizeMetrics.of` 订阅本 View 的指标；适配器外调用会报错，`maybeOf` 则返回 null。
+- `ScreenSizeAdapter.of` / `ScreenSizeMetrics.of` 订阅本 View 的指标；适配器外调用会报错，`ScreenSizeMetrics.maybeOf` 则返回 null。
+- `config.designSize` 是参考设计稿；`metrics.designSize` 是实际可用布局尺寸（`originSize / scale`），两者可能不同。
 - `scaleOf`、`originSizeOf` 也会响应变化；适配器外分别返回 1 和原始 View 逻辑尺寸。
 - 子树的约束、`MediaQuery.size`、安全区、键盘 inset 和折叠屏区域使用设计单位；图片资源 DPR 为原生 DPR × 倍率，用户文字缩放和无障碍偏好保留。
 - `View.of(context).devicePixelRatio` 和 RenderView 保持原生值。`localToGlobal` 使用原生逻辑坐标，不再与设计单位混用。插件和 platform view 自有的坐标协议需要单独验证。
@@ -126,8 +134,11 @@ flutter run
 | 鼠标滚轮 | 标准 ListView / NestedScrollView 在缩放后可滚动，但可见距离会随倍率变化，未满足原生距离一致性验收 |
 | Windows 多窗口 | 每个宿主创建的 View 挂独立适配器；没有全局注册或共享配置。实际多窗口、跨屏 DPI、输入法仍需 Windows 宿主验收 |
 | 其他原生能力 | Android/iOS 真机输入法、自动填充、辅助功能、platform view、性能和发行构建需设备验收；Widget 测试不能替代它们 |
+| 极端倍率配置 | 有限正数上下限仍可能使派生布局尺寸或图片 DPR 溢出。请使用合理的业务倍率；此预发布版尚未完整拒绝无法表示的计算结果 |
 
-纯 Flutter 控件、布局和包自身的回归测试与 SDK 兼容验收分开运行。兼容门禁保留正确期望，不将“成功复现错误”当通过：
+滚轮行为属于默认滚动组件的兼容缺口：原始指针增量不会自动跟随渲染变换。显式菜单构建器或自定义滚动位置可以处理部分局部场景，但本包未提供默认文本或滚动组件的完整替代实现。
+
+以下命令应在源码仓库中运行，SDK 验收测试夹具不随 pub 包分发。包自身的回归测试与 SDK 兼容验收分开运行；兼容门禁保留正确期望，不将“成功复现错误”当通过：
 
 ```sh
 flutter test
@@ -136,11 +147,11 @@ flutter test tool/verification/sdk_coordinate_acceptance_test.dart tool/verifica
 
 第二条在已验证的官方 3.47.2 上仍会失败，因此**不能仅凭常规 CI 通过宣称所有原生能力可发布**。详见 [SDK 验收说明](tool/verification/README.md) 和 [Windows 多窗口清单](tool/verification/desktop_multi_view.md)。
 
-## 从 binding 版本迁移
+## 从 1.0.0 迁移
 
 | 旧 API / 用法 | 2.0 用法 |
 | --- | --- |
-| `ScreenSizeWidgetsFlutterBinding.ensureInitialized(config: ...)` | 删除，改为普通 binding；完整 App 外包 `ScreenSizeAdapter` |
+| `ScreenSizeWidgetsFlutterBinding.ensureInitialized(config)` | 删除，改为普通 binding；完整 App 外包 `ScreenSizeAdapter` |
 | `ScreenSizeAdapterScope` | 删除；指标由根适配器提供，不允许在同一 View 嵌套适配器 |
 | `setDesignSize` / `reset` | 父状态更新 `config` / `enabled` 后重建 |
 | `attachView` / `updateView` / `detachView` 等注册表 API | 由宿主管理 View 生命周期；每个 View 内独立配置适配器 |
