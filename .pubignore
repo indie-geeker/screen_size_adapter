@@ -25,19 +25,5 @@ example/.metadata
 pubspec.lock
 example/pubspec.lock
 
-# Local architecture experiments and evidence are not package runtime assets.
-tool/verification/evidence/
-tool/verification/framework-alternative/
-tool/verification/run_framework_probe.py
-tool/verification/layered_fixes_plan.md
-tool/verification/layered_fixes_report.md
-tool/verification/run_rtl_source_probe.py
-tool/verification/rtl_evolution_plan.md
-tool/verification/rtl_evolution_report.md
-tool/verification/engine_build_plan.md
-tool/verification/engine_build_report.md
-tool/verification/application_trial_plan.md
-tool/verification/application_trial_report.md
-tool/verification/example_migration_report.md
-tool/verification/minimum_sdk_plan.md
-tool/verification/minimum_sdk_report.md
+# Repository acceptance fixtures are not package runtime assets.
+tool/verification/*_test.dart

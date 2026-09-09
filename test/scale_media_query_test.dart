@@ -65,14 +65,14 @@ void main() {
       expect(scaled.systemGestureInsets.right, 8);
     });
 
-    test('gesture touch slop is divided by scale', () {
+    test('gesture touch slop stays in native global units', () {
       final data = baseData.copyWith(
         gestureSettings: const DeviceGestureSettings(touchSlop: 18),
       );
 
       final scaled = scaleMediaQueryData(data, 2.0);
 
-      expect(scaled.gestureSettings.touchSlop, 9);
+      expect(scaled.gestureSettings, same(data.gestureSettings));
     });
 
     test('display feature bounds are divided by scale', () {

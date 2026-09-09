@@ -1,33 +1,16 @@
 # screen_size_adapter
 
-[![pub package](https://img.shields.io/pub/v/screen_size_adapter.svg)](https://pub.dev/packages/screen_size_adapter)
+[English](README.md) | 简体中文
 
-简体中文 | [English](README.md)
+以设计稿尺寸编写 Flutter 页面，通过根视口等比缩放，让尺寸、文字和布局一起适应移动端窗口。
 
-Flutter 屏幕适配方案，在 binding 层完成缩放工作。你的应用代码直接使用设计稿单位 of 的纯数字；自定义 binding 会调整视图的 `devicePixelRatio`。标准 `runApp` 单视图链路稳定可用；宿主创建的同 engine 二级视图接入属于实验性（experimental）能力。
+**2.0 开发版采用根视口方案，包含破坏性 API 变更。** 使用标准 Flutter binding，不修改原生 DPR、不替换指针分发。当前官方 SDK 在原生输入选区和滚轮距离上仍有兼容问题，见下方限制；本分支不是原生输入已经修复的发布承诺。
 
-## 为什么要这样设计
-
-大部分适配方案在 `num` 上添加 `100.dp` / `14.sp` 类的扩展方法，读取全局单例。这让代码中每个数字字面量都耦合到全局可变状态，无法独立做单元测试，也无法根据调用方所在的 `BuildContext` 选择 view。
-
-`screen_size_adapter` 把缩放放到 binding 层。它通过重写 `WidgetsFlutterBinding.createViewConfigurationFor`，把 view 的有效 `devicePixelRatio` 乘以计算后的 scale。适配后的精确坐标契约是 `MediaQuery.size = originSize / scale`。未触发 clamp 时只有 `scaleAxis` 选中的轴与 `designSize` 对齐；`minScale` / `maxScale` 生效后，两个维度都可能不等于 `designSize`。代码仍可直接写 `Container(width: 100)` 这样的设计单位纯数字，无需扩展方法。
-
-## 平台与验证边界
-
-“稳定”描述的是集成契约，不等于每个平台都已有运行证据。`1.0.0` 的平台边界如下
-
-| 目标/路径 | 契约成熟度 | 当前 `1.0.0` 证据/状态 |
-| --- | --- | --- |
-| 标准 implicit-view `runApp` | 稳定集成边界 | package/contract 测试覆盖；具体运行证据见下列平台行 |
-| Android | 稳定路径，发布门禁 | debug 构建只是构建证据；发布前必须对准确的 release-candidate commit 做人工交互 smoke |
-| iOS | 稳定路径，发布门禁 | 远程 CI simulator 构建加发布前人工 smoke；构建不能替代交互验证 |
-| macOS | 稳定路径，本地已验证 | checked-in runner 的 packaged profile/release 首帧验证 |
-| Windows / Linux / Web | API 平台中立；`1.0.0` 运行未验证 | 没有 checked-in runner 或运行证据，因此不做 `1.0.0` 运行承诺 |
-| 同 engine 二级视图 | 实验性（experimental） | 真实 two-view host 是未来升级为 stable 的必要证据，不是 `1.0.0` 发布门禁 |
-
-主应用必须独占全局 `WidgetsBinding`：不能同时安装第二个自定义全局 binding。宿主创建的同 engine 二级视图还必须遵循后文的 experimental 注册与 scope 契约。
+当前分支尚未发布；example 已使用本地 path 依赖，外部试用也需指向这份源码。
 
 ## 快速开始
+
+Flutter 最低版本为 **3.29.2**，Dart 最低为 **3.7.2**。在应用依赖中添加 `screen_size_adapter`，再将完整 `MaterialApp` / `CupertinoApp` 放在适配器内部。每个 `FlutterView` 只放一个适配器；不要放在 `MaterialApp.builder`、页面、SafeArea 或局部容器内。
 
 <!-- snippet:quick-start -->
 ```dart
@@ -35,31 +18,11 @@ import 'package:flutter/material.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
-  );
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) => const MaterialApp(home: HomePage());
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Center(
-      child: Container(
-        width: 200,
-        height: 100,
-        padding: const EdgeInsets.all(16),
-        color: Colors.blue,
-        child: const Text('Hello', style: TextStyle(fontSize: 14)),
+  runApp(
+    const ScreenSizeAdapter(
+      config: ScreenSizeAdapterConfig(designSize: Size(375, 812)),
+      child: MaterialApp(
+        home: Scaffold(body: Center(child: SizedBox(width: 280, height: 64))),
       ),
     ),
   );
@@ -67,247 +30,154 @@ class HomePage extends StatelessWidget {
 ```
 <!-- /snippet:quick-start -->
 
-## 配置
+不需要自定义 binding。需要启动前初始化插件时，照常调用 `WidgetsFlutterBinding.ensureInitialized()`。
 
-<!-- snippet:configuration -->
-```dart
-void configureAdapter() {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    const ScreenSizeAdapterConfig(
-      designSize: Size(360, 690),
-      scaleAxis: ScaleAxis.width,
-      minScale: null,
-      maxScale: null,
-      enableDesktopScaling: false,
-    ),
-  );
-}
-```
-<!-- /snippet:configuration -->
+默认按宽度缩放。原始窗口宽 430，设计宽度 375 时，倍率为 430 / 375；代码中的宽 280 显示为约 321.1 个原生逻辑像素。X/Y 使用相同倍率，圆形保持圆形。设计尺寸用于计算倍率，**不会强制页面具有设计稿的宽高比**；可用布局尺寸始终为窗口原始逻辑尺寸除以倍率。
 
-`scaleAxis` 决定按哪个轴计算缩放系数：
+## 配置与动态切换
 
-- `width` — `scale = origin.width / design.width`。默认值。**横竖屏行为**：竖屏时 origin.width 是设备短边，横屏时是长边，scale 跟着变大；好处是 `MediaQuery.width` 在两个方向都等于 `designSize.width`（"两个 180 的矩形永远充满宽度"）。代价是横屏下纵向内容会按同一 scale 放大，超出屏幕高度的部分需要靠 `SingleChildScrollView` 等手段处理 —— 见 [横竖屏](#横竖屏) 章节。如果你需要"长边对长边"的语义，请用 `MediaQuery.orientationOf(context)` 选择设计稿，并在帧后确认 context 仍 mounted、方向仍是最新值且当前配置确实不同，再调用 `ScreenSizeAdapter.setDesignSize`。
-- `height` — `scale = origin.height / design.height`。镜像 `width`：让 `MediaQuery.height == designSize.height`，但 `width` 方向不再固定。
-- `shorter` — 取两个比值中的较小者。设计画布永远完整地塞进屏幕（不会有内容因 scale 过大而溢出），代价是宽度不再固定，**横竖屏下的 scale 不一致**。适合"必须保证设计稿全部可见"的场景（弹窗、全屏插画）。不适合"两个 180 永远充满宽度"。
-- `longer` — 取较大者。设计画布至少有一条边贴满屏幕，另一条边会溢出。配合 `maxScale` 用于裁切式布局。
+| 配置 | 行为 |
+| --- | --- |
+| `designSize` | 有限且大于零的设计参考宽高 |
+| `ScaleAxis.width`（默认） | 窗口宽 / 设计宽；旋转后仍然按宽计算 |
+| `ScaleAxis.height` | 窗口高 / 设计高 |
+| `ScaleAxis.shorter` | 两个比值取较小值，完整设计画布可以放下 |
+| `ScaleAxis.longer` | 两个比值取较大值；页面仍使用实际可用布局尺寸 |
+| `minScale` / `maxScale` | 正数倍率下限 / 上限，可留空 |
+| `enableDesktopScaling` | 默认 false，Windows/macOS/Linux 保持原生尺寸；example 显式开启用于对照 |
+| `enabled`（Widget 参数） | false 时恢复原生布局，倍率恒为 1，不受倍率上下限影响 |
 
-无论选择哪个轴，最终都遵循 `MediaQuery.size = originSize / scale`。未 clamp 时，`width` 只保证宽度对齐，`height` 只保证高度对齐，`shorter` / `longer` 只保证各自选中的比例关系。设置 `minScale` 或 `maxScale` 后，最终 scale 可能被截断，因此宽高都可能不等于 `designSize`。
-
-## 实验性二级视图接入（experimental）
-
-标准 `runApp` 的 implicit view 属于稳定支持范围。对于桌面多窗口、通过 `View` widget 嵌入的视图、Add-to-App 等同 engine 二级 `FlutterView` 场景，需要为每个宿主视图显式注册；这条接入路径目前是 experimental，不代表已完整验证或稳定支持多视图。
-
-本包管理宿主已经创建的 `FlutterView`，不会自行创建桌面窗口或二级 view。同一 engine 下的真实二级 view 行为必须在对应桌面/Add-to-App 宿主中按 [`tool/verification/desktop_multi_view.md`](tool/verification/desktop_multi_view.md) 验证；registry 单元测试不能替代该验证。
-
-<!-- snippet:multi-view-registry -->
-```dart
-void registerSecondaryView(FlutterView secondaryView) {
-  final binding = ScreenSizeWidgetsFlutterBinding.instance;
-  binding.attachView(
-    view: secondaryView,
-    config: const ScreenSizeAdapterConfig(
-      designSize: Size(800, 600),
-      scaleAxis: ScaleAxis.shorter,
-    ),
-  );
-
-  binding.updateView(
-    view: secondaryView,
-    config: const ScreenSizeAdapterConfig(
-      designSize: Size(1024, 768),
-      scaleAxis: ScaleAxis.shorter,
-    ),
-  );
-
-  binding.detachView(secondaryView);
-}
-```
-<!-- /snippet:multi-view-registry -->
-
-`ensureInitialized` 只自动注册 `PlatformDispatcher.implicitView`。如果宿主没有 implicit view，则不会猜测 `views.first`，每个宿主视图都必须显式调用 `attachView`。未注册的视图保持 Flutter 的原生行为，不做任何缩放。
-
-非主视图（`runWidget` 或 `ViewAnchor` 自行挂载的 `View(...)`）不会自动得到正确的 `MediaQuery` 缩放，需要手动包一层 `ScreenSizeAdapterScope`：
-
-<!-- snippet:multi-view-scope -->
-```dart
-Widget buildSecondaryView(FlutterView secondaryView) {
-  return View(
-    view: secondaryView,
-    child: const ScreenSizeAdapterScope(
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Text('Secondary view'),
-      ),
-    ),
-  );
-}
-```
-<!-- /snippet:multi-view-scope -->
-
-`runApp` 链路下的主视图由 binding 的 `wrapWithDefaultView` 自动注入，应用代码无需任何包装。
-
-## 横竖屏
-
-未触发 scale bounds 时，默认 `ScaleAxis.width` 让 `MediaQuery.width` 在横竖屏下都等于 `designSize.width`。设计稿写的 `Container(width: 180)` 在 360 设计宽度下占半屏。**代价**是横竖屏 scale 不一致，纵向内容可能溢出；可按产品需求选择以下方式：
-
-<!-- snippet:orientation -->
-```dart
-Future<void> lockPortraitAndRun() async {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
-  );
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-  runApp(const ExampleApp());
-}
-
-Widget buildScrollableContent() => const SingleChildScrollView(
-  child: Column(children: [Text('Scrollable content')]),
-);
-
-Widget buildOrientationAwareHome() => const OrientationAwareHome();
-
-class OrientationAwareHome extends StatelessWidget {
-  const OrientationAwareHome({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final orientation = MediaQuery.orientationOf(context);
-    final design =
-        orientation == Orientation.landscape
-            ? const Size(640, 360)
-            : const Size(360, 640);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context.mounted) return;
-      final liveOrientation = MediaQuery.orientationOf(context);
-      if (liveOrientation != orientation) return;
-
-      final binding = ScreenSizeWidgetsFlutterBinding.instance;
-      final view = View.of(context);
-      if (binding.configForView(view)?.designSize == design) return;
-      ScreenSizeAdapter.setDesignSize(context, design);
-    });
-
-    return const ExampleHome();
-  }
-}
-```
-<!-- /snippet:orientation -->
-
-如果你想要"设计画布永远完整可见"（不溢出，但宽度可能不到屏宽）而非"宽度永远等于 designSize.width"，改用 `ScaleAxis.shorter` —— 这两种是不同的 trade-off，根据应用类型选。
-
-## 响应式断点
-
-适配生效后，`MediaQuery.sizeOf(context)` 返回 `originSize / scale`，它描述的是适配坐标而不是设备原生逻辑尺寸，因此不能作为手机/平板断点。响应式判断请读取 `originSizeOf`：
-
-<!-- snippet:responsive-breakpoint -->
-```dart
-Widget responsiveLayout(BuildContext context) {
-  final origin = ScreenSizeAdapter.originSizeOf(context);
-  if (origin.shortestSide >= 600) {
-    return const TabletLayout();
-  }
-  return const PhoneLayout();
-}
-```
-<!-- /snippet:responsive-breakpoint -->
-
-`originSizeOf` 等价于 `view.physicalSize / view.devicePixelRatio`，**不**经过 binding 缩放。
-
-## 运行时更新
+父组件持有配置状态，通过重建同一个 `ScreenSizeAdapter` 修改配置或 `enabled`。子树结构在倍率跨越 1 时保持一致，导航、文本和焦点能够保留。不要通过更换 Key 或条件移除适配器来切换模式。
 
 <!-- snippet:runtime-updates -->
 ```dart
-void updateAdapter(BuildContext context) {
-  ScreenSizeAdapter.setDesignSize(context, const Size(414, 896));
-  ScreenSizeAdapter.reset(context);
-  final scale = ScreenSizeAdapter.scaleOf(context);
-  debugPrint('Current scale: $scale');
+class App extends StatefulWidget {
+  const App({super.key});
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  bool adapted = true;
+
+  @override
+  Widget build(BuildContext context) => ScreenSizeAdapter(
+    enabled: adapted,
+    config: const ScreenSizeAdapterConfig(designSize: Size(375, 812)),
+    child: MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Switch(
+            value: adapted,
+            onChanged: (value) => setState(() => adapted = value),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 ```
 <!-- /snippet:runtime-updates -->
 
-`setDesignSize` 和 `reset` 通过 `View.of(context)` 解析当前激活的视图，因此能精确作用于调用方所在的 FlutterView。`reset` 会清空该视图的 `minScale` / `maxScale`，保证回到原生 `1.0` 比例。
+`ScreenSizeAdapterConfig.copyWith` 可更新设计尺寸等字段；`clearMinScale` / `clearMaxScale` 用于清除上下限。也可通过纯函数 `ScreenSizeAdapter.computeScale` 独立计算倍率。
 
-## 指标订阅与重复 Scope
+## 尺寸与坐标
 
-在生产 `ScreenSizeAdapterScope` 内，`scaleOf` 和 `originSizeOf` 会订阅所属视图的指标变化；即使适配后的 MediaQuery 尺寸不变，`originSizeOf` 仍能更新原生逻辑尺寸。Scope 外以父级 MediaQuery 作为变化信号；主动冻结 MediaQuery 的子树不能据此获得实时视图订阅。
-
-视口尺寸或有效缩放比例变化时，Scope 会收起当前焦点输入框已打开的选区菜单，保留焦点、文本和选区；重新打开菜单时使用新的位置。非 `1.0` 缩放下，适配后的 MediaQuery 将 `supportsShowingSystemContextMenu` 设为 `false`，使标准 iOS 输入框使用 Flutter 自带的适配菜单，部分原生专属操作可能有所不同。缩放为 `1.0` 时保留父级的原生菜单能力。绕过此能力判断的自定义菜单，以及其他原生输入坐标边界，仍需单独验证。
-
-同一 FlutterView 中重复挂载 `ScreenSizeAdapterScope` 不会重复缩放，并保留中间层的 MediaQuery 覆盖。不同 FlutterView 仍需要各自的 Scope；次视图的实验性验证边界不变。
-
-## 集成限制
-
-- `ScreenSizeWidgetsFlutterBinding.ensureInitialized(...)` 必须在 `runApp` 前调用，并且要早于其它会初始化 `WidgetsBinding` 的代码。这个包通过自定义 binding 接管视图配置，不能在另一个 binding 已安装后再切换。
-- 如果你的应用或测试框架已经使用其它自定义 `WidgetsBinding`，需要先评估谁负责 `createViewConfigurationFor` 和 pointer event 的处理；两个 binding 不能同时成为全局 binding。
-- `testWidgets` 使用 Flutter 自带测试 binding，不能安装生产 binding。`ScreenSizeTestEnvironment` 只模拟适配后的 `MediaQuery`；布局断言请显式使用 `ScreenSizeTestViewport`。
-- 非主 `FlutterView` 需要同时做两件事：调用 `ScreenSizeWidgetsFlutterBinding.instance.attachView(...)` 注册视图，并在该 `View` 子树外包 `ScreenSizeAdapterScope`。
-
-## 测试
-
-`ScreenSizeTestEnvironment` 是 MediaQuery-only 模拟，不会替换测试 binding 的根约束。`ScreenSizeTestViewport` 在其基础上为被包装子树提供与 `MediaQuery.size` 相同的紧约束，适合布局和 overlay 断言。两者都不会安装 `RenderView`、创建 engine-backed `FlutterView`、证明根 hit testing，也不会执行生产 pointer converter。
-
-<!-- snippet:widget-test-helper -->
+<!-- snippet:read-metrics -->
 ```dart
-import 'package:flutter/widgets.dart';
+class MetricsLabel extends StatelessWidget {
+  const MetricsLabel({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final metrics = ScreenSizeAdapter.of(context);
+    return Text(
+      'Window: ${metrics.originSize}, '
+      'layout: ${metrics.designSize}, scale: ${metrics.scale}',
+    );
+  }
+}
+```
+<!-- /snippet:read-metrics -->
+
+- `ScreenSizeAdapter.of` / `ScreenSizeMetrics.of` 订阅本 View 的指标；适配器外调用会报错，`maybeOf` 则返回 null。
+- `scaleOf`、`originSizeOf` 也会响应变化；适配器外分别返回 1 和原始 View 逻辑尺寸。
+- 子树的约束、`MediaQuery.size`、安全区、键盘 inset 和折叠屏区域使用设计单位；图片资源 DPR 为原生 DPR × 倍率，用户文字缩放和无障碍偏好保留。
+- `View.of(context).devicePixelRatio` 和 RenderView 保持原生值。`localToGlobal` 使用原生逻辑坐标，不再与设计单位混用。插件和 platform view 自有的坐标协议需要单独验证。
+- 普通触摸坐标由 Flutter 的渲染变换处理，手势阈值保持原生逻辑单位。不要再手动除以倍率。
+
+## 审查 example
+
+```sh
+cd example
+flutter pub get
+flutter run
+```
+
+同一页面切换“适配 / 未适配”，设置面板可选择按宽度、按高度、较小或较大比例，搭配三组参考设计稿与固定竖向、固定横向或跟随窗口；修改草稿后点击应用统一生效。固定色块、圆形和文字便于观察比例；计数、输入框、下拉菜单和弹窗用于检查交互。旋转设备或调整桌面窗口后重复切换；没有用两个模拟手机容器代替真实窗口。完整操作见 [example/README.md](example/README.md)。
+
+## SDK 限制与验证边界
+
+| 项目 | 当前边界 |
+| --- | --- |
+| iOS 原生 caret / selection | 官方 Flutter 3.47.2 的祖先缩放路径仍存在局部字形几何未完整变换的问题，RTL 还涉及引擎方向丢失；不是切换架构后就自动修复 |
+| 系统文字菜单 | 非 1 倍时沿用 Flutter 菜单策略；Flutter 工具栏与强制系统菜单共用的选区锚点也有坐标问题。该策略不能修复选区锚点或 UIKit 几何 |
+| 鼠标滚轮 | 标准 ListView / NestedScrollView 在缩放后可滚动，但可见距离会随倍率变化，未满足原生距离一致性验收 |
+| Windows 多窗口 | 每个宿主创建的 View 挂独立适配器；没有全局注册或共享配置。实际多窗口、跨屏 DPI、输入法仍需 Windows 宿主验收 |
+| 其他原生能力 | Android/iOS 真机输入法、自动填充、辅助功能、platform view、性能和发行构建需设备验收；Widget 测试不能替代它们 |
+
+纯 Flutter 控件、布局和包自身的回归测试与 SDK 兼容验收分开运行。兼容门禁保留正确期望，不将“成功复现错误”当通过：
+
+```sh
+flutter test
+flutter test tool/verification/sdk_coordinate_acceptance_test.dart tool/verification/sdk_framework_acceptance_test.dart
+```
+
+第二条在已验证的官方 3.47.2 上仍会失败，因此**不能仅凭常规 CI 通过宣称所有原生能力可发布**。详见 [SDK 验收说明](tool/verification/README.md) 和 [Windows 多窗口清单](tool/verification/desktop_multi_view.md)。
+
+## 从 binding 版本迁移
+
+| 旧 API / 用法 | 2.0 用法 |
+| --- | --- |
+| `ScreenSizeWidgetsFlutterBinding.ensureInitialized(config: ...)` | 删除，改为普通 binding；完整 App 外包 `ScreenSizeAdapter` |
+| `ScreenSizeAdapterScope` | 删除；指标由根适配器提供，不允许在同一 View 嵌套适配器 |
+| `setDesignSize` / `reset` | 父状态更新 `config` / `enabled` 后重建 |
+| `attachView` / `updateView` / `detachView` 等注册表 API | 由宿主管理 View 生命周期；每个 View 内独立配置适配器 |
+| `ScreenSizeTestEnvironment` / `ScreenSizeTestViewport` | 使用标准 `testWidgets` 和实际适配器 |
+| 将 global 坐标当作设计坐标 | 按原生逻辑坐标处理，必要时通过目标 RenderBox 转换 |
+
+新 Widget 可以直接用于标准 Widget 测试：
+
+<!-- snippet:widget-test -->
+```dart
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
-  testWidgets('layout in design units', (tester) async {
+  testWidgets('design layout uses the real test view', (tester) async {
+    tester.view.devicePixelRatio = 2;
+    tester.view.physicalSize = const Size(1500, 1624);
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      const ScreenSizeTestViewport(
-        config: ScreenSizeAdapterConfig(designSize: Size(360, 690)),
-        simulatedDeviceSize: Size(720, 1380),
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text('Hello'),
+      ScreenSizeAdapter(
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(375, 812),
+          enableDesktopScaling: true,
+        ),
+        child: Builder(
+          builder: (context) {
+            expect(ScreenSizeAdapter.scaleOf(context), 2);
+            expect(MediaQuery.sizeOf(context), const Size(375, 406));
+            return const SizedBox();
+          },
         ),
       ),
     );
-
-    expect(find.text('Hello'), findsOneWidget);
   });
 }
 ```
-<!-- /snippet:widget-test-helper -->
+<!-- /snippet:widget-test -->
 
-如需对缩放计算做纯单元测试，可直接调用 `ScreenSizeAdapter.computeScale(...)`：
-
-<!-- snippet:compute-scale-test -->
-```dart
-import 'package:flutter/widgets.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:screen_size_adapter/screen_size_adapter.dart';
-
-void main() {
-  test('scale on a 2x-wide device', () {
-    final scale = ScreenSizeAdapter.computeScale(
-      origin: const Size(720, 1280),
-      config: const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
-      isDesktop: false,
-    );
-
-    expect(scale, 2.0);
-  });
-}
-```
-<!-- /snippet:compute-scale-test -->
-
-## 环境要求
-
-- Flutter `>=3.29.2`
-- Dart `^3.7.2`
-
-## Security
-
-This package does not process network data or secrets. For security-sensitive reports, please use the repository maintainer contact path if one is listed.
-
-## License
-
-参见 `LICENSE`。
+[贡献与验证流程](CONTRIBUTING.md) · [变更记录](CHANGELOG.md) · [MIT License](LICENSE)

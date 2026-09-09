@@ -1,0 +1,28 @@
+name: SDK acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      flutter-version:
+        description: 'Candidate official Flutter version (for example 3.47.2)'
+        required: true
+        default: '3.47.2'
+
+permissions:
+  contents: read
+
+jobs:
+  framework:
+    name: Required framework behavior (known failures retained)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter-version }}
+      - run: flutter --version
+      - run: flutter pub get
+      - run: flutter test tool/verification/sdk_coordinate_acceptance_test.dart tool/verification/sdk_framework_acceptance_test.dart
+      # Passing these checks is necessary but insufficient: native engine and
+      # physical-device input acceptance must also pass before a stable release.

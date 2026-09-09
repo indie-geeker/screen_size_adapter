@@ -1,37 +1,39 @@
 # Contributing
 
-`screen_size_adapter` is a Flutter screen-size adaptation library. Keep changes
-small, tested, and focused on making app integration simpler and more stable.
+Use the standard Flutter binding and keep the root adapter scoped to its FlutterView. Do not reintroduce a global view registry, wire-protocol rewriting or hidden per-field compensation.
 
-## Local Checks
+## Package and example checks
 
-Run these before opening a PR:
+Run on Flutter 3.29.2 and the current stable SDK. Record the exact version used. When switching SDKs, run pub get again so package resolution matches the executable.
 
-```bash
+```sh
 flutter pub get
+dart format --output=none --set-exit-if-changed lib test tool example/lib example/test
 flutter analyze
+dart run tool/verify_readme_snippets.dart
+flutter test tool/snippets/widget_test.dart
 flutter test --coverage
 dart run tool/check_coverage.dart --minimum=85
-(cd example && flutter analyze)
-(cd example && flutter test)
+(cd example && flutter pub get && flutter analyze && flutter test)
 dart doc --dry-run
 flutter pub publish --dry-run
 ```
 
-## Pull Requests
+README Dart snippets have canonical analyzed fixtures in `tool/snippets`. Update both languages and the fixture together. Tests should verify visible geometry and real behavior, including input state through scale changes, rather than literal implementation text.
 
-- Explain the user-visible behavior change.
-- Add or update tests for behavior changes.
-- Update `README.md`, `README_ZH.md`, or `CHANGELOG.md` when public APIs,
-  integration steps, defaults, or migration notes change.
-- Keep generated or local-tooling files out of the pub package.
+## Native and release acceptance
 
-## Release Checklist
+Run the [SDK acceptance checks](tool/verification/README.md), then verify the example on actual target devices. Package CI is a regression gate, not proof of UIKit, Android IME, Windows multi-window or accessibility correctness.
 
-- `flutter analyze` reports no issues.
-- `flutter test --coverage` passes and package line coverage remains at least
-  85% according to `tool/check_coverage.dart`.
-- Example analyze and tests pass.
-- `dart doc --dry-run` reports no warnings.
-- `flutter pub publish --dry-run` reports no warnings and the package contents
-  do not include local agent/tooling files.
+```sh
+(cd example && flutter build ios --simulator)
+dart run tool/verify_example_startup.dart
+```
+
+The startup command builds and launches macOS profile and release executables. Neither this smoke test nor a simulator build proves physical-device behavior. The separate SDK acceptance workflow is manually runnable and deliberately fails while correct SDK behavior is absent; it must pass before claiming those capabilities in a stable release. Native acceptance is additionally required, because framework-only tests cannot prove engine input geometry.
+
+Current 2.0 is a development version. Do not publish a stable release claiming complete native input until the known gates and target-device matrix pass. Record SDK revision, platform, observed result and evidence; never weaken the expected geometry merely to make CI green.
+
+## Pull requests
+
+Describe the behavior change and validation, update public API/migration docs, and preserve unrelated work. Keep local experiments and evidence in ignored `docs/local/`; do not include them in the pub package.

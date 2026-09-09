@@ -1,72 +1,50 @@
-# screen_size_adapter example
+# 屏幕适配对照
 
-This example app demonstrates the package's production integration path:
+同一页面切换适配与未适配，直接观察固定尺寸和交互。标题、设置面板、菜单与弹窗都位于完整应用的根视口适配范围内。
 
-- installing `ScreenSizeWidgetsFlutterBinding` before `runApp`;
-- inspecting the core `MediaQuery.size * scale ~= originSize` invariant;
-- reading adapted design-unit values from `MediaQuery` while keeping the
-  unscaled origin size available for device classification;
-- switching `ScaleAxis` at runtime;
-- swapping portrait and landscape design sizes;
-- comparing adapter-on and adapter-off layout behavior;
-- inspecting the experimental registry used for host-created views;
-- applying/removing scale bounds and resetting the active view to native scale.
+## 运行
 
-The debug panel shows the design size, origin size, adapted `MediaQuery` size,
-effective scale, selected axis, and scale bounds together. Axis alignment is a
-fit-mode consequence, not the core invariant: when a min/max bound is active,
-neither adapted dimension has to equal the design size as long as
-`MediaQuery.size * scale ~= originSize` remains true.
-
-The adapter-on/off comparison isolates adapted design coordinates from native
-logical coordinates. Changing `ScaleAxis` or `designSize` changes only the
-adapted side. Rotating the device or resizing the host window changes both
-viewports; the adapter-off side continues to report the native logical size
-rather than freezing the old viewport.
-
-## Run
-
-```bash
-cd example
+```sh
+flutter pub get
 flutter run
+# 桌面审查也可以：flutter run -d macos / windows
 ```
 
-This checkout includes Android, iOS, and macOS runners. Desktop scaling is
-enabled so the behavior is visible in the checked-in macOS runner as well as on
-mobile devices. Windows and Linux runners are not included, so this example is
-not directly runnable on those platforms from this checkout. The package API
-itself remains platform-neutral, but that does not mean every platform has
-runtime evidence; the public README support table is authoritative.
+默认开启适配，按宽度计算倍率，使用 375 × 812 竖向设计稿。example 显式开启桌面缩放，库在桌面默认不缩放。macOS 和 Windows 初始窗口为 430 × 860，可自由调整；Windows runner 只提供标准单窗口入口，尚未在 Windows 主机编译或实测。
 
-## Test
+Apple runner 使用 iOS 15 / macOS 12 部署目标；库本身的 Flutter 最低版本仍为 3.29.2。
 
-```bash
-cd example
-flutter analyze
-flutter test
-```
+## 设置与计算
 
-The widget test uses the MediaQuery-only `ScreenSizeTestEnvironment`, because
-Flutter's `testWidgets` binding cannot install the production binding. Package
-tests separately use `ScreenSizeTestViewport` when tight adapted layout
-constraints are required; neither helper proves engine pointer conversion.
+点击右上角“设置”，修改草稿后点击“应用”。取消、返回或关闭面板会丢弃草稿。“恢复默认”只重置草稿，需要应用后生效；这些操作都不清空计数和文本。
 
-## Experimental secondary-view check
+| 设置 | 选项 |
+| --- | --- |
+| 缩放基准 | 按宽度、按高度、较小比例、较大比例 |
+| 参考设计稿 | 320 × 568、375 × 812、430 × 932 |
+| 设计稿方向 | 固定竖向、固定横向、跟随窗口 |
 
-The on-screen panel is an experimental registry inspector, not a second-view
-demo. Package
-tests cover per-view registry behavior with the real primary `FlutterView`, but
-Flutter's test binding does not create a second engine-backed view. Fake view
-objects would not prove framework or engine behavior.
+参考设计稿始终以短边 × 长边保存。固定横向交换宽高；跟随窗口只在原始窗口宽 > 高时交换，正方形按竖向处理。方向选项不改变设备方向，预设不模拟设备型号。
 
-Before graduating this experimental path, run the example on a desktop target
-or an Add-to-App host that creates a real secondary `FlutterView`, then confirm:
+设原始窗口为 W × H，有效设计稿为 Dw × Dh，倍率分别为 W/Dw、H/Dh、min(W/Dw, H/Dh) 或 max(W/Dw, H/Dh)。X/Y 始终使用同一倍率。布局尺寸是 W/s × H/s，设计稿不强制页面宽高比。
 
-- the secondary view is registered with `attachView(view: ..., config: ...)`;
-- `ScreenSizeAdapterScope` wraps the secondary `View` subtree;
-- the panel shows the expected config and scale for that view;
-- closing the secondary view calls `detachView`.
+未适配时倍率固定为 1，仍可保存设置，开启适配后才生效。面板显示应用后的设计稿与预计倍率，打开期间旋转或调整窗口也会更新预览。
 
-Use the full checklist in
-[`tool/verification/desktop_multi_view.md`](../tool/verification/desktop_multi_view.md)
-before making any experimental same-engine secondary-view claim.
+## 按顺序审查
+
+1. 比较“适配 / 未适配”。色块代码尺寸为 280 × 64，圆形直径为 64，样例字号为 16。适配后可见尺寸为原数值乘倍率；圆形不能拉伸成椭圆。窗口恰好与所选基准相等时，倍率为 1，两种模式看起来相同是正确的。
+2. 查看窗口、布局、倍率和计算过程。默认 430 × 860 窗口下，按宽度倍率约 1.147，色块约 321.1 × 73.4；按高度约 1.059，色块约 296.6 × 67.8。读数是计算参考，不代表自动验收。
+3. 固定设计稿后：按宽度时只改变高度，倍率应不变；按高度时只改变宽度，倍率应不变。较小/较大比例应分别测试两个候选比值的大小顺序发生变化。
+4. 旋转真实设备或调整窗口：固定方向的设计稿不变；跟随窗口才交换宽高。打开设置期间重复此操作，检查草稿预览更新，取消后仍保留原设置。
+5. 点击计数、输入文字，再切换模式和设置。内容应保留；修改草稿时页面不应提前应用，应用后应仍能重新打开设置。
+6. 打开下拉菜单与弹窗，检查选项可点击、弹窗居中且能关闭。在弹窗打开期间调整窗口，弹窗应保留。
+7. 放大系统文字、使用窄窗口和横向窗口、弹出键盘，检查滚动后内容和操作可达。固定样例区可横向滚动，色块与圆形不能被挤小。
+8. 长按选择文字、移动光标、试用实际输入法，桌面还需检查滚轮。当前 SDK 在这些路径有已知缺陷，记录设备、SDK、倍率与操作，不以 widget 测试通过代替原生验收。
+
+读数中的“逻辑像素”是缩放前窗口的逻辑单位，并非物理屏幕像素；测量截图还需乘设备原生 DPR。系统文字放大会叠加到页面倍率上，但不会改变色块和圆形尺寸。
+
+## 实现与证据边界
+
+`lib/comparison_app.dart` 管理适配开关和已保存设置；`comparison_settings.dart` 解析有效设计稿并调用包的倍率计算；`comparison_page.dart` 展示样例；`comparison_settings_sheet.dart` 管理设置草稿。没有第二套适配后端、逐控件尺寸补偿或全局状态管理器。
+
+`test/comparison_test.dart` 使用独立比例期望和实际渲染矩形验证四种基准、三种方向、三组设计稿、草稿提交/取消/重置、状态与路由保留、文字放大和键盘遮挡下的内容可达性。它不模拟原生输入法或 Windows 多窗口宿主。

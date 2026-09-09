@@ -5,14 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [2.0.0-dev.1] - Unreleased
 
-- Dismiss stale focused-editor toolbars after view-size or scale changes, preserving focus and selection.
-- Use Flutter context menus in scaled views to avoid iOS native-menu coordinate mismatches; preserve native capability at identity scale.
-- Subscribe context metric reads to per-view snapshots and native MediaQuery updates.
-- Preserve immediate metric reads after runtime configuration or native size changes; snapshots only provide rebuild notifications.
-- Make repeated scopes within one FlutterView idempotent while preserving local MediaQuery overrides.
-- Give example section cards a Material surface so ListTile ink is not hidden by a decorated ancestor.
+- **BREAKING:** Adopt a root viewport transform with standard Flutter bindings and native RenderView DPR. Remove the custom binding, per-view registry, controller, scope and test-environment APIs.
+- Expose `ScreenSizeAdapter(config, enabled, child)` and reactive `ScreenSizeMetrics`. Configure one adapter per host-created View, above the entire app; rebuild parent state for runtime changes.
+- Preserve child state through identity-scale transitions. Keep native gesture thresholds, while layout, insets and image density follow the design viewport.
+- Replace the example with a single adapted/native comparison page: fixed geometry, text, counter, input and dialog, with draft/apply settings for four scale bases, three reference designs and fixed/follow-window design orientation.
+- Replace binding-specific tests with production-widget layout, hit-test, lifecycle, overlay and example tests. Retain separate failing SDK acceptance gates.
+- Native iOS text geometry, forced system-menu anchors and scale-independent wheel distance remain unresolved SDK compatibility gates. This development version is not a native-input fix or a Windows multi-window certification.
 
 ## [1.0.0] - 2026-07-15
 

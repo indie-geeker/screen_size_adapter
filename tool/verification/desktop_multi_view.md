@@ -1,88 +1,22 @@
-# Desktop multi-view verification
+# Windows multi-view verification
 
-Use this checklist before making an experimental same-engine secondary-view
-support claim. The standard implicit-view `runApp` path is the stable support
-boundary.
-The package unit tests cover registry behavior with the real primary
-`FlutterView`, but `flutter_test` does not create a second engine-backed view.
-Do not treat fake `FlutterView` objects or raw view IDs as proof of desktop
-multi-view behavior.
+The adapter owns only a widget subtree. The host owns windows and FlutterViews. Each view mounts one `ScreenSizeAdapter` above its complete MaterialApp; configurations and inherited metrics remain local. There are no attach/update/detach registry calls.
 
-## Required host
+## Host setup
 
-Run a desktop or Add-to-App host that creates a second `FlutterView` in the
-same Flutter engine. Examples include:
+For a host that exposes multiple views in one engine, use ordinary `runWidget`, a ViewCollection and one `View(view: hostView, child: ScreenSizeAdapter(...))` per live host view. Explicit View mounting supplies native MediaQuery data. Rebuild the host collection when a view is added or removed, using stable view keys. Do not infer that `views.first` is an implicit primary view.
 
-- a Windows runner that creates an additional view controller through the
-  Windows embedder API;
-- a Linux runner that creates a secondary `FlView` for an existing engine;
-- a macOS/Add-to-App host that attaches another Flutter rendering view to the
-  existing engine.
+A plugin that starts a separate engine per window should initialize a standard binding and run an independently configured app in each engine. This is a different host model; evidence from it does not certify same-engine views. This package creates neither type of native window.
 
-Multi-window plugins that start a separate Flutter engine are useful smoke
-tests, but they do not validate this package's same-engine per-view registry.
+## Required checks
 
-## Dart wiring under test
+Use a real Windows host and record its implementation, Flutter SDK, OS and build mode. Widget tests or fake view IDs do not constitute acceptance.
 
-When the host exposes the secondary view, the Dart side must register and mount
-that specific view:
+- Open two windows with different configurations and log their actual view IDs, native DPR, native logical size, scale and design layout size.
+- Resize one window. Its metrics and content must update without changing the other window's configuration or metrics.
+- Move windows between monitors with different DPI; verify native RenderView DPR and layout update together without double scaling.
+- Check pointer hit positions, drag gestures, wheel distance, hover, menus, dialog placement and actual IME candidates in both windows.
+- Close/reopen a secondary window while an editor or popup is active. The host removes the View subtree; stale focus, overlays and rendering must not survive it.
+- Exercise disabled desktop scaling, enabled scaling and live configuration changes independently in both windows.
 
-```dart
-final binding = ScreenSizeWidgetsFlutterBinding.instance;
-// ignore: deprecated_member_use
-final implicitView = PlatformDispatcher.instance.implicitView;
-final secondaryView = PlatformDispatcher.instance.views
-    .firstWhere((view) => !identical(view, implicitView));
-
-binding.attachView(
-  view: secondaryView,
-  config: const ScreenSizeAdapterConfig(
-    designSize: Size(800, 600),
-    scaleAxis: ScaleAxis.shorter,
-    enableDesktopScaling: true,
-  ),
-);
-
-runWidget(
-  View(
-    view: secondaryView,
-    child: const ScreenSizeAdapterScope(
-      child: SecondaryViewApp(),
-    ),
-  ),
-);
-```
-
-If `implicitView` is `null`, there is no automatically registered primary
-view. The host must explicitly call `attachView` for every view it creates;
-never infer a primary view from `PlatformDispatcher.views.first`.
-
-## Pass criteria
-
-Record the Flutter version, operating system, and host implementation used.
-The release passes this check only when all items below are true:
-
-- `PlatformDispatcher.instance.views` reports both primary and secondary view
-  IDs.
-- The primary and secondary views can use different `ScreenSizeAdapterConfig`
-  values without affecting each other.
-- Inside the secondary view, `MediaQuery.sizeOf(context)` reflects the
-  secondary design size after scaling.
-- Inside the secondary view, `MediaQuery.devicePixelRatioOf(context)` equals
-  `secondaryView.devicePixelRatio * ScreenSizeAdapter.scaleOf(context)`.
-- Pointer input in the secondary view lands on the expected widget region after
-  scaling.
-- Resizing the secondary desktop window updates the secondary scale without
-  changing the primary view's config.
-- Closing the secondary window calls `detachView`, and subsequent registry
-  inspection returns `null` for `configForView(secondaryView)`.
-
-## Suggested evidence
-
-Capture one short note or screenshot per release with:
-
-- primary and secondary view IDs;
-- native logical size and configured design size for both views;
-- computed scale for both views;
-- pointer hit-test result in the secondary view;
-- detach/cleanup result after closing the secondary view.
+The current example intentionally stays a small single-window comparison. It is useful for resizing and input inspection, but it does not certify multi-window support. No Windows host validation has been completed for this refactor.

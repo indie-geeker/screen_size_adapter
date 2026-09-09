@@ -1,33 +1,16 @@
 # screen_size_adapter
 
-[![pub package](https://img.shields.io/pub/v/screen_size_adapter.svg)](https://pub.dev/packages/screen_size_adapter)
+English | [简体中文](README_ZH.md)
 
-[简体中文](README_ZH.md) | English
+Author Flutter pages in design units and scale the complete viewport uniformly for mobile windows.
 
-Binding-level screen-size adaptation for Flutter. Your app code writes plain numbers in design units and the custom binding adjusts the view's `devicePixelRatio`. The standard single-view `runApp` path is stable; same-engine secondary-view integration is experimental.
+**2.0 is a development release with breaking API changes.** It uses a root rendering transform and the standard Flutter binding, native DPR and pointer dispatcher. Native text geometry and wheel-distance compatibility remain limited by the Flutter SDK; this refactor does not claim to fix them.
 
-## Why this design
-
-Most adapter packages add `100.dp` / `14.sp` extensions on `num` that read a global singleton. That couples every numeric literal to mutable global state, cannot be unit-tested in isolation, and cannot select a view from the caller's `BuildContext`.
-
-`screen_size_adapter` performs scaling at the binding level by overriding `WidgetsFlutterBinding.createViewConfigurationFor` and multiplying the view's effective `devicePixelRatio` by the computed scale. The exact coordinate contract is `MediaQuery.size = originSize / scale`. Without clamping, only the axis selected by `scaleAxis` aligns with `designSize`; when `minScale` or `maxScale` applies, neither dimension may equal `designSize`. App code can still use plain design-unit values such as `Container(width: 100)` without extension methods.
-
-## Platform and verification boundary
-
-“Stable” describes the integration contract; it does not mean every platform already has runtime evidence. The `1.0.0` boundary is below. 
-
-| Target/path | Contract maturity | Current `1.0.0` evidence/status |
-| --- | --- | --- |
-| Standard implicit-view `runApp` | Stable integration boundary | Package and contract tests; see the platform rows for runtime evidence |
-| Android | Stable path, release-gated | A debug build is build evidence only; manual interaction smoke on the exact release-candidate commit is required before publication |
-| iOS | Stable path, release-gated | A remote CI simulator build plus a manual pre-publication smoke; a build does not replace interaction testing |
-| macOS | Stable path, locally verified | packaged profile/release first-frame checks for the checked-in runner |
-| Windows / Linux / Web | Platform-neutral API; runtime unverified for `1.0.0` | No checked-in runner or runtime evidence, so `1.0.0` makes no runtime claim |
-| Same-engine secondary views | Experimental | A real two-view host is required for future graduation to stable, but is not a `1.0.0` release gate |
-
-The application must have one global `WidgetsBinding`; a second custom global binding cannot be installed alongside this package's binding. Host-created same-engine secondary views must also follow the experimental registration and scope contract below.
+This branch is not published yet. The example uses a local path dependency; external trials must also point to this source checkout.
 
 ## Quick start
+
+Requires **Flutter 3.29.2+ / Dart 3.7.2+**. Add `screen_size_adapter` as a dependency, then wrap the complete MaterialApp or CupertinoApp once per FlutterView. Do not mount it inside MaterialApp.builder, a page, SafeArea or a partial container.
 
 <!-- snippet:quick-start -->
 ```dart
@@ -35,31 +18,11 @@ import 'package:flutter/material.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
-  );
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) => const MaterialApp(home: HomePage());
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Center(
-      child: Container(
-        width: 200,
-        height: 100,
-        padding: const EdgeInsets.all(16),
-        color: Colors.blue,
-        child: const Text('Hello', style: TextStyle(fontSize: 14)),
+  runApp(
+    const ScreenSizeAdapter(
+      config: ScreenSizeAdapterConfig(designSize: Size(375, 812)),
+      child: MaterialApp(
+        home: Scaffold(body: Center(child: SizedBox(width: 280, height: 64))),
       ),
     ),
   );
@@ -67,247 +30,154 @@ class HomePage extends StatelessWidget {
 ```
 <!-- /snippet:quick-start -->
 
-## Configuration
+Use ordinary `WidgetsFlutterBinding.ensureInitialized()` if startup plugins need it. No custom binding is required.
 
-<!-- snippet:configuration -->
-```dart
-void configureAdapter() {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    const ScreenSizeAdapterConfig(
-      designSize: Size(360, 690),
-      scaleAxis: ScaleAxis.width,
-      minScale: null,
-      maxScale: null,
-      enableDesktopScaling: false,
-    ),
-  );
-}
-```
-<!-- /snippet:configuration -->
+Width scaling is the default: a 430-wide native logical window with a 375-wide design uses scale 430 / 375. A 280-unit box displays at about 321.1 native logical pixels. Both axes use the same scale. The reference design size does **not** force a page aspect ratio: layout size is native window size divided by scale.
 
-`scaleAxis` controls which axis derives the scale factor:
+## Configuration and updates
 
-- `width` — `scale = origin.width / design.width`. Default. **Orientation behavior:** in portrait `origin.width` is the device's short side; in landscape it's the long side, so the scale grows. The benefit is `MediaQuery.width == designSize.width` in both orientations ("two 180-wide rectangles always fill the width"). The cost is that vertical content scales by the same factor in landscape, so it can overflow the now-compressed view height — see [Orientation](#orientation). If you need "long-side-to-long-side" semantics, choose the design size with `MediaQuery.orientationOf(context)`, then update after the frame only when the context is still mounted, the orientation is still current, and the active config actually differs.
-- `height` — `scale = origin.height / design.height`. Mirror of `width`: pins `MediaQuery.height` to `designSize.height` instead.
-- `shorter` — uses the smaller of the two ratios. The design canvas is always fully visible (no overflow), but the width is no longer pinned, **and the scale differs across orientations**. Suitable when "design must be fully visible" trumps "width consistency" (full-screen illustrations, modal dialogs). Not suitable for the "two 180s fill the width" contract.
-- `longer` — uses the larger ratio. At least one design edge fills the screen; the other overflows. Pairs with `maxScale` for crop-style layouts.
+| Option | Behavior |
+| --- | --- |
+| `designSize` | Positive finite reference width and height |
+| `ScaleAxis.width` (default) | Native width / design width, including after rotation |
+| `ScaleAxis.height` | Native height / design height |
+| `ScaleAxis.shorter` | Smaller ratio; fits the entire reference canvas |
+| `ScaleAxis.longer` | Larger ratio; layout still uses the available viewport |
+| `minScale` / `maxScale` | Optional positive lower / upper bounds |
+| `enableDesktopScaling` | Defaults to false on Windows/macOS/Linux; enabled explicitly in the example |
+| Widget `enabled` | false restores native layout at scale 1, bypassing scale bounds |
 
-Every axis follows `MediaQuery.size = originSize / scale`. Without clamping, `width` aligns only the width, `height` aligns only the height, and `shorter` / `longer` preserve their selected ratio relationship. When `minScale` or `maxScale` clamps the result, both dimensions may differ from `designSize`.
-
-## Experimental secondary-view integration
-
-The standard implicit view used by `runApp` is the stable support boundary. Desktop multi-window, embedded `View` widgets, and Add-to-App scenarios with same-engine secondary `FlutterView`s require explicit registration. That path is experimental; it is not fully verified or advertised as stable multi-view support.
-
-This package manages `FlutterView`s created by the host; it does not create desktop windows or secondary views. Validate a real same-engine secondary view in the relevant desktop or Add-to-App host using [`tool/verification/desktop_multi_view.md`](tool/verification/desktop_multi_view.md). Registry unit tests are not a substitute for that host-level check.
-
-<!-- snippet:multi-view-registry -->
-```dart
-void registerSecondaryView(FlutterView secondaryView) {
-  final binding = ScreenSizeWidgetsFlutterBinding.instance;
-  binding.attachView(
-    view: secondaryView,
-    config: const ScreenSizeAdapterConfig(
-      designSize: Size(800, 600),
-      scaleAxis: ScaleAxis.shorter,
-    ),
-  );
-
-  binding.updateView(
-    view: secondaryView,
-    config: const ScreenSizeAdapterConfig(
-      designSize: Size(1024, 768),
-      scaleAxis: ScaleAxis.shorter,
-    ),
-  );
-
-  binding.detachView(secondaryView);
-}
-```
-<!-- /snippet:multi-view-registry -->
-
-`ensureInitialized` automatically registers only `PlatformDispatcher.implicitView`. If the host has no implicit view, the package does not guess `views.first`; every host-created view must call `attachView` explicitly. Unregistered views fall through to stock Flutter behavior — no scaling.
-
-Non-primary views (those mounted via `runWidget` or `ViewAnchor`) do not get the auto-injected `MediaQuery` scaling. Wrap each subtree manually with `ScreenSizeAdapterScope`:
-
-<!-- snippet:multi-view-scope -->
-```dart
-Widget buildSecondaryView(FlutterView secondaryView) {
-  return View(
-    view: secondaryView,
-    child: const ScreenSizeAdapterScope(
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Text('Secondary view'),
-      ),
-    ),
-  );
-}
-```
-<!-- /snippet:multi-view-scope -->
-
-The implicit (primary) view used by `runApp` is wrapped automatically by the binding's `wrapWithDefaultView`, so app code needs no manual wrapping.
-
-## Orientation
-
-Without scale-bound clamping, the default `ScaleAxis.width` makes `MediaQuery.width` equal `designSize.width` in portrait and landscape. A `Container(width: 180)` on a 360-wide design then occupies half the width. The trade-off is a different scale across orientations and possible vertical overflow. Choose the product-appropriate mitigation:
-
-<!-- snippet:orientation -->
-```dart
-Future<void> lockPortraitAndRun() async {
-  ScreenSizeWidgetsFlutterBinding.ensureInitialized(
-    const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
-  );
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-  runApp(const ExampleApp());
-}
-
-Widget buildScrollableContent() => const SingleChildScrollView(
-  child: Column(children: [Text('Scrollable content')]),
-);
-
-Widget buildOrientationAwareHome() => const OrientationAwareHome();
-
-class OrientationAwareHome extends StatelessWidget {
-  const OrientationAwareHome({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final orientation = MediaQuery.orientationOf(context);
-    final design =
-        orientation == Orientation.landscape
-            ? const Size(640, 360)
-            : const Size(360, 640);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context.mounted) return;
-      final liveOrientation = MediaQuery.orientationOf(context);
-      if (liveOrientation != orientation) return;
-
-      final binding = ScreenSizeWidgetsFlutterBinding.instance;
-      final view = View.of(context);
-      if (binding.configForView(view)?.designSize == design) return;
-      ScreenSizeAdapter.setDesignSize(context, design);
-    });
-
-    return const ExampleHome();
-  }
-}
-```
-<!-- /snippet:orientation -->
-
-If your goal is "the entire design canvas must be visible" (no overflow, possibly with empty space) rather than "width always matches `designSize.width`", switch to `ScaleAxis.shorter` — these are different trade-offs, choose by app type.
-
-## Responsive breakpoints
-
-Once adaptation is active, `MediaQuery.sizeOf(context)` reports `originSize / scale`. It describes the adapted coordinate space, not the native logical device size, so breakpoint logic should read `originSizeOf` instead:
-
-<!-- snippet:responsive-breakpoint -->
-```dart
-Widget responsiveLayout(BuildContext context) {
-  final origin = ScreenSizeAdapter.originSizeOf(context);
-  if (origin.shortestSide >= 600) {
-    return const TabletLayout();
-  }
-  return const PhoneLayout();
-}
-```
-<!-- /snippet:responsive-breakpoint -->
-
-`originSizeOf` is equivalent to `view.physicalSize / view.devicePixelRatio` and is **not** scaled by the binding.
-
-## Runtime updates
+Own configuration in parent state and rebuild the same adapter. Its child topology stays mounted when crossing scale 1, retaining navigation, text and focus. Do not replace its Key or conditionally remove the adapter when toggling modes.
 
 <!-- snippet:runtime-updates -->
 ```dart
-void updateAdapter(BuildContext context) {
-  ScreenSizeAdapter.setDesignSize(context, const Size(414, 896));
-  ScreenSizeAdapter.reset(context);
-  final scale = ScreenSizeAdapter.scaleOf(context);
-  debugPrint('Current scale: $scale');
+class App extends StatefulWidget {
+  const App({super.key});
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  bool adapted = true;
+
+  @override
+  Widget build(BuildContext context) => ScreenSizeAdapter(
+    enabled: adapted,
+    config: const ScreenSizeAdapterConfig(designSize: Size(375, 812)),
+    child: MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Switch(
+            value: adapted,
+            onChanged: (value) => setState(() => adapted = value),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 ```
 <!-- /snippet:runtime-updates -->
 
-`setDesignSize` and `reset` resolve the active view via `View.of(context)`, so they target the FlutterView that owns the calling widget. `reset` clears that view's `minScale` / `maxScale` and guarantees native `1.0` scaling.
+Use `ScreenSizeAdapterConfig.copyWith` to update fields, with `clearMinScale` / `clearMaxScale` to remove bounds. `ScreenSizeAdapter.computeScale` is available as a pure calculation.
 
-## Reactive metrics and repeated scopes
+## Metrics and coordinates
 
-Inside the production `ScreenSizeAdapterScope`, `scaleOf` and `originSizeOf` subscribe to per-view metric changes. `originSizeOf` continues to return native logical size even when the adapted MediaQuery size is unchanged. Outside that scope it uses the enclosing MediaQuery as the change signal; deliberately frozen MediaQuery data is not a live view subscription.
-
-When the view size or effective scale changes, the scope dismisses the focused editor's existing selection toolbar while preserving focus, text, and selection. Reopening the toolbar computes fresh anchors. At non-identity scales, the adapted MediaQuery disables `supportsShowingSystemContextMenu`, so standard iOS text fields use Flutter's adaptive menu; native-only actions can differ. At scale `1.0`, the parent's native-menu capability is preserved. Custom menus that bypass this capability check and other native input coordinate boundaries require separate validation.
-
-Repeating `ScreenSizeAdapterScope` within the same FlutterView is idempotent and preserves intervening MediaQuery overrides. A different FlutterView needs its own scope. This does not change the experimental secondary-view verification requirements.
-
-## Integration limits
-
-- `ScreenSizeWidgetsFlutterBinding.ensureInitialized(...)` must run before `runApp` and before any code that initializes `WidgetsBinding`. This package works by installing a custom binding, so it cannot replace another binding after one is already active.
-- If your app or test harness already uses another custom `WidgetsBinding`, decide which binding owns `createViewConfigurationFor` and pointer-event handling. Two bindings cannot both be the global binding.
-- `testWidgets` uses Flutter's test binding, so it cannot install the production binding. `ScreenSizeTestEnvironment` simulates only the adapted `MediaQuery`; use `ScreenSizeTestViewport` explicitly for layout assertions.
-- Non-primary `FlutterView`s need both steps: register the view with `ScreenSizeWidgetsFlutterBinding.instance.attachView(...)`, and wrap that `View` subtree with `ScreenSizeAdapterScope`.
-
-## Testing
-
-`ScreenSizeTestEnvironment` is MediaQuery-only and does not replace the test binding's root constraints. `ScreenSizeTestViewport` additionally gives its wrapped subtree tight constraints equal to `MediaQuery.size`, which is useful for layout and overlay assertions. Neither helper installs a `RenderView`, creates an engine-backed `FlutterView`, proves root hit testing, or executes the production pointer converter.
-
-<!-- snippet:widget-test-helper -->
+<!-- snippet:read-metrics -->
 ```dart
-import 'package:flutter/widgets.dart';
+class MetricsLabel extends StatelessWidget {
+  const MetricsLabel({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final metrics = ScreenSizeAdapter.of(context);
+    return Text(
+      'Window: ${metrics.originSize}, '
+      'layout: ${metrics.designSize}, scale: ${metrics.scale}',
+    );
+  }
+}
+```
+<!-- /snippet:read-metrics -->
+
+- `ScreenSizeAdapter.of` / `ScreenSizeMetrics.of` subscribe to this View's metrics and throw outside an adapter; `maybeOf` returns null there.
+- `scaleOf` and `originSizeOf` subscribe to changes; outside an adapter they return 1 and the native logical View size.
+- Layout constraints, MediaQuery size, safe areas, keyboard insets and display features use design units. Asset DPR is native DPR × scale. User text scaling and accessibility preferences are preserved.
+- View and RenderView DPR remain native. `localToGlobal` returns native logical coordinates. Verify each plugin / platform-view coordinate contract independently.
+- Flutter's render transform handles ordinary touch coordinates. Gesture thresholds remain in native logical units; do not divide them by the adapter scale again.
+
+## Review the example
+
+```sh
+cd example
+flutter pub get
+flutter run
+```
+
+Toggle adapted / native mode on the same page. Open Settings to choose width, height, smaller-ratio or larger-ratio scaling; select a reference design and fixed portrait, fixed landscape or follow-window orientation. Changes apply together after confirmation. Compare a fixed box, circle and text; exercise the counter, input, dropdown and dialog. Rotate a device or resize the actual desktop window and repeat. See the [review checklist](example/README.md).
+
+## SDK limitations and evidence boundaries
+
+| Area | Current boundary |
+| --- | --- |
+| iOS native caret / selection | Official Flutter 3.47.2 still has incomplete local-glyph transforms under ancestor scaling, plus an engine direction issue affecting RTL |
+| System text menu | Non-identity scaling retains the Flutter-menu policy. Shared selection anchors affect Flutter toolbars and forced native menus; this policy fixes neither those anchors nor UIKit geometry |
+| Mouse wheel | Stock ListView / NestedScrollView scroll, but their visible distance varies with scale and fails native-distance acceptance |
+| Windows multi-window | Configure one adapter per host-created View, with no global registry. Actual windows, cross-monitor DPI and IME still require host testing |
+| Other native behavior | Device IME, autofill, accessibility, platform views, performance and release builds need device acceptance; widget tests are insufficient |
+
+Package regression checks and SDK acceptance checks are separate. Acceptance retains the correct expected behavior rather than treating a reproduced failure as a pass:
+
+```sh
+flutter test
+flutter test tool/verification/sdk_coordinate_acceptance_test.dart tool/verification/sdk_framework_acceptance_test.dart
+```
+
+The second command still fails on the verified official 3.47.2 SDK. Green package CI alone is **not native release certification**. See [SDK acceptance](tool/verification/README.md) and [Windows multi-view verification](tool/verification/desktop_multi_view.md).
+
+## Migrate from the binding API
+
+| Previous usage | 2.0 replacement |
+| --- | --- |
+| `ScreenSizeWidgetsFlutterBinding.ensureInitialized(config: ...)` | Standard binding, with ScreenSizeAdapter outside the entire app |
+| `ScreenSizeAdapterScope` | Remove; the root adapter owns metrics; same-View nesting is rejected |
+| `setDesignSize` / `reset` | Rebuild parent-owned config / enabled state |
+| `attachView` / `updateView` / `detachView` and registry APIs | Host owns View lifecycle; each View mounts its own configured adapter |
+| `ScreenSizeTestEnvironment` / `ScreenSizeTestViewport` | Standard testWidgets with the production adapter |
+| Treating global positions as design units | Use native logical coordinates and RenderBox conversion where needed |
+
+The production widget works directly with standard widget tests:
+
+<!-- snippet:widget-test -->
+```dart
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_size_adapter/screen_size_adapter.dart';
 
 void main() {
-  testWidgets('layout in design units', (tester) async {
+  testWidgets('design layout uses the real test view', (tester) async {
+    tester.view.devicePixelRatio = 2;
+    tester.view.physicalSize = const Size(1500, 1624);
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      const ScreenSizeTestViewport(
-        config: ScreenSizeAdapterConfig(designSize: Size(360, 690)),
-        simulatedDeviceSize: Size(720, 1380),
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text('Hello'),
+      ScreenSizeAdapter(
+        config: const ScreenSizeAdapterConfig(
+          designSize: Size(375, 812),
+          enableDesktopScaling: true,
+        ),
+        child: Builder(
+          builder: (context) {
+            expect(ScreenSizeAdapter.scaleOf(context), 2);
+            expect(MediaQuery.sizeOf(context), const Size(375, 406));
+            return const SizedBox();
+          },
         ),
       ),
     );
-
-    expect(find.text('Hello'), findsOneWidget);
   });
 }
 ```
-<!-- /snippet:widget-test-helper -->
+<!-- /snippet:widget-test -->
 
-For pure unit tests of the math, call `ScreenSizeAdapter.computeScale(...)` directly:
-
-<!-- snippet:compute-scale-test -->
-```dart
-import 'package:flutter/widgets.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:screen_size_adapter/screen_size_adapter.dart';
-
-void main() {
-  test('scale on a 2x-wide device', () {
-    final scale = ScreenSizeAdapter.computeScale(
-      origin: const Size(720, 1280),
-      config: const ScreenSizeAdapterConfig(designSize: Size(360, 690)),
-      isDesktop: false,
-    );
-
-    expect(scale, 2.0);
-  });
-}
-```
-<!-- /snippet:compute-scale-test -->
-
-## Requirements
-
-- Flutter `>=3.29.2`
-- Dart `^3.7.2`
-
-## Security
-
-This package does not process network data or secrets. For security-sensitive reports, please use the repository maintainer contact path if one is listed.
-
-## License
-
-See `LICENSE`.
+[Contributing and verification](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [MIT License](LICENSE)

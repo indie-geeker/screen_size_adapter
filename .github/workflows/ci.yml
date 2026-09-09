@@ -45,13 +45,19 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+        # Formatter comment spacing differs across Dart 3.7 and current Dart.
+        # Use current stable formatting; both SDKs still analyze and run tests.
+        if: matrix.release-gates == true
+        run: dart format --output=none --set-exit-if-changed lib test tool example/lib example/test
 
       - name: Analyze (package)
         run: flutter analyze
 
       - name: Verify README snippet fixtures
         run: dart run tool/verify_readme_snippets.dart
+
+      - name: Run public widget-test snippet
+        run: flutter test tool/snippets/widget_test.dart
 
       - name: Test and enforce package coverage
         run: |
@@ -82,6 +88,20 @@ jobs:
       - name: Validate pub package
         if: matrix.release-gates == true
         run: flutter pub publish --dry-run
+
+  windows-build:
+    name: Windows example build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter pub get
+        working-directory: example
+      - run: flutter build windows --release
+        working-directory: example
 
   macos-runtime:
     name: iOS migration and packaged macOS startup

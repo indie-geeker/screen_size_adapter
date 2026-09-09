@@ -2,18 +2,17 @@ import 'dart:ui' show Size;
 
 import 'internal/config_validation.dart';
 
-/// Which axis the binding uses to derive the scale factor.
+/// Which axis the adapter uses to derive the scale factor.
 enum ScaleAxis {
   /// scale = origin.width / design.width, applied unconditionally regardless
-  /// of orientation. Use `ScaleAxis.shorter` if you want aspect-safe sizing
-  /// across orientations.
+  /// of orientation. Use `ScaleAxis.shorter` to fit the whole reference canvas.
   width,
 
   /// scale = origin.height / design.height.
   height,
 
   /// scale = min(origin.w / design.w, origin.h / design.h).
-  /// Use this when you want aspect-safe sizing (circles stay circular).
+  /// Chooses the smaller width/height ratio. Every axis scales uniformly.
   shorter,
 
   /// scale = max(origin.w / design.w, origin.h / design.h).
@@ -23,10 +22,10 @@ enum ScaleAxis {
 /// Runtime configuration for [screen_size_adapter].
 class ScreenSizeAdapterConfig {
   /// Design canvas the app was authored against. Plain numbers in widget code
-  /// are interpreted in these units after the binding scales the view.
+  /// are interpreted in these units inside the root adapter.
   final Size designSize;
 
-  /// Which axis the binding uses to derive the scale. See [ScaleAxis].
+  /// Which axis the adapter uses to derive the scale. See [ScaleAxis].
   final ScaleAxis scaleAxis;
 
   /// Whether desktop platforms (Windows/macOS/Linux) apply scaling at all.
